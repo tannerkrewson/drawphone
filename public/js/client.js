@@ -4,29 +4,31 @@
  */
 
 $('#joinbtn').click(function() {
-  //hide the main menu
-  $('#mainmenu').addClass('hidden');
+  hideAll();
   //show the join game menu
   $('#joinmenu').removeClass('hidden');
 });
 
 $('#newbtn').click(function() {
-  //hide the main menu
-  $('#mainmenu').addClass('hidden');
-  //show the join game menu
+  hideAll();
+  //show the new game menu
   $('#newmenu').removeClass('hidden');
 });
 
 $('#joinmenu-back').click(function() {
-  //hide the join game menu
-  $('#joinmenu').addClass('hidden');
+  hideAll();
   //show the main menu
   $('#mainmenu').removeClass('hidden');
 });
 
 $('#newmenu-back').click(function() {
-  //hide the new game menu
-  $('#newmenu').addClass('hidden');
+  hideAll();
   //show the main menu
   $('#mainmenu').removeClass('hidden');
 });
+
+function hideAll() {
+  $('#mainmenu').addClass('hidden');
+  $('#joinmenu').addClass('hidden');
+  $('#newmenu').addClass('hidden');
+}

@@ -12,6 +12,11 @@ hr {
   height: 0;
 }
 
+input[type="text"] {
+    box-sizing: border-box;
+    height: 48px;
+}
+
 .container {
   position: relative;
   width: 80%;
@@ -29,3 +34,7 @@ hr {
   text-align: center;
   display: inline-block;
 }​
+
+.form-group {
+  text-align:center;
+}

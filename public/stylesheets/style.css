@@ -1,8 +1,31 @@
 body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  font-family: 'Slabo 27px', serif;
 }
 
 a {
   color: #00B7FF;
 }
+
+hr {
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+  height: 0;
+}
+
+.container {
+  position: relative;
+  width: 80%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.main-content {
+  margin: 25% auto 0 auto;
+  max-width: 500px;
+}
+
+.btn-toolbar{
+  text-align: center;
+  display: inline-block;
+}​

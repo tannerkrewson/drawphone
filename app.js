@@ -10,6 +10,9 @@ var app = express();
 var io = socketio();
 app.io = io;
 
+var Drawphone = require('./drawphone');
+app.drawphone = new Drawphone();
+
 require('./routes')(app);
 
 // view engine setup

@@ -33,6 +33,7 @@ var server = http.createServer(app);
  */
 
 server.listen(port);
+console.log('Drawphone is now running on port ' + port + '. Press Ctrl+C to stop.');
 server.on('error', onError);
 server.on('listening', onListening);
 

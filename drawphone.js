@@ -62,18 +62,19 @@ function Game(code, onEmpty) {
 }
 
 Game.prototype.addPlayer = function(name, socket) {
-  var id = this.getNextId();
-  this.players.push(new Player(name, socket, id));
+  var newPlayer = new Player(name, socket, this.getNextId());
+  this.players.push(newPlayer);
 
   this.sendUpdatedPlayersList();
 
   //when this player disconnects, remove them from this game
   var self = this;
   socket.on('disconnect', function() {
-    self.removePlayer(id);
+    self.removePlayer(newPlayer.id);
     self.sendUpdatedPlayersList();
   });
 
+  return newPlayer;
 }
 
 Game.prototype.removePlayer = function(id) {

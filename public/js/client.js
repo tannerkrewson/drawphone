@@ -70,6 +70,27 @@ $('#newmenu-go').click(function() {
 
 //  Lobby
 
+$('#lobby-leave').click(function() {
+  //refresh the page
+  location.reload();
+});
+
+$('#lobby-start').click(function() {
+  socket.emit('tryStartGame', {});
+});
+
+function showLobby(data) {
+  if (data.success) {
+    hideAll();
+    showElement('#lobby');
+    setTitle('Game Code: ' + data.game.code);
+    setSubtitle('Waiting for players...');
+    updatePlayerList(data.game.players);
+  } else {
+    alert(data.error);
+  }
+}
+
 function updatePlayerList(list) {
   var playerList = $('#lobby-players');
 
@@ -79,6 +100,16 @@ function updatePlayerList(list) {
     var listItem = $('<li>' + list[i].name + '</li>').appendTo(playerList);
     listItem.addClass('list-group-item');
   }
+}
+
+
+//  Game
+
+function showGame(data) {
+  hideAll();
+  showElement('#game');
+
+  setSubtitle('Game in progress');
 }
 
 
@@ -110,18 +141,8 @@ function setSubtitle(newSubtitle) {
 
 var socket = io();
 
-socket.on('joinGameRes', function (data) {
-  if (data.success) {
-    hideAll();
-    showElement('#lobby');
-    setTitle('Game Code: ' + data.game.code);
-    setSubtitle('Waiting for players...');
-    updatePlayerList(data.game.players);
-  } else {
-    alert(data.error);
-  }
-});
+socket.on('joinGameRes', showLobby);
 
-socket.on('updatePlayerList', function(data) {
-  updatePlayerList(data);
-});
+socket.on('updatePlayerList', updatePlayerList);
+
+socket.on('gameStart', showGame);

@@ -4,13 +4,16 @@ module.exports = function(app){
 
   app.io.on('connection', function(socket) {
 
+    var thisGame;
+    var thisUser;
+
     socket.on('joinGame', function (data) {
-      var game = dp.findGame(data.code);
-      if (game && data.name.length > 1) {
-        game.addPlayer(data.name, socket);
+      thisGame = dp.findGame(data.code);
+      if (thisGame && data.name.length > 1) {
+        thisUser = thisGame.addPlayer(data.name, socket);
         socket.emit('joinGameRes', {
           success: true,
-          game: game.getJsonGame()
+          game: thisGame.getJsonGame()
         })
       } else {
         socket.emit('joinGameRes', {
@@ -22,11 +25,11 @@ module.exports = function(app){
 
     socket.on('newGame', function(data) {
       if (data.name.length > 1) {
-        var game = dp.newGame();
-        game.addPlayer(data.name, socket);
+        thisGame = dp.newGame();
+        thisUser = thisGame.addPlayer(data.name, socket);
         socket.emit('joinGameRes', {
           success: true,
-          game: game.getJsonGame()
+          game: thisGame.getJsonGame()
         })
       } else {
         socket.emit('joinGameRes', {
@@ -34,6 +37,10 @@ module.exports = function(app){
           error: 'Failed to join game'
         })
       }
+    });
+
+    socket.on('tryStartGame', function(data) {
+      thisGame.sendToAll('gameStart', {});
     });
 
   })

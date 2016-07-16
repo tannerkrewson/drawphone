@@ -9,7 +9,12 @@ function Drawphone() {
 
 Drawphone.prototype.newGame = function() {
   var newCode = this.generateCode();
-  var newGame = new Game(newCode);
+
+  var self = this;
+  var newGame = new Game(newCode, function() {
+    //will be ran when this game has 0 players left
+    self.removeGame(newCode);
+  });
   this.games.push(newGame);
   return newGame;
 }
@@ -37,9 +42,19 @@ Drawphone.prototype.generateCode = function() {
   return code;
 }
 
+Drawphone.prototype.removeGame = function(code) {
+  var game = this.findGame(code);
 
-function Game(code) {
+  var index = this.games.indexOf(game);
+  if (index > -1) {
+      this.games.splice(index, 1);
+  }
+}
+
+
+function Game(code, onEmpty) {
   this.code = code;
+  this.onEmpty = onEmpty;
   this.players = [];
   this.inProgress = false;
 
@@ -67,6 +82,11 @@ Game.prototype.removePlayer = function(id) {
   var index = this.players.indexOf(player);
   if (index > -1) {
       this.players.splice(index, 1);
+  }
+
+  //if there are no players left
+  if (this.players.length === 0) {
+    this.onEmpty();
   }
 }
 

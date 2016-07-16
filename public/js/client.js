@@ -8,6 +8,11 @@ $( document ).ready(function() {
   window.history.pushState("Drawphone", "Drawphone", "/");
 });
 
+
+//
+//  UI
+//
+
 setTitle('Drawphone');
 setSubtitle('Telephone with pictures');
 
@@ -37,7 +42,10 @@ $('#joinmenu-go').click(function() {
   var name = $('#joininname').val();
 
   if (name.length > 1 && code.length === 4) {
-    window.location.replace('/' + code + '?name=' + name);
+    socket.emit('joinGame', {
+      code,
+      name
+    });
   }
 });
 
@@ -53,14 +61,34 @@ $('#newmenu-go').click(function() {
   var name = $('#newinname').val();
 
   if (name.length > 1) {
-    window.location.replace('/new?name=' + name);
+    socket.emit('newGame', {
+      name
+    });
   }
 });
+
+
+//  Lobby
+
+function updatePlayerList(list) {
+  var playerList = $('#lobby-players');
+
+  playerList.empty();
+
+  for (var i = 0; i < list.length; i++) {
+    var listItem = $('<li>' + list[i].name + '</li>').appendTo(playerList);
+    listItem.addClass('list-group-item');
+  }
+}
+
+
+//  UI Methods
 
 function hideAll() {
   $('#mainmenu').addClass('hidden');
   $('#joinmenu').addClass('hidden');
   $('#newmenu').addClass('hidden');
+  $('#lobby').addClass('hidden');
 }
 
 function showElement(jq) {
@@ -74,3 +102,26 @@ function setTitle(newTitle) {
 function setSubtitle(newSubtitle) {
   $('#subtitle').text(newSubtitle);
 }
+
+
+//
+//  Real-time Communication via Socket.IO
+//
+
+var socket = io();
+
+socket.on('joinGameRes', function (data) {
+  if (data.success) {
+    hideAll();
+    showElement('#lobby');
+    setTitle('Game Code: ' + data.game.code);
+    setSubtitle('Waiting for players...');
+    updatePlayerList(data.game.players);
+  } else {
+    alert(data.error);
+  }
+});
+
+socket.on('updatePlayerList', function(data) {
+  updatePlayerList(data);
+});

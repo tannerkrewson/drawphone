@@ -41,6 +41,13 @@ module.exports = function(app){
 
     socket.on('tryStartGame', function(data) {
       thisGame.sendToAll('gameStart', {});
+      thisGame.startNewRound();
+    });
+
+    socket.on('disconnect', function(data) {
+      if (thisGame && thisGame.inProgress) {
+        thisGame.currentRound.someoneLeft(thisUser.name);
+      }
     });
 
   })

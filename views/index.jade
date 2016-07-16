@@ -21,14 +21,14 @@ block content
             input#joininname.form-control(type='text', placeholder='Enter your name')
           .btn-toolbar
             button#joinmenu-back.btn.btn-default.btn-lg(type='button') Back
-            button#joinmenu-go.btn.btn-default.btn-lg(type='button') Join
+            button#joinmenu-go.btn.btn-default.btn-lg(type='submit') Join
       div#newmenu.hidden
         form
           .form-group
             input#newinname.form-control(type='text', placeholder='Enter your name')
           .btn-toolbar
             button#newmenu-back.btn.btn-default.btn-lg(type='button') Back
-            button#newmenu-go.btn.btn-default.btn-lg(type='button') Start
+            button#newmenu-go.btn.btn-default.btn-lg(type='submit') Start
   div#lobby.hidden
     div.row
       div.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2
@@ -38,4 +38,6 @@ block content
       button#lobby-leave.btn.btn-default.btn-lg(type='button') Leave Game
       button#lobby-start.btn.btn-default.btn-lg(type='button') Start Game
   div#game.hidden
-    |Game things go here
+    div#gametest
+    .btn-toolbar
+      button#game-send.btn.btn-default.btn-lg(type='button') Done

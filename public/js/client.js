@@ -8,35 +8,29 @@ $( document ).ready(function() {
   window.history.pushState("Drawphone", "Drawphone", "/");
 });
 
+setTitle('Drawphone');
+setSubtitle('Telephone with pictures');
+
+
+//  Main Menu
+
 $('#joinbtn').click(function() {
   hideAll();
-  //show the join game menu
-  $('#joinmenu').removeClass('hidden');
+  showElement('#joinmenu');
 });
 
 $('#newbtn').click(function() {
   hideAll();
-  //show the new game menu
-  $('#newmenu').removeClass('hidden');
+  showElement('#newmenu');
 });
+
+
+//  Join Game Menu
 
 $('#joinmenu-back').click(function() {
   hideAll();
-  //show the main menu
-  $('#mainmenu').removeClass('hidden');
+  showElement('#mainmenu');
 });
-
-$('#newmenu-back').click(function() {
-  hideAll();
-  //show the main menu
-  $('#mainmenu').removeClass('hidden');
-});
-
-function hideAll() {
-  $('#mainmenu').addClass('hidden');
-  $('#joinmenu').addClass('hidden');
-  $('#newmenu').addClass('hidden');
-}
 
 $('#joinmenu-go').click(function() {
   var code = $('#joinincode').val();
@@ -47,6 +41,14 @@ $('#joinmenu-go').click(function() {
   }
 });
 
+
+//  New Game Menu
+
+$('#newmenu-back').click(function() {
+  hideAll();
+  showElement('#mainmenu');
+});
+
 $('#newmenu-go').click(function() {
   var name = $('#newinname').val();
 
@@ -54,3 +56,21 @@ $('#newmenu-go').click(function() {
     window.location.replace('/new?name=' + name);
   }
 });
+
+function hideAll() {
+  $('#mainmenu').addClass('hidden');
+  $('#joinmenu').addClass('hidden');
+  $('#newmenu').addClass('hidden');
+}
+
+function showElement(jq) {
+  $(jq).removeClass('hidden');
+}
+
+function setTitle(newTitle) {
+  $('#title').text(newTitle);
+}
+
+function setSubtitle(newSubtitle) {
+  $('#subtitle').text(newSubtitle);
+}

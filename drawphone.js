@@ -1,5 +1,5 @@
 /*
- *  Drawphone Server
+ *  Drawphone Game Logic
  *  By Tanner Krewson
  */
 

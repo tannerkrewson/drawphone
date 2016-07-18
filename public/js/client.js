@@ -3,10 +3,17 @@
  *  By Tanner Krewson
  */
 
-//make the url look nice
-$( document ).ready(function() {
-  window.history.pushState("Drawphone", "Drawphone", "/");
-});
+var socket = io();
+
+var relativeUrl = window.location.pathname + window.location.search;
+
+if (relativeUrl === "/dev") {
+  socket.emit('joinGame', {
+    code: 'ffff',
+    name: Math.random().toString()
+  });
+}
+
 
 //prevent form submit
 $(function() {
@@ -163,6 +170,7 @@ function nextLink(data) {
     showElement('#game-drawing');
 
     //bind clear canvas to clear drawing button
+    $('#game-cleardrawing').off('click');
     $('#game-cleardrawing').click(function() {
       canvas.clear();
     });
@@ -190,6 +198,11 @@ function nextLink(data) {
       uploadCanvas(function(url) {
         newLink = url;
         send();
+      }, function(error) {
+        //reshow the canvas and allow the user to try again
+        showElement('#game-drawing');
+        showElement('#game-buttons');
+        setTitle('Upload failed, try again.');
       });
     } else if (newLinkType === 'word') {
       newLink = $('#game-word-in').val();
@@ -234,7 +247,7 @@ function hideLinkCreators() {
   $('#game-buttons').addClass('hidden');
 }
 
-function uploadCanvas(next) {
+function uploadCanvas(next, err) {
   // this code was copied from:
   // http://community.mybb.com/thread-150592.html
   // https://github.com/blueimp/JavaScript-Canvas-to-Blob#usage
@@ -251,7 +264,11 @@ function uploadCanvas(next) {
     console.log(res);
     next(url);
   }
-  xhr.send(formData);
+  try {
+    xhr.send(formData);
+  } catch (e) {
+    err(e);
+  }
 }
 
 
@@ -305,8 +322,6 @@ function oppositeLinkType(linkType) {
 //
 //  Real-time Communication via Socket.IO
 //
-
-var socket = io();
 
 socket.on('joinGameRes', showLobby);
 

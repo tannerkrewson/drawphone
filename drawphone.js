@@ -5,10 +5,19 @@
 
 function Drawphone() {
   this.games = [];
+
+  //add the dev game
+  this.newGame('ffff');
 }
 
-Drawphone.prototype.newGame = function() {
-  var newCode = this.generateCode();
+Drawphone.prototype.newGame = function(forceCode) {
+
+  var newCode;
+  if (forceCode) {
+    newCode = forceCode;
+  } else {
+    newCode = this.generateCode();
+  }
 
   var self = this;
   var newGame = new Game(newCode, function() {

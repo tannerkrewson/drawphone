@@ -13,6 +13,25 @@ $(function() {
     $("form").submit(function() { return false; });
 });
 
+//initialize sketch.js
+var canvas = new fabric.Canvas('game-drawing-canvas');
+canvas.isDrawingMode = true;
+
+window.addEventListener('resize', resizeCanvas, false);
+
+function resizeCanvas() {
+  var container = $('#game-drawing');
+  canvas.setHeight(container.width());
+  canvas.setWidth(container.width());
+  canvas.renderAll();
+}
+
+// resize on init
+resizeCanvas();
+
+//store game code globally
+var gameCode;
+
 
 //
 //  UI
@@ -88,7 +107,8 @@ function showLobby(data) {
   if (data.success) {
     hideAll();
     showElement('#lobby');
-    setTitle('Game Code: ' + data.game.code);
+    gameCode = data.game.code;
+    setTitle('Game Code: ' + gameCode);
     setSubtitle('Waiting for players...');
     updatePlayerList(data.game.players);
   } else {
@@ -118,44 +138,87 @@ function showGame(data) {
 }
 
 function nextLink(data) {
-  var lastLinkType = data.link.type;
+  var lastLink = data.link
+  var lastLinkType = lastLink.type;
+  var newLinkType = oppositeLinkType(lastLinkType);
   var doneButton = $("#game-send");
 
-  //figure out our name
-  var ourName = $('#joininname').val();
-  if (ourName === '') {
-    ourName = $('#newinname').val();
-  }
+  hideLinkCreators();
+  showElement('#game-buttons');
 
-  //temporary link maker
-  var newLinkData;
   if (lastLinkType === 'drawing') {
-    newLinkData = " word of "+ data.link.data;
-  } else {
-    newLinkData = " drawing of "+ data.link.data;
+    //show the word creator
+    showElement('#game-word');
+
+    //show the previous drawing
+    $('#game-word-drawingtoname').attr("src", lastLink.data);
+
+    setTitle('What is this a drawing of?');
+
+  } else if (lastLinkType === 'word'){
+    //clear the previous drawing
+    canvas.clear();
+
+    //show drawing creator
+    showElement('#game-drawing');
+
+    //bind clear canvas to clear drawing button
+    $('#game-cleardrawing').click(function() {
+      canvas.clear();
+    });
+
+    //show clear button
+    showElement('#game-cleardrawing');
+
+    //calculate size of canvas dynamically
+    resizeCanvas();
+
+    setTitle('Please draw: ' + lastLink.data);
   }
 
   //clear on click events from the Done button
   doneButton.off("click");
+
   doneButton.click(function() {
+    setTitle('Sending...');
+    //hide the drawing
+    hideLinkCreators();
+
     //send the server the link we have created
-    socket.emit('finishedLink', {
-      link: {
-        type: oppositeLinkType(lastLinkType),
-        data: ourName + "'s " + newLinkData
-      }
-    });
+    var newLink;
+    if (newLinkType === 'drawing') {
+      uploadCanvas(function(url) {
+        newLink = url;
+        send();
+      });
+    } else if (newLinkType === 'word') {
+      newLink = $('#game-word-in').val();
+      $('#game-word-in').val('')
+      send();
+    }
 
-    $('#gametest').text('Waiting for other users to finish...');
+    function send() {
+      socket.emit('finishedLink', {
+        link: {
+          type: newLinkType,
+          data: newLink
+        }
+      });
+      setTitle('Waiting for other players...');
+    }
   });
-
-  $('#gametest').html('Last Link:' + data.link.data + '<br> Link to send: Our ' + newLinkData);
-  console.log(data);
 }
 
 function roundOver(data) {
   hideAll();
-  showElement('#lobby');
+  setTitle();
+  setSubtitle();
+  showLobby({
+    success: true,
+    game: {
+      code: gameCode
+    }
+  });
   alert('The round is over!');
 }
 
@@ -163,6 +226,32 @@ function someoneLeft(data) {
   hideAll();
   showElement('#lobby');
   alert(data.name + ' disconnected.');
+}
+
+function hideLinkCreators() {
+  $('#game-drawing').addClass('hidden');
+  $('#game-word').addClass('hidden');
+  $('#game-buttons').addClass('hidden');
+}
+
+function uploadCanvas(next) {
+  // this code was copied from:
+  // http://community.mybb.com/thread-150592.html
+  // https://github.com/blueimp/JavaScript-Canvas-to-Blob#usage
+
+  var file = canvas.toDataURL('image/png');
+  var blob = window.dataURLtoBlob(file);
+  var formData = new FormData();
+  formData.append('upload', blob, 'drawing.png');
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", "http://uploads.im/api");
+  xhr.onload = function() {
+    var res = JSON.parse(xhr.responseText);
+    var url = res.data.img_url;
+    console.log(res);
+    next(url);
+  }
+  xhr.send(formData);
 }
 
 
@@ -174,6 +263,22 @@ function hideAll() {
   $('#newmenu').addClass('hidden');
   $('#lobby').addClass('hidden');
   $('#game').addClass('hidden');
+
+  $('#game-cleardrawing').addClass('hidden');
+}
+
+//for development purposes
+function showAll() {
+  $('#mainmenu').removeClass('hidden');
+  $('#joinmenu').removeClass('hidden');
+  $('#newmenu').removeClass('hidden');
+  $('#lobby').removeClass('hidden');
+  $('#game').removeClass('hidden');
+
+  $('#game-drawing').removeClass('hidden');
+  $('#game-word').removeClass('hidden');
+
+  resizeCanvas();
 }
 
 function showElement(jq) {

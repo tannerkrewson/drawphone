@@ -38,6 +38,13 @@ block content
       button#lobby-leave.btn.btn-default.btn-lg(type='button') Leave Game
       button#lobby-start.btn.btn-default.btn-lg(type='button') Start Game
   div#game.hidden
-    div#gametest
-    .btn-toolbar
+    div#game-drawing.hidden
+      canvas#game-drawing-canvas.drawing(width='600', height='600')
+    div#game-word.hidden
+      img#game-word-drawingtoname.drawing
+      input#game-word-in.form-control(type='text', placeholder='Enter your title here')
+    br
+    br
+    .btn-toolbar#game-buttons.hidden
+      button#game-cleardrawing.btn.btn-default.btn-lg.hidden(type='button') Clear
       button#game-send.btn.btn-default.btn-lg(type='button') Done

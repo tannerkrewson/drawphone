@@ -38,3 +38,11 @@ input[type="text"] {
 .form-group {
   text-align:center;
 }
+
+.drawing {
+  outline: 1px solid LightGrey;
+}
+
+#game-word-drawingtoname {
+  width: 100%;
+}

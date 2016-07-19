@@ -221,17 +221,19 @@ function nextLink(data) {
 }
 
 function roundOver(data) {
+  returnToLobby('The round is over!');
+}
+
+function someoneLeft(data) {
+  returnToLobby(data.name + ' disconnected.');
+}
+
+function returnToLobby(message) {
   hideAll();
   showElement('#lobby');
   setTitle('Game Code: ' + gameCode);
   setSubtitle('Waiting for players...');
-  alert('The round is over!');
-}
-
-function someoneLeft(data) {
-  hideAll();
-  showElement('#lobby');
-  alert(data.name + ' disconnected.');
+  alert(message);
 }
 
 function hideLinkCreators() {

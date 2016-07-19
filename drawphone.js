@@ -3,6 +3,8 @@
  *  By Tanner Krewson
  */
 
+var shuffle = require('knuth-shuffle').knuthShuffle
+
 function Drawphone() {
   this.games = [];
 
@@ -150,6 +152,7 @@ Game.prototype.startNewRound = function() {
 
   var self = this;
   this.currentRound = new Round(this.getNextRoundNum(), this.players, function() {
+    //ran when the round ends
     self.inProgress = false;
     self.sendUpdatedPlayersList();
   });
@@ -174,12 +177,16 @@ Round.prototype.start = function() {
   //  for the original word
   this.finalNumOfLinks = this.players.length + 1;
 
+  //shuffle the player list in place
+  shuffle(this.players);
+
   var currentChainId = 0;
   var self = this;
   this.players.forEach(function(player) {
     //give each player a chain of their own
     var thisChain = new Chain('apple' + player.id, player, currentChainId++);
     self.chains.push(thisChain);
+
     player.sendLink(thisChain.getLastLink(), thisChain.id, function(player, link, chainId) {
       self.receiveLink(player, link, chainId);
     });
@@ -221,27 +228,22 @@ Round.prototype.nextLinkIfEveryoneIsDone = function() {
 }
 
 Round.prototype.startNextLink = function() {
-  var remainingChainsToDelegate = this.chains.slice();
+  //rotate the chains in place
+  //  this is so that players get a chain they have not already had
+  this.chains.push(this.chains.shift());
 
+  //distribute the chains to each player
+  //  players and chains will have the same length
   var self = this;
-  this.players.forEach(function(player) {
-    var chainToTry;
-
-    //do until we have a chain that the player has not already played in
-    do {
-      chainToTry = Round.getRandomChain(remainingChainsToDelegate);
-    } while (chainToTry.playerHasLink(player));
-
-    //remove chain from our temporary array so that it is not assigned again
-    var chainIndex = remainingChainsToDelegate.indexOf(chainToTry);
-    remainingChainsToDelegate.splice(chainIndex, 1);
+  for (var i = 0; i < this.players.length; i++) {
+    var chain = this.chains[i];
 
     //send the player the last link from the chain
-    player.sendLink(chainToTry.getLastLink(), chainToTry.id, function(player, link, chainId) {
+    this.players[i].sendLink(chain.getLastLink(), chain.id, function(player, link, chainId) {
+      //ran when the player submits their thing
       self.receiveLink(player, link, chainId);
     });
-  });
-
+  }
 }
 
 Round.prototype.getChain = function(id) {
@@ -251,10 +253,6 @@ Round.prototype.getChain = function(id) {
     }
   }
   return false;
-}
-
-Round.getRandomChain = function(chainList) {
-  return chainList[Math.floor(Math.random()*chainList.length)];
 }
 
 Round.prototype.end = function() {

@@ -151,6 +151,7 @@ Game.prototype.startNewRound = function() {
   var self = this;
   this.currentRound = new Round(this.getNextRoundNum(), this.players, function() {
     self.inProgress = false;
+    self.sendUpdatedPlayersList();
   });
 
   this.currentRound.start();

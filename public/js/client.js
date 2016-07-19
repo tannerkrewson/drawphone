@@ -198,7 +198,7 @@ function nextLink(data) {
       uploadCanvas(function(url) {
         newLink = url;
         send();
-      }, function(error) {
+      }, function() {
         //reshow the canvas and allow the user to try again
         showElement('#game-drawing');
         showElement('#game-buttons');
@@ -224,14 +224,9 @@ function nextLink(data) {
 
 function roundOver(data) {
   hideAll();
-  setTitle();
-  setSubtitle();
-  showLobby({
-    success: true,
-    game: {
-      code: gameCode
-    }
-  });
+  showElement('#lobby');
+  setTitle('Game Code: ' + gameCode);
+  setSubtitle('Waiting for players...');
   alert('The round is over!');
 }
 
@@ -260,14 +255,18 @@ function uploadCanvas(next, err) {
   xhr.open("POST", "http://uploads.im/api");
   xhr.onload = function() {
     var res = JSON.parse(xhr.responseText);
-    var url = res.data.img_url;
-    console.log(res);
-    next(url);
+    if (res.status_code === 200) {
+      var url = res.data.img_url;
+      next(url);
+    } else {
+      err();
+    }
   }
+  xhr.onerror = err;
   try {
     xhr.send(formData);
   } catch (e) {
-    err(e);
+    err();
   }
 }
 

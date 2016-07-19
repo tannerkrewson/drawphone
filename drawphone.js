@@ -5,6 +5,8 @@
 
 var shuffle = require('knuth-shuffle').knuthShuffle
 
+var getRandomWord = require('./words.js');
+
 function Drawphone() {
   this.games = [];
 
@@ -184,7 +186,7 @@ Round.prototype.start = function() {
   var self = this;
   this.players.forEach(function(player) {
     //give each player a chain of their own
-    var thisChain = new Chain('apple' + player.id, player, currentChainId++);
+    var thisChain = new Chain(getRandomWord(), player, currentChainId++);
     self.chains.push(thisChain);
 
     player.sendLink(thisChain.getLastLink(), thisChain.id, function(player, link, chainId) {

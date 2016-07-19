@@ -9,7 +9,7 @@ module.exports = function(app){
 
     socket.on('joinGame', function (data) {
       thisGame = dp.findGame(data.code);
-      if (thisGame && data.name.length > 1) {
+      if (thisGame && data.name.length > 1 && !thisGame.inProgress) {
         thisUser = thisGame.addPlayer(data.name, socket);
         socket.emit('joinGameRes', {
           success: true,

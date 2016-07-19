@@ -41,8 +41,5 @@ input[type="text"] {
 
 .drawing {
   outline: 1px solid LightGrey;
-}
-
-#game-word-drawingtoname {
   width: 100%;
 }

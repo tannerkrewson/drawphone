@@ -220,7 +220,7 @@ Round.prototype.nextLinkIfEveryoneIsDone = function() {
     //  we check 0, but any index should work, because they are all the same,
     //  as checked above
     if (this.chains[0].getLength() === this.finalNumOfLinks) {
-      this.end();
+      this.viewResults();
     } else {
       this.startNextLink();
     }
@@ -255,11 +255,47 @@ Round.prototype.getChain = function(id) {
   return false;
 }
 
-Round.prototype.end = function() {
-  this.onEnd();
+Round.prototype.getChainByOwnerId = function(ownerId) {
+  for (var i = 0; i < this.chains.length; i++) {
+    if (this.chains[i].owner.id === ownerId) {
+      return this.chains[i];
+    }
+  }
+  return false;
+}
+
+Round.prototype.viewResults = function() {
+  var self = this;
   this.players.forEach(function(player) {
-    player.sendRoundOver();
+    //get this player's chain, the one in which they drew the first picture
+    var chain = self.getChainByOwnerId(player.id);
+
+    player.sendViewResults(chain.links, function() {
+      player.doneViewingResults = true;
+      self.end();
+    });
   });
+}
+
+Round.prototype.end = function() {
+  //check to see if all players are done viewing results
+  var allDone = true;
+  for (var i = 0; i < this.players.length; i++) {
+    if (!this.players[i].doneViewingResults) {
+      allDone = false;
+      break;
+    }
+  }
+
+  if (allDone) {
+    this.onEnd();
+    this.players.forEach(function(player) {
+      //set it back for the next round
+      player.doneViewingResults = false;
+
+      player.sendRoundOver();
+    });
+  }
 }
 
 Round.prototype.someoneLeft = function(name) {
@@ -327,6 +363,7 @@ function Player(name, socket, id) {
   this.name = name;
   this.socket = socket;
   this.id = id;
+  this.doneViewingResults = false;
 }
 
 Player.prototype.getJson = function() {
@@ -356,6 +393,18 @@ Player.prototype.sendRoundOver = function() {
 Player.prototype.sendSomeoneLeft = function(name) {
   this.socket.emit('someoneLeft', {
     name
+  });
+}
+
+Player.prototype.sendViewResults = function(thisPlayersChainLinks, next) {
+  this.socket.emit('viewResults', {
+    links: thisPlayersChainLinks
+  });
+
+  //when the player clicks the done button
+  var self = this;
+  this.socket.once('doneViewingResults', function(data) {
+    next();
   });
 }
 

@@ -184,9 +184,7 @@ function nextLink(data) {
     setTitle('Please draw: ' + lastLink.data);
   }
 
-  //clear on click events from the Done button
   doneButton.off("click");
-
   doneButton.click(function() {
     setTitle('Sending...');
     //hide the drawing
@@ -271,6 +269,44 @@ function uploadCanvas(next, err) {
 }
 
 
+//  Result
+
+function viewResults(data) {
+  var ourChain = data.links;
+  var ourName = ourChain[0].player.name;
+
+  hideAll();
+  showElement('#result');
+
+  setTitle(ourName + "'s Drawphone results");
+  setSubtitle('Show everyone how they did!');
+
+  var results = $('#result-content');
+
+  for (var i = 0; i < data.links.length; i++) {
+    var link = data.links[i];
+    if (i === 0) {
+      results.append('<h3>The first word:</h3><h1>' + link.data + '</h1>');
+    } else if (link.type === 'drawing') {
+      results.append('<h3>' + link.player.name + ' drew:</h3><img class="drawing" src="' + link.data + '"></img>');
+    } else if (link.type === 'word') {
+      results.append('<h3>' + link.player.name + ' thought that was:</h3><h1>' + link.data + '</h1>');
+    } else {
+      console.log('We should never get here');
+    }
+  }
+
+  var doneButton = $('#result-done');
+  doneButton.off('click');
+  doneButton.on('click', function() {
+    hideAll();
+    setTitle('Thanks for playing Drawphone!');
+    setSubtitle('Waiting for other players...');
+    socket.emit('doneViewingResults', {});
+  });
+}
+
+
 //  UI Methods
 
 function hideAll() {
@@ -279,8 +315,11 @@ function hideAll() {
   $('#newmenu').addClass('hidden');
   $('#lobby').addClass('hidden');
   $('#game').addClass('hidden');
+  $('#result').addClass('hidden');
 
   $('#game-cleardrawing').addClass('hidden');
+  $('#result-content').empty();
+
 }
 
 //for development purposes
@@ -333,3 +372,5 @@ socket.on('nextLink', nextLink);
 socket.on('roundOver', roundOver);
 
 socket.on('someoneLeft', someoneLeft);
+
+socket.on('viewResults', viewResults);

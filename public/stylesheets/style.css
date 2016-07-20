@@ -49,3 +49,12 @@ input[type="text"] {
   box-shadow: 0 0 10pt 1pt LightGrey;
   padding: 5px;
 }
+
+.user {
+  border: 1px solid LightGrey;
+  padding: 8px;
+}
+
+.user-container {
+  padding: 3px;
+}

@@ -138,8 +138,12 @@ function updatePlayerList(list) {
   playerList.empty();
 
   for (var i = 0; i < list.length; i++) {
-    var listItem = $('<li>' + list[i].name + '</li>').appendTo(playerList);
-    listItem.addClass('list-group-item');
+    var listBox = $('<span></span>')
+    var listItem = $('<li>' + list[i].name + '</li>').appendTo(listBox);
+    listItem.addClass('user');
+    listBox.addClass('col-xs-6');
+    listBox.addClass('user-container');
+    listBox.appendTo(playerList);
   }
 }
 
@@ -364,8 +368,12 @@ function updateWaitingList(data) {
   waitingList.empty();
 
   for (var i = 0; i < list.length; i++) {
-    var listItem = $('<li>' + list[i].name + '</li>').appendTo(waitingList);
-    listItem.addClass('list-group-item');
+    var listBox = $('<span></span>')
+    var listItem = $('<li>' + list[i].name + '</li>').appendTo(listBox);
+    listItem.addClass('user');
+    listBox.addClass('col-xs-6');
+    listBox.addClass('user-container');
+    listBox.appendTo(waitingList);
   }
 }
 

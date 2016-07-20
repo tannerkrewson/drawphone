@@ -32,8 +32,9 @@ block content
   div#lobby.hidden
     div.row
       div.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2
-        |Players:
-        ul#lobby-players.list-group
+        h4 Players:
+        ul#lobby-players.list-unstyled.row
+    br
     .btn-toolbar
       button#lobby-leave.btn.btn-default.btn-lg(type='button') Leave Game
       button#lobby-start.btn.btn-default.btn-lg(type='button') Start Game
@@ -57,5 +58,5 @@ block content
   div#waiting.hidden
     div.row
       div.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2
-        |Still waiting for:
-        ul#waiting-players.list-group
+        h4 Still waiting for:
+        ul#waiting-players.list-unstyled.row

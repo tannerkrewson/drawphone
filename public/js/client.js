@@ -146,8 +146,9 @@ function updatePlayerList(list) {
 
 //  Game
 
-function showGame(data) {
+function showGame() {
   hideAll();
+  hideLinkCreators();
   showElement('#game');
 
   setSubtitle('Game in progress');
@@ -159,7 +160,7 @@ function nextLink(data) {
   var newLinkType = oppositeLinkType(lastLinkType);
   var doneButton = $("#game-send");
 
-  hideLinkCreators();
+  showGame();
   showElement('#game-buttons');
 
   if (lastLinkType === 'drawing') {
@@ -244,7 +245,7 @@ function nextLink(data) {
           data: newLink
         }
       });
-      setTitle('Waiting for other players...');
+      startWaiting();
     }
   }
 }
@@ -311,6 +312,7 @@ function uploadCanvas(next, err) {
 //  Result
 
 function viewResults(data) {
+  console.log('View results!');
   var ourChain = data.links;
   var ourName = ourChain[0].player.name;
 
@@ -346,6 +348,28 @@ function viewResults(data) {
 }
 
 
+//  Waiting
+
+function startWaiting() {
+  hideAll();
+  showElement('#waiting');
+  setTitle('Waiting for other players...');
+}
+
+//ran when we receive updateWaitingList from the server
+function updateWaitingList(data) {
+  var list = data.players;
+  var waitingList = $('#waiting-players');
+
+  waitingList.empty();
+
+  for (var i = 0; i < list.length; i++) {
+    var listItem = $('<li>' + list[i].name + '</li>').appendTo(waitingList);
+    listItem.addClass('list-group-item');
+  }
+}
+
+
 //  UI Methods
 
 function hideAll() {
@@ -355,24 +379,11 @@ function hideAll() {
   $('#lobby').addClass('hidden');
   $('#game').addClass('hidden');
   $('#result').addClass('hidden');
+  $('#waiting').addClass('hidden');
 
   $('#game-cleardrawing').addClass('hidden');
   $('#result-content').empty();
 
-}
-
-//for development purposes
-function showAll() {
-  $('#mainmenu').removeClass('hidden');
-  $('#joinmenu').removeClass('hidden');
-  $('#newmenu').removeClass('hidden');
-  $('#lobby').removeClass('hidden');
-  $('#game').removeClass('hidden');
-
-  $('#game-drawing').removeClass('hidden');
-  $('#game-word').removeClass('hidden');
-
-  resizeCanvas();
 }
 
 function showElement(jq) {
@@ -419,3 +430,5 @@ socket.on('roundOver', roundOver);
 socket.on('someoneLeft', someoneLeft);
 
 socket.on('viewResults', viewResults);
+
+socket.on('updateWaitingList', updateWaitingList);

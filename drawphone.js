@@ -168,6 +168,8 @@ function Round(number, players, onEnd) {
   this.players = players;
   this.onEnd = onEnd;
   this.chains = [];
+  //on creation, chains will already have one link
+  this.shouldHaveThisManyLinks = 2;
 
   this.finalNumOfLinks;
 }
@@ -200,28 +202,22 @@ Round.prototype.receiveLink = function(player, receivedLink, chainId) {
 
   if (receivedLink.type === 'drawing') {
     chain.addLink(new DrawingLink(player, receivedLink.data));
-  } else {
+  } else if (receivedLink.type === 'word'){
     chain.addLink(new WordLink(player, receivedLink.data));
+  } else {
+    console.log('receivedLink.type is ' + receivedLink.type);
   }
 
+  this.updateWaitingList();
   this.nextLinkIfEveryoneIsDone();
 }
 
 Round.prototype.nextLinkIfEveryoneIsDone = function() {
-  //check to make sure every chain is the same length
-  var readyToMoveOn = true;
-  for (var i = 0; i < this.chains.length - 1; i++) {
-    if (this.chains[i].getLength() !== this.chains[i+1].getLength()) {
-      readyToMoveOn = false;
-      break;
-    }
-  }
+  var readyToMoveOn = this.getListOfNotFinishedPlayers().length === 0;
 
   if (readyToMoveOn) {
     //check if that was the last link
-    //  we check 0, but any index should work, because they are all the same,
-    //  as checked above
-    if (this.chains[0].getLength() === this.finalNumOfLinks) {
+    if (this.shouldHaveThisManyLinks === this.finalNumOfLinks) {
       this.viewResults();
     } else {
       this.startNextLink();
@@ -230,6 +226,8 @@ Round.prototype.nextLinkIfEveryoneIsDone = function() {
 }
 
 Round.prototype.startNextLink = function() {
+  this.shouldHaveThisManyLinks++;
+
   //rotate the chains in place
   //  this is so that players get a chain they have not already had
   this.chains.push(this.chains.shift());
@@ -238,10 +236,13 @@ Round.prototype.startNextLink = function() {
   //  players and chains will have the same length
   var self = this;
   for (var i = 0; i < this.players.length; i++) {
-    var chain = this.chains[i];
+    var thisChain = this.chains[i];
+    var thisPlayer = this.players[i];
+
+    thisChain.lastPlayerSentTo = thisPlayer.getJson();
 
     //send the player the last link from the chain
-    this.players[i].sendLink(chain.getLastLink(), chain.id, function(player, link, chainId) {
+    thisPlayer.sendLink(thisChain.getLastLink(), thisChain.id, function(player, link, chainId) {
       //ran when the player submits their thing
       self.receiveLink(player, link, chainId);
     });
@@ -307,6 +308,27 @@ Round.prototype.someoneLeft = function(name) {
   });
 }
 
+Round.prototype.updateWaitingList = function() {
+  var list = this.getListOfNotFinishedPlayers();
+  this.players.forEach(function(player) {
+    player.sendUpdateWaitingList(list);
+  });
+}
+
+Round.prototype.getListOfNotFinishedPlayers = function() {
+  var playerList = [];
+
+  //check to make sure every chain is the same length
+  for (var i = 0; i < this.chains.length; i++) {
+    var thisChain = this.chains[i];
+    if (thisChain.getLength() !== this.shouldHaveThisManyLinks) {
+      playerList.push(thisChain.lastPlayerSentTo);
+    }
+  }
+
+  return playerList;
+}
+
 
 // A chain is the 'chain' of drawings and words.
 // A link is the individual drawing or word in the chain.
@@ -314,6 +336,8 @@ function Chain(firstWord, owner, id) {
   this.owner = owner;
   this.links = [];
   this.id = id;
+
+  this.lastPlayerSentTo = owner.getJson();
 
   this.addLink(new WordLink(this.owner, firstWord));
 }
@@ -407,6 +431,12 @@ Player.prototype.sendViewResults = function(thisPlayersChainLinks, next) {
   var self = this;
   this.socket.once('doneViewingResults', function(data) {
     next();
+  });
+}
+
+Player.prototype.sendUpdateWaitingList = function(players) {
+  this.socket.emit('updateWaitingList', {
+    players
   });
 }
 

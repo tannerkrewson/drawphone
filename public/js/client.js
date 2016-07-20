@@ -199,60 +199,98 @@ function nextLink(data) {
   }
 
   doneButton.off("click");
-  doneButton.click(done);
+  doneButton.click(runCheckIfDone);
 
   //run done when enter key is pressed in word input
   $('#game-word-in').unbind("keypress");
   $('#game-word-in').keypress(function(e) {
     var key = e.which;
     if (key === 13) {
-       done();
+       runCheckIfDone();
     }
   });
 
+  function runCheckIfDone() {
+    checkIfDone(newLinkType);
+  }
+}
 
-  function done() {
-    var newLink;
-    if (newLinkType === 'drawing') {
-      if (isDrawingBlank()) {
-        alert('Please draw something!');
-      } else {
-        uploadCanvas(function(url) {
-          newLink = url;
-          send();
-        }, function() {
-          //reshow the canvas and allow the user to try again
-          showElement('#game-drawing');
-          showElement('#game-buttons');
-          setTitle('Upload failed, try again.');
-        });
-      }
-    } else if (newLinkType === 'word') {
-      newLink = $('#game-word-in').val().trim();
-      //check if it is blank
-      if (newLink === '') {
-        alert('Please enter a guess!');
-      } else {
-        //clear the input
-        $('#game-word-in').val('')
-        send();
-      }
+function checkIfDone(newLinkType) {
+  //hide the drawing
+  hideLinkCreators();
+
+  var newLink;
+  if (newLinkType === 'drawing') {
+    if (isDrawingBlank()) {
+      alert('Please draw something!');
     }
-
-    function send() {
-      setTitle('Sending...');
-      //hide the drawing
-      hideLinkCreators();
-
-      socket.emit('finishedLink', {
-        link: {
-          type: newLinkType,
-          data: newLink
-        }
+    else {
+      uploadCanvas(function(url) {
+        //ran if upload was successful
+        newLink = url;
+        sendLink(newLinkType, newLink);
+      }, function() {
+        //ran if upload was unsuccessful
+        //reshow the canvas and allow the user to try again
+        showElement('#game-drawing');
+        showElement('#game-buttons');
+        setTitle('Upload failed, try again.');
       });
-      startWaiting();
     }
   }
+  else if (newLinkType === 'word') {
+    newLink = $('#game-word-in').val().trim();
+    //check if it is blank
+    if (newLink === '') {
+      alert('Please enter a guess!');
+    }
+    else {
+      //clear the input
+      $('#game-word-in').val('')
+      sendLink(newLinkType, newLink);
+    }
+  }
+}
+
+function uploadCanvas(next, err) {
+  setTitle('Uploading...');
+
+  // this code was copied from:
+  // http://community.mybb.com/thread-150592.html
+  // https://github.com/blueimp/JavaScript-Canvas-to-Blob#usage
+  var file = canvas.toDataURL('image/png');
+  var blob = window.dataURLtoBlob(file);
+  var formData = new FormData();
+  formData.append('upload', blob, 'drawing.png');
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", "http://uploads.im/api");
+  xhr.onload = function() {
+    var res = JSON.parse(xhr.responseText);
+    if (res.status_code === 200) {
+      var url = res.data.img_url;
+      next(url);
+    } else {
+      err();
+    }
+  }
+  xhr.onerror = err;
+  try {
+    xhr.send(formData);
+  } catch (e) {
+    err();
+  }
+}
+
+function sendLink(type, data) {
+  setTitle('Sending...');
+
+  socket.emit('finishedLink', {
+    link: {
+      type,
+      data
+    }
+  });
+  startWaiting();
 }
 
 function isDrawingBlank() {
@@ -283,34 +321,6 @@ function hideLinkCreators() {
   $('#game-drawing').addClass('hidden');
   $('#game-word').addClass('hidden');
   $('#game-buttons').addClass('hidden');
-}
-
-function uploadCanvas(next, err) {
-  // this code was copied from:
-  // http://community.mybb.com/thread-150592.html
-  // https://github.com/blueimp/JavaScript-Canvas-to-Blob#usage
-
-  var file = canvas.toDataURL('image/png');
-  var blob = window.dataURLtoBlob(file);
-  var formData = new FormData();
-  formData.append('upload', blob, 'drawing.png');
-  var xhr = new XMLHttpRequest();
-  xhr.open("POST", "http://uploads.im/api");
-  xhr.onload = function() {
-    var res = JSON.parse(xhr.responseText);
-    if (res.status_code === 200) {
-      var url = res.data.img_url;
-      next(url);
-    } else {
-      err();
-    }
-  }
-  xhr.onerror = err;
-  try {
-    xhr.send(formData);
-  } catch (e) {
-    err();
-  }
 }
 
 

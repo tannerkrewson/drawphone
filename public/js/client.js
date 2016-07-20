@@ -198,6 +198,7 @@ function nextLink(data) {
   doneButton.click(done);
 
   //run done when enter key is pressed in word input
+  $('#game-word-in').unbind("keypress");
   $('#game-word-in').keypress(function(e) {
     var key = e.which;
     if (key === 13) {
@@ -312,7 +313,6 @@ function uploadCanvas(next, err) {
 //  Result
 
 function viewResults(data) {
-  console.log('View results!');
   var ourChain = data.links;
   var ourName = ourChain[0].player.name;
 

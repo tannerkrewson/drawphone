@@ -318,7 +318,7 @@ function viewResults(data) {
   showElement('#result');
 
   setTitle(ourName + "'s Drawphone results");
-  setSubtitle('Show everyone how you did!');
+  setSubtitle('Show everyone how it turned out!');
 
   var results = $('#result-content');
 

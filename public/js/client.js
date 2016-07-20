@@ -194,7 +194,18 @@ function nextLink(data) {
   }
 
   doneButton.off("click");
-  doneButton.click(function() {
+  doneButton.click(done);
+
+  //run done when enter key is pressed in word input
+  $('#game-word-in').keypress(function(e) {
+    var key = e.which;
+    if (key === 13) {
+       done();
+    }
+  });
+
+
+  function done() {
     var newLink;
     if (newLinkType === 'drawing') {
       if (isDrawingBlank()) {
@@ -235,7 +246,7 @@ function nextLink(data) {
       });
       setTitle('Waiting for other players...');
     }
-  });
+  }
 }
 
 function isDrawingBlank() {

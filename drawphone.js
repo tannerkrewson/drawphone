@@ -7,11 +7,13 @@ var shuffle = require('knuth-shuffle').knuthShuffle
 
 var getRandomWord = require('./words.js');
 
-function Drawphone() {
+function Drawphone(devModeEnabled) {
   this.games = [];
 
   //add the dev game
-  this.newGame('ffff');
+  if (devModeEnabled) {
+    this.newGame('ffff');
+  }
 }
 
 Drawphone.prototype.newGame = function(forceCode) {

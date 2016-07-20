@@ -3,6 +3,15 @@
  *  By Tanner Krewson
  */
 
+//blocks use of https, required for the uploads.im api,
+//  as it does not have https
+window.onload = function(){
+   $(function(){
+       if(window.location.protocol==="https:")
+           window.location.protocol="http";
+   });
+}
+
 var socket = io();
 
 var relativeUrl = window.location.pathname + window.location.search;

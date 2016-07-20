@@ -124,7 +124,7 @@ function showLobby(data) {
     hideAll();
     showElement('#lobby');
     gameCode = data.game.code;
-    setTitle('Game Code: ' + gameCode);
+    setTitle('Game Code: <span class="gamecode">' + gameCode + '</span>');
     setSubtitle('Waiting for players...');
     updatePlayerList(data.game.players);
   } else {
@@ -391,7 +391,7 @@ function showElement(jq) {
 }
 
 function setTitle(newTitle) {
-  $('#title').text(newTitle);
+  $('#title').html(newTitle);
 }
 
 function setSubtitle(newSubtitle) {

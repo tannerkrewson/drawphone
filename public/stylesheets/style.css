@@ -43,3 +43,9 @@ input[type="text"] {
   outline: 1px solid LightGrey;
   width: 100%;
 }
+
+.gamecode {
+  font-family: monospace;
+  box-shadow: 0 0 10pt 1pt LightGrey;
+  padding: 5px;
+}

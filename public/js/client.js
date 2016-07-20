@@ -195,29 +195,38 @@ function nextLink(data) {
 
   doneButton.off("click");
   doneButton.click(function() {
-    setTitle('Sending...');
-    //hide the drawing
-    hideLinkCreators();
-
-    //send the server the link we have created
     var newLink;
     if (newLinkType === 'drawing') {
-      uploadCanvas(function(url) {
-        newLink = url;
-        send();
-      }, function() {
-        //reshow the canvas and allow the user to try again
-        showElement('#game-drawing');
-        showElement('#game-buttons');
-        setTitle('Upload failed, try again.');
-      });
+      if (isDrawingBlank()) {
+        alert('Please draw something!');
+      } else {
+        uploadCanvas(function(url) {
+          newLink = url;
+          send();
+        }, function() {
+          //reshow the canvas and allow the user to try again
+          showElement('#game-drawing');
+          showElement('#game-buttons');
+          setTitle('Upload failed, try again.');
+        });
+      }
     } else if (newLinkType === 'word') {
-      newLink = $('#game-word-in').val();
-      $('#game-word-in').val('')
-      send();
+      newLink = $('#game-word-in').val().trim();
+      //check if it is blank
+      if (newLink === '') {
+        alert('Please enter a guess!');
+      } else {
+        //clear the input
+        $('#game-word-in').val('')
+        send();
+      }
     }
 
     function send() {
+      setTitle('Sending...');
+      //hide the drawing
+      hideLinkCreators();
+
       socket.emit('finishedLink', {
         link: {
           type: newLinkType,
@@ -227,6 +236,14 @@ function nextLink(data) {
       setTitle('Waiting for other players...');
     }
   });
+}
+
+function isDrawingBlank() {
+    var blank = document.createElement('canvas');
+    blank.width = canvas.width;
+    blank.height = canvas.height;
+
+    return canvas.toDataURL() == blank.toDataURL();
 }
 
 function roundOver(data) {

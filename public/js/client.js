@@ -389,6 +389,12 @@ function oppositeLinkType(linkType) {
 //  Real-time Communication via Socket.IO
 //
 
+socket.on('disconnect', function() {
+  alert('Connection lost!');
+  //refresh the page
+  location.reload();
+});
+
 socket.on('joinGameRes', showLobby);
 
 socket.on('updatePlayerList', updatePlayerList);

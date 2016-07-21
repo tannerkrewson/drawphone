@@ -1,7 +1,9 @@
 <p align="center">
   <img src="http://i.imgur.com/detQDdM.png"/>
   <br>
-  <h2>Play now at: <a href="http://drawphone.herokuapp.com/">drawphone.herokuapp.com</a></h2>
+  <h2 style="text-align:center;">
+    Play now at: <a href="http://drawphone.herokuapp.com/">drawphone.herokuapp.com</a>
+  </h2>
 </p>
 
 ![](http://i.imgur.com/7OCdyE3.png)![](http://i.imgur.com/UFayAS0.png)

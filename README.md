@@ -1,13 +1,13 @@
-<p align="center">
+<div align="center">
   <img src="http://i.imgur.com/detQDdM.png"/>
   <br>
-  <h2 style="text-align:center;">
+  <h2>
     Play now at: <a href="http://drawphone.herokuapp.com/">drawphone.herokuapp.com</a>
   </h2>
-</p>
+  <br>
+  <img src="http://i.imgur.com/RCV31fE.png" width="222"/><img src="http://i.imgur.com/e2FLTuC.png" width="222"/><img src="http://i.imgur.com/T1LwsQf.png" width="222"/><img src="http://i.imgur.com/9SJ7XB5.png" width="222"/>
+</div>
+<br>
 
-![](http://i.imgur.com/7OCdyE3.png)![](http://i.imgur.com/UFayAS0.png)
-![](http://i.imgur.com/6LsfDdr.png)![](http://i.imgur.com/nstIxdr.png)
-
-## About
+# About
 Drawphone was inspired by [Spyfall](https://github.com/evanbrumley/spyfall) and [Telestrations](http://telestrations.com/).

@@ -12,221 +12,417 @@ window.onload = function(){
    });
 }
 
-var socket = io();
-
-var relativeUrl = window.location.pathname + window.location.search;
-
-if (relativeUrl === "/dev") {
-  socket.emit('joinGame', {
-    code: 'ffff',
-    name: Math.random().toString()
-  });
-}
-
-
-//prevent form submit
+//prevent page from refreshing when Join game buttons are pressed
 $(function() {
     $("form").submit(function() { return false; });
 });
 
-//initialize sketch.js
-var canvas = new fabric.Canvas('game-drawing-canvas');
-canvas.isDrawingMode = true;
 
-window.addEventListener('resize', resizeCanvas, false);
+//
+//  UI Methods
+//
 
-function resizeCanvas() {
-  var container = $('#game-drawing');
-  canvas.setHeight(container.width());
-  canvas.setWidth(container.width());
-  canvas.renderAll();
+function hideAll() {
+  $('#mainmenu').addClass('hidden');
+  $('#joinmenu').addClass('hidden');
+  $('#newmenu').addClass('hidden');
+  $('#lobby').addClass('hidden');
+  $('#game').addClass('hidden');
+  $('#result').addClass('hidden');
+  $('#waiting').addClass('hidden');
 }
 
-// resize on init
-resizeCanvas();
+function showElement(jq) {
+  $(jq).removeClass('hidden');
+}
 
-//store game code globally
-var gameCode;
+function oppositeLinkType(linkType) {
+  if (linkType === 'drawing') {
+    return 'word';
+  } else {
+    return 'drawing';
+  }
+}
 
 
 //
-//  UI
+//  Objects
 //
 
-setTitle('Drawphone');
-setSubtitle('Telephone with pictures');
+function Drawphone() {
+  this.screens = [];
+
+  var self = this;
+  this.mainMenu = new MainMenu(function() {
+    //ran when Join Game button is pressed
+    self.joinMenu.show();
+  }, function() {
+    //ran when New Game button is pressed
+    self.newMenu.show();
+  });
+
+  this.joinMenu = new JoinMenu(function() {
+    //ran when Back button is pressed
+    self.mainMenu.show();
+  });
+
+  this.newMenu = new NewMenu(function() {
+    //ran when Back button is pressed
+    self.mainMenu.show();
+  });
+
+  this.lobby = new Lobby();
+
+  this.game = new Game(function() {
+    //ran when the round ends
+    self.lobby.show();
+  }, function() {
+    //ran when the player sends
+    self.waiting.show();
+  });
+
+  this.results = new Results();
+
+  this.waiting = new Waiting();
+
+  this.screens.push(this.mainMenu);
+  this.screens.push(this.joinMenu);
+  this.screens.push(this.newMenu);
+  this.screens.push(this.lobby);
+  this.screens.push(this.game);
+  this.screens.push(this.results);
+  this.screens.push(this.waiting);
+}
+
+Drawphone.prototype.initializeAll = function() {
+  this.screens.forEach(function(screen) {
+    screen.initialize();
+  });
+
+  this.attachSocketListeners();
+}
+
+Drawphone.prototype.attachSocketListeners = function() {
+  socket.on('disconnect', function() {
+    alert('Connection lost!');
+    //refresh the page
+    location.reload();
+  });
+
+  socket.on('joinGameRes', this.lobby.show.bind(this.lobby));
+
+  socket.on('updatePlayerList', this.lobby.updatePlayerList.bind(this.lobby));
+
+  socket.on('gameStart', this.game.show.bind(this.game));
+
+  socket.on('nextLink', this.game.newLink.bind(this.game));
+
+  socket.on('roundOver', this.game.roundOver.bind(this.game));
+
+  socket.on('someoneLeft', this.game.someoneLeft.bind(this.game));
+
+  socket.on('viewResults', this.results.show.bind(this.results));
+
+  socket.on('updateWaitingList', this.waiting.updateWaitingList.bind(this.waiting));
+}
+
+Drawphone.prototype.begin = function() {
+  this.mainMenu.show();
+}
 
 
-//  Main Menu
+function Screen() {
+  this.id = '';
+  this.title = 'Error: Title not set';
+  this.subtitle = 'Error: Subtitle not set';
 
-$('#joinbtn').click(function() {
+  this.defaultTitle = 'Drawphone';
+  this.defaultSubtitle = 'Telephone with pictures';
+}
+
+Screen.prototype.initialize = function() {}
+
+Screen.prototype.show = function() {
   hideAll();
-  showElement('#joinmenu');
-});
+  showElement(this.id);
 
-$('#newbtn').click(function() {
-  hideAll();
-  showElement('#newmenu');
-});
+  $('#title').html(this.title);
+  $('#subtitle').text(this.subtitle);
+}
+
+Screen.prototype.setTitle = function(title) {
+  this.title = title;
+  $('#title').html(this.title);
+}
+
+Screen.prototype.setSubtitle = function(subtitle) {
+  this.subtitle = subtitle;
+  $('#subtitle').html(this.subtitle);
+}
+
+Screen.prototype.setDefaultTitles = function() {
+  this.setTitle(this.defaultTitle);
+  this.setSubtitle(this.defaultSubtitle);
+}
 
 
-//  Join Game Menu
+MainMenu.prototype = Object.create(Screen.prototype);
 
-$('#joinmenu-back').click(function() {
-  hideAll();
-  showElement('#mainmenu');
-});
+function MainMenu(onJoin, onNew) {
+  Screen.call(this);
 
-$('#joinmenu-go').click(function() {
-  var code = $('#joinincode').val();
-  var name = $('#joininname').val();
+  this.id = '#mainmenu';
+  this.joinButton = $('#joinbtn');
+  this.newButton = $('#newbtn');
+  this.onJoin = onJoin;
+  this.onNew = onNew;
 
-  if (name.length > 1 && code.length === 4) {
-    socket.emit('joinGame', {
-      code,
-      name
-    });
+  Screen.prototype.setDefaultTitles.call(this);
+}
+
+MainMenu.prototype.initialize = function() {
+  Screen.prototype.initialize.call(this);
+
+  this.joinButton.click(this.onJoin);
+  this.newButton.click(this.onNew);
+}
+
+
+JoinMenu.prototype = Object.create(Screen.prototype);
+
+function JoinMenu(onBack) {
+  Screen.call(this);
+
+  this.id = '#joinmenu';
+  this.backButton = $('#joinmenu-back');
+  this.goButton = $('#joinmenu-go');
+  this.onBack = onBack;
+
+  Screen.prototype.setDefaultTitles.call(this);
+}
+
+JoinMenu.prototype.initialize = function() {
+  Screen.prototype.initialize.call(this);
+
+  this.backButton.click(this.onBack);
+  this.goButton.click(function() {
+    var code = $('#joinincode').val();
+    var name = $('#joininname').val();
+
+    if (name.length > 1 && code.length === 4) {
+      socket.emit('joinGame', {
+        code,
+        name
+      });
+    }
+  });
+
+  Screen.prototype.setDefaultTitles.call(this);
+}
+
+
+NewMenu.prototype = Object.create(Screen.prototype);
+
+function NewMenu(onBack) {
+  Screen.call(this);
+
+  this.id = '#newmenu';
+  this.backButton = $('#newmenu-back');
+  this.goButton = $('#newmenu-go');
+  this.onBack = onBack;
+
+  Screen.prototype.setDefaultTitles.call(this);
+}
+
+NewMenu.prototype.initialize = function() {
+  Screen.prototype.initialize.call(this);
+
+  this.backButton.click(this.onBack);
+  this.goButton.click(function() {
+    var name = $('#newinname').val();
+
+    if (name.length > 1) {
+      socket.emit('newGame', {
+        name
+      });
+    }
+  });
+}
+
+
+Lobby.prototype = Object.create(Screen.prototype);
+
+function Lobby() {
+  Screen.call(this);
+
+  this.id = '#lobby';
+  this.leaveButton = $('#lobby-leave');
+  this.startButton = $('#lobby-start');
+  this.gameCode = '';
+
+  this.userList = new UserList($('#lobby-players'));
+}
+
+Lobby.prototype.initialize = function() {
+  Screen.prototype.initialize.call(this);
+
+  this.leaveButton.click(function() {
+    //refresh the page
+    location.reload();
+  });
+  this.startButton.click(function() {
+    socket.emit('tryStartGame', {});
+  });
+}
+
+Lobby.prototype.show = function(data) {
+  if (data) {
+    this.update(data);
   }
-});
+  Screen.prototype.setTitle.call(this, 'Game Code: <span class="gamecode">' + this.gameCode + '</span>');
+  Screen.prototype.setSubtitle.call(this, 'Waiting for players...');
 
+  Screen.prototype.show.call(this);
+}
 
-//  New Game Menu
-
-$('#newmenu-back').click(function() {
-  hideAll();
-  showElement('#mainmenu');
-});
-
-$('#newmenu-go').click(function() {
-  var name = $('#newinname').val();
-
-  if (name.length > 1) {
-    socket.emit('newGame', {
-      name
-    });
-  }
-});
-
-
-//  Lobby
-
-$('#lobby-leave').click(function() {
-  //refresh the page
-  location.reload();
-});
-
-$('#lobby-start').click(function() {
-  socket.emit('tryStartGame', {});
-});
-
-function showLobby(data) {
+Lobby.prototype.update = function(data) {
   if (data.success) {
-    hideAll();
-    showElement('#lobby');
-    gameCode = data.game.code;
-    setTitle('Game Code: <span class="gamecode">' + gameCode + '</span>');
-    setSubtitle('Waiting for players...');
-    updatePlayerList(data.game.players);
+    this.gameCode = data.game.code;
+    this.userList.update(data.game.players);
+    this.show();
   } else {
     alert(data.error);
   }
 }
 
-function updatePlayerList(list) {
-  var playerList = $('#lobby-players');
-
-  var newList = new UserList(playerList);
-  newList.update(list);
+Lobby.prototype.updatePlayerList = function(data) {
+  this.userList.update(data);
 }
 
 
-//  Game
+Game.prototype = Object.create(Screen.prototype);
 
-function showGame() {
-  hideAll();
-  hideLinkCreators();
-  showElement('#game');
+function Game(onRoundEnd, onWait) {
+  Screen.call(this);
 
-  setSubtitle('Game in progress');
+  this.id = '#game';
+  Screen.prototype.setSubtitle.call(this, 'Game in progress');
+  this.blankCanvas = document.createElement('canvas');
+  this.onRoundEnd = onRoundEnd;
+  this.onWait = onWait;
+
+  //initialize fabric.js
+  this.canvas = new fabric.Canvas('game-drawing-canvas');
+  this.canvas.isDrawingMode = true;
+
+  window.addEventListener('resize', this.resizeCanvas.bind(this), false);
 }
 
-function nextLink(data) {
-  var lastLink = data.link
-  var lastLinkType = lastLink.type;
-  var newLinkType = oppositeLinkType(lastLinkType);
+Game.prototype.initialize = function() {
+  Screen.prototype.initialize.call(this);
   var doneButton = $("#game-send");
 
-  showGame();
-  showElement('#game-buttons');
+  //bind clear canvas to clear drawing button
+  var self = this;
+  $('#game-cleardrawing').click(function() {
+    self.canvas.clear();
+  });
 
-  if (lastLinkType === 'drawing') {
-    //show the word creator
-    showElement('#game-word');
-
-    //show the previous drawing
-    $('#game-word-drawingtoname').attr("src", lastLink.data);
-
-    setTitle('What is this a drawing of?');
-
-  } else if (lastLinkType === 'word'){
-    //clear the previous drawing
-    canvas.clear();
-
-    //show drawing creator
-    showElement('#game-drawing');
-
-    //bind clear canvas to clear drawing button
-    $('#game-cleardrawing').off('click');
-    $('#game-cleardrawing').click(function() {
-      canvas.clear();
-    });
-
-    //show clear button
-    showElement('#game-cleardrawing');
-
-    //calculate size of canvas dynamically
-    resizeCanvas();
-
-    setTitle('Please draw: ' + lastLink.data);
-  }
-
-  doneButton.off("click");
-  doneButton.click(runCheckIfDone);
+  doneButton.click(function() {
+    self.onDone();
+  });
 
   //run done when enter key is pressed in word input
-  $('#game-word-in').unbind("keypress");
   $('#game-word-in').keypress(function(e) {
     var key = e.which;
     if (key === 13) {
-       runCheckIfDone();
+       self.onDone();
     }
   });
+}
 
-  function runCheckIfDone() {
-    checkIfDone(newLinkType);
+Game.prototype.showDrawing = function() {
+  showElement('#game-drawing');
+  this.showButtons(true);
+  this.show();
+}
+
+Game.prototype.showWord = function() {
+  showElement('#game-word');
+  this.showButtons(false);
+  this.show();
+}
+
+Game.prototype.showButtons = function(showClearButton) {
+  if (showClearButton) {
+    showElement('#game-cleardrawing');
+  }
+  else {
+    $('#game-cleardrawing').addClass('hidden');
+  }
+  showElement('#game-buttons');
+}
+
+Game.prototype.hideBoth = function() {
+  $('#game-drawing').addClass('hidden');
+  $('#game-word').addClass('hidden');
+  $('#game-buttons').addClass('hidden');
+}
+
+Game.prototype.newLink = function(data) {
+  var lastLink = data.link
+  var lastLinkType = lastLink.type;
+  var newLinkType = oppositeLinkType(lastLinkType);
+
+  if (lastLinkType === 'drawing') {
+    //show the previous drawing
+    $('#game-word-drawingtoname').attr("src", lastLink.data);
+
+    Screen.prototype.setTitle.call(this, 'What is this a drawing of?');
+
+    //show the word creator
+    this.showWord();
+  }
+  else if (lastLinkType === 'word'){
+    //clear the previous drawing
+    this.canvas.clear();
+
+    Screen.prototype.setTitle.call(this, 'Please draw: ' + lastLink.data);
+
+    //show drawing creator
+    this.showDrawing();
+
+    //calculate size of canvas dynamically
+    this.resizeCanvas();
+  }
+
+  //this will be ran when the done button is clicked, or
+  //  the enter key is pressed in the word input
+  this.onDone = function() {
+    this.checkIfDone(newLinkType);
   }
 }
 
-function checkIfDone(newLinkType) {
+Game.prototype.checkIfDone = function(newLinkType) {
   //hide the drawing
-  hideLinkCreators();
+  this.hideBoth();
 
   var newLink;
+  var self = this;
   if (newLinkType === 'drawing') {
-    if (isDrawingBlank()) {
+    if (this.isDrawingBlank()) {
       alert('Please draw something!');
     }
     else {
-      uploadCanvas(function(url) {
+      this.uploadCanvas(function(url) {
         //ran if upload was successful
         newLink = url;
-        sendLink(newLinkType, newLink);
+        self.sendLink(newLinkType, newLink);
       }, function() {
         //ran if upload was unsuccessful
         //reshow the canvas and allow the user to try again
-        showElement('#game-drawing');
-        showElement('#game-buttons');
-        setTitle('Upload failed, try again.');
+        self.showDrawing();
+        Screen.prototype.setTitle.call(this, 'Upload failed, try again.');
       });
     }
   }
@@ -239,18 +435,18 @@ function checkIfDone(newLinkType) {
     else {
       //clear the input
       $('#game-word-in').val('')
-      sendLink(newLinkType, newLink);
+      this.sendLink(newLinkType, newLink);
     }
   }
 }
 
-function uploadCanvas(next, err) {
-  setTitle('Uploading...');
+Game.prototype.uploadCanvas = function(next, err) {
+  Screen.prototype.setTitle.call(this, 'Uploading...');
 
   // this code was copied from:
   // http://community.mybb.com/thread-150592.html
   // https://github.com/blueimp/JavaScript-Canvas-to-Blob#usage
-  var file = canvas.toDataURL('image/png');
+  var file = this.canvas.toDataURL('image/png');
   var blob = window.dataURLtoBlob(file);
   var formData = new FormData();
   formData.append('upload', blob, 'drawing.png');
@@ -273,8 +469,8 @@ function uploadCanvas(next, err) {
   }
 }
 
-function sendLink(type, data) {
-  setTitle('Sending...');
+Game.prototype.sendLink = function(type, data) {
+  Screen.prototype.setTitle.call(this, 'Sending...');
 
   socket.emit('finishedLink', {
     link: {
@@ -282,53 +478,67 @@ function sendLink(type, data) {
       data
     }
   });
-  startWaiting();
+  this.onWait();
 }
 
-function isDrawingBlank() {
-    var blank = document.createElement('canvas');
-    blank.width = canvas.width;
-    blank.height = canvas.height;
+Game.prototype.isDrawingBlank = function() {
+  this.blankCanvas.width = this.canvas.width;
+  this.blankCanvas.height = this.canvas.height;
 
-    return canvas.toDataURL() == blank.toDataURL();
+  return this.canvas.toDataURL() == this.blankCanvas.toDataURL();
 }
 
-function roundOver(data) {
-  returnToLobby('The round is over!');
+Game.prototype.roundOver = function() {
+  this.returnToLobby('The round is over!');
 }
 
-function someoneLeft(data) {
-  returnToLobby(data.name + ' disconnected.');
+Game.prototype.someoneLeft = function(data) {
+  this.returnToLobby(data.name + ' disconnected.');
 }
 
-function returnToLobby(message) {
-  hideAll();
-  showElement('#lobby');
-  setTitle('Game Code: ' + gameCode);
-  setSubtitle('Waiting for players...');
+Game.prototype.returnToLobby = function(message) {
   alert(message);
+  this.onRoundEnd();
 }
 
-function hideLinkCreators() {
-  $('#game-drawing').addClass('hidden');
-  $('#game-word').addClass('hidden');
-  $('#game-buttons').addClass('hidden');
+Game.prototype.onDone = function() {
+
+}
+
+Game.prototype.resizeCanvas = function() {
+  var container = $('#game-drawing');
+  this.canvas.setHeight(container.width());
+  this.canvas.setWidth(container.width());
+  this.canvas.renderAll();
 }
 
 
-//  Result
+Results.prototype = Object.create(Screen.prototype);
 
-function viewResults(data) {
+function Results() {
+  Screen.call(this);
+
+  this.id = '#result';
+}
+
+Results.prototype.initialize = function() {
+  $('#result-done').on('click', function() {
+    hideAll();
+    Screen.prototype.setTitle.call(this, 'Thanks for playing Drawphone!');
+    Screen.prototype.setSubtitle.call(this, 'Waiting for other players...');
+    socket.emit('doneViewingResults', {});
+  });
+}
+
+Results.prototype.show = function(data) {
   var ourChain = data.links;
   var ourName = ourChain[0].player.name;
 
-  hideAll();
-  showElement('#result');
-
-  setTitle(ourName + "'s Drawphone results");
-  setSubtitle('Show everyone how it turned out!');
+  Screen.prototype.setTitle.call(this, ourName + "'s Drawphone results");
+  Screen.prototype.setSubtitle.call(this, 'Show everyone how it turned out!');
 
   var results = $('#result-content');
+  results.empty();
 
   for (var i = 0; i < data.links.length; i++) {
     var link = data.links[i];
@@ -339,79 +549,29 @@ function viewResults(data) {
     } else if (link.type === 'word') {
       results.append('<h3>' + link.player.name + ' thought that was:</h3><h1>' + link.data + '</h1>');
     } else {
-      console.log('We should never get here');
+      console.log('Results: We should never get here');
     }
   }
 
-  var doneButton = $('#result-done');
-  doneButton.off('click');
-  doneButton.on('click', function() {
-    hideAll();
-    setTitle('Thanks for playing Drawphone!');
-    setSubtitle('Waiting for other players...');
-    socket.emit('doneViewingResults', {});
-  });
+  Screen.prototype.show.call(this);
 }
 
 
-//  Waiting
+Waiting.prototype = Object.create(Screen.prototype);
 
-function startWaiting() {
-  hideAll();
-  showElement('#waiting');
-  setTitle('Waiting for other players...');
+function Waiting() {
+  Screen.call(this);
+
+  this.id = '#waiting';
+  Screen.prototype.setTitle.call(this, 'Waiting for other players...');
+  Screen.prototype.setSubtitle.call(this, 'Game in progress');
+  this.userList = new UserList($('#waiting-players'));
 }
 
-//ran when we receive updateWaitingList from the server
-function updateWaitingList(data) {
-  var list = data.players;
-  var waitingList = $('#waiting-players');
-
-  var newList = new UserList(waitingList);
-  newList.update(list);
+Waiting.prototype.updateWaitingList = function(data) {
+  this.userList.update(data.players);
 }
 
-
-//  UI Methods
-
-function hideAll() {
-  $('#mainmenu').addClass('hidden');
-  $('#joinmenu').addClass('hidden');
-  $('#newmenu').addClass('hidden');
-  $('#lobby').addClass('hidden');
-  $('#game').addClass('hidden');
-  $('#result').addClass('hidden');
-  $('#waiting').addClass('hidden');
-
-  $('#game-cleardrawing').addClass('hidden');
-  $('#result-content').empty();
-
-}
-
-function showElement(jq) {
-  $(jq).removeClass('hidden');
-}
-
-function setTitle(newTitle) {
-  $('#title').html(newTitle);
-}
-
-function setSubtitle(newSubtitle) {
-  $('#subtitle').text(newSubtitle);
-}
-
-function oppositeLinkType(linkType) {
-  if (linkType === 'drawing') {
-    return 'word';
-  } else {
-    return 'drawing';
-  }
-}
-
-
-//
-//  Objects
-//
 
 function UserList(ul) {
   this.ul = ul;
@@ -431,28 +591,22 @@ UserList.prototype.update = function(newList) {
   }
 }
 
+
 //
-//  Real-time Communication via Socket.IO
+//  Main
 //
 
-socket.on('disconnect', function() {
-  alert('Connection lost!');
-  //refresh the page
-  location.reload();
-});
+var socket = io();
 
-socket.on('joinGameRes', showLobby);
+//try to join the dev game
+var relativeUrl = window.location.pathname + window.location.search;
+if (relativeUrl === "/dev") {
+  socket.emit('joinGame', {
+    code: 'ffff',
+    name: Math.random().toString()
+  });
+}
 
-socket.on('updatePlayerList', updatePlayerList);
-
-socket.on('gameStart', showGame);
-
-socket.on('nextLink', nextLink);
-
-socket.on('roundOver', roundOver);
-
-socket.on('someoneLeft', someoneLeft);
-
-socket.on('viewResults', viewResults);
-
-socket.on('updateWaitingList', updateWaitingList);
+var drawphone = new Drawphone();
+drawphone.initializeAll();
+drawphone.begin();

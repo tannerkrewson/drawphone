@@ -135,16 +135,8 @@ function showLobby(data) {
 function updatePlayerList(list) {
   var playerList = $('#lobby-players');
 
-  playerList.empty();
-
-  for (var i = 0; i < list.length; i++) {
-    var listBox = $('<span></span>')
-    var listItem = $('<li>' + list[i].name + '</li>').appendTo(listBox);
-    listItem.addClass('user');
-    listBox.addClass('col-xs-6');
-    listBox.addClass('user-container');
-    listBox.appendTo(playerList);
-  }
+  var newList = new UserList(playerList);
+  newList.update(list);
 }
 
 
@@ -375,16 +367,8 @@ function updateWaitingList(data) {
   var list = data.players;
   var waitingList = $('#waiting-players');
 
-  waitingList.empty();
-
-  for (var i = 0; i < list.length; i++) {
-    var listBox = $('<span></span>')
-    var listItem = $('<li>' + list[i].name + '</li>').appendTo(listBox);
-    listItem.addClass('user');
-    listBox.addClass('col-xs-6');
-    listBox.addClass('user-container');
-    listBox.appendTo(waitingList);
-  }
+  var newList = new UserList(waitingList);
+  newList.update(list);
 }
 
 
@@ -424,6 +408,28 @@ function oppositeLinkType(linkType) {
   }
 }
 
+
+//
+//  Objects
+//
+
+function UserList(ul) {
+  this.ul = ul;
+}
+
+UserList.prototype.update = function(newList) {
+  //clear all of the user boxes using jquery
+  this.ul.empty();
+
+  for (var i = 0; i < newList.length; i++) {
+    var listBox = $('<span></span>')
+    var listItem = $('<li>' + newList[i].name + '</li>').appendTo(listBox);
+    listItem.addClass('user');
+    listBox.addClass('col-xs-6');
+    listBox.addClass('user-container');
+    listBox.appendTo(this.ul);
+  }
+}
 
 //
 //  Real-time Communication via Socket.IO

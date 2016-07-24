@@ -73,6 +73,7 @@ function Game(code, onEmpty) {
   this.code = code;
   this.onEmpty = onEmpty;
   this.players = [];
+  this.admin;
   this.inProgress = false;
   this.currentRound;
 
@@ -82,6 +83,12 @@ function Game(code, onEmpty) {
 
 Game.prototype.addPlayer = function(name, socket) {
   var newPlayer = new Player(name, socket, this.getNextId());
+
+  //if this is the first user, make them admin
+  if (this.players.length === 0) {
+    this.admin = newPlayer;
+    newPlayer.makeAdmin();
+  }
   this.players.push(newPlayer);
 
   this.sendUpdatedPlayersList();
@@ -102,6 +109,13 @@ Game.prototype.removePlayer = function(id) {
   var index = this.players.indexOf(player);
   if (index > -1) {
       this.players.splice(index, 1);
+  }
+
+  //if the player was admin
+  if (player.id === this.admin.id) {
+    //find a new admin
+    this.admin = this.players[0];
+    this.players[0].makeAdmin();
   }
 
   //if there are no players left
@@ -147,7 +161,11 @@ Game.prototype.sendUpdatedPlayersList = function() {
 
 Game.prototype.sendToAll = function(event, data) {
   this.players.forEach(function(player) {
-    player.socket.emit(event, data);
+    player.socket.emit(event, {
+      success: true,
+      player: player.getJson(),
+      data
+    });
   });
 }
 
@@ -392,12 +410,14 @@ function Player(name, socket, id) {
   this.socket = socket;
   this.id = id;
   this.doneViewingResults = false;
+  this.isAdmin = false;
 }
 
 Player.prototype.getJson = function() {
   return newPlayer = {
     name: this.name,
-    id: this.id
+    id: this.id,
+    isAdmin: this.isAdmin
   }
 }
 
@@ -440,6 +460,10 @@ Player.prototype.sendUpdateWaitingList = function(players) {
   this.socket.emit('updateWaitingList', {
     players
   });
+}
+
+Player.prototype.makeAdmin = function() {
+  this.isAdmin = true;
 }
 
 

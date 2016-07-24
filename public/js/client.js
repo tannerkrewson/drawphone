@@ -111,7 +111,7 @@ Drawphone.prototype.attachSocketListeners = function() {
 
   socket.on('joinGameRes', this.lobby.show.bind(this.lobby));
 
-  socket.on('updatePlayerList', this.lobby.updatePlayerList.bind(this.lobby));
+  socket.on('updatePlayerList', this.lobby.update.bind(this.lobby));
 
   socket.on('gameStart', this.game.show.bind(this.game));
 
@@ -276,27 +276,43 @@ Lobby.prototype.initialize = function() {
 }
 
 Lobby.prototype.show = function(data) {
+  //if this was called by a socket.io event
   if (data) {
-    this.update(data);
-  }
-  Screen.prototype.setTitle.call(this, 'Game Code: <span class="gamecode">' + this.gameCode + '</span>');
-  Screen.prototype.setSubtitle.call(this, 'Waiting for players...');
+    if (data.success) {
+      this.gameCode = data.game.code;
 
+      Screen.prototype.setTitle.call(this, 'Game Code: <span class="gamecode">' + this.gameCode + '</span>');
+      Screen.prototype.setSubtitle.call(this, 'Waiting for players...');
+
+      this.update({
+        success: true,
+        player: data.player,
+        data: data.game.players
+      });
+    } else {
+      swal("Error showing lobby", data.error, "error");
+      return;
+    }
+  }
   Screen.prototype.show.call(this);
 }
 
-Lobby.prototype.update = function(data) {
-  if (data.success) {
-    this.gameCode = data.game.code;
-    this.userList.update(data.game.players);
-    this.show();
+Lobby.prototype.update = function(res) {
+  if (res.success) {
+    this.userList.update(res.data);
+    if (res.player.isAdmin) {
+      //show the start game button
+      this.startButton.removeClass('hidden');
+    } else {
+      this.startButton.addClass('hidden');
+    }
   } else {
-    swal("Error updating lobby", data.error, "error")
+    swal("Error updating lobby", res.error, "error")
   }
 }
 
-Lobby.prototype.updatePlayerList = function(data) {
-  this.userList.update(data);
+Lobby.prototype.updatePlayerList = function(list) {
+  this.userList.update(list);
 }
 
 

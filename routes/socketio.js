@@ -13,7 +13,8 @@ module.exports = function(app){
         thisUser = thisGame.addPlayer(data.name, socket);
         socket.emit('joinGameRes', {
           success: true,
-          game: thisGame.getJsonGame()
+          game: thisGame.getJsonGame(),
+          player: thisUser.getJson()
         })
       } else {
         socket.emit('joinGameRes', {
@@ -40,8 +41,10 @@ module.exports = function(app){
     });
 
     socket.on('tryStartGame', function(data) {
-      thisGame.sendToAll('gameStart', {});
-      thisGame.startNewRound();
+      if (thisUser.isAdmin) {
+        thisGame.sendToAll('gameStart', {});
+        thisGame.startNewRound();
+      }
     });
 
     socket.on('disconnect', function(data) {

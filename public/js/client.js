@@ -427,7 +427,8 @@ Game.prototype.checkIfDone = function(newLinkType) {
   var self = this;
   if (newLinkType === 'drawing') {
     if (this.isDrawingBlank()) {
-      swal("Your picture is blank!", "Please draw a picture, then try again.", "info")
+      self.showDrawing();
+      swal("Your picture is blank!", "Please draw a picture, then try again.", "info");
     }
     else {
       this.uploadCanvas(function(url) {
@@ -438,6 +439,7 @@ Game.prototype.checkIfDone = function(newLinkType) {
         //ran if upload was unsuccessful
         //reshow the canvas and allow the user to try again
         self.showDrawing();
+        swal("Upload failed.", "Try again.", "error");
         Screen.prototype.setTitle.call(this, 'Upload failed, try again.');
       });
     }
@@ -446,6 +448,7 @@ Game.prototype.checkIfDone = function(newLinkType) {
     newLink = $('#game-word-in').val().trim();
     //check if it is blank
     if (newLink === '') {
+      self.showWord();
       swal("Your guess is blank!", "Please enter a guess, then try again.", "info")
     }
     else {

@@ -104,7 +104,7 @@ Drawphone.prototype.initializeAll = function() {
 
 Drawphone.prototype.attachSocketListeners = function() {
   socket.on('disconnect', function() {
-    alert('Connection lost!');
+    swal("Connection lost!", "Reloading...", "error");
     //refresh the page
     location.reload();
   });
@@ -291,7 +291,7 @@ Lobby.prototype.update = function(data) {
     this.userList.update(data.game.players);
     this.show();
   } else {
-    alert(data.error);
+    swal("Error updating lobby", data.error, "error")
   }
 }
 
@@ -411,7 +411,7 @@ Game.prototype.checkIfDone = function(newLinkType) {
   var self = this;
   if (newLinkType === 'drawing') {
     if (this.isDrawingBlank()) {
-      alert('Please draw something!');
+      swal("Your picture is blank!", "Please draw a picture, then try again.", "info")
     }
     else {
       this.uploadCanvas(function(url) {
@@ -430,7 +430,7 @@ Game.prototype.checkIfDone = function(newLinkType) {
     newLink = $('#game-word-in').val().trim();
     //check if it is blank
     if (newLink === '') {
-      alert('Please enter a guess!');
+      swal("Your guess is blank!", "Please enter a guess, then try again.", "info")
     }
     else {
       //clear the input
@@ -489,15 +489,11 @@ Game.prototype.isDrawingBlank = function() {
 }
 
 Game.prototype.roundOver = function() {
-  this.returnToLobby('The round is over!');
+  this.onRoundEnd();
 }
 
 Game.prototype.someoneLeft = function(data) {
-  this.returnToLobby(data.name + ' disconnected.');
-}
-
-Game.prototype.returnToLobby = function(message) {
-  alert(message);
+  swal(data.name + ' disconnected.', 'The round has ended, and you will return to the lobby.', 'error');
   this.onRoundEnd();
 }
 

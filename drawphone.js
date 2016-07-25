@@ -111,16 +111,17 @@ Game.prototype.removePlayer = function(id) {
       this.players.splice(index, 1);
   }
 
+  //if there are no players left
+  if (this.players.length === 0) {
+    this.onEmpty();
+    return;
+  }
+
   //if the player was admin
   if (player.id === this.admin.id) {
     //find a new admin
     this.admin = this.players[0];
     this.players[0].makeAdmin();
-  }
-
-  //if there are no players left
-  if (this.players.length === 0) {
-    this.onEmpty();
   }
 }
 

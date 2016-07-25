@@ -58,3 +58,7 @@ input[type="text"] {
 .user-container {
   padding: 3px;
 }
+
+.disconnected {
+  background-color: LightGrey;
+}

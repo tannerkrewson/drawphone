@@ -9,18 +9,38 @@ module.exports = function(app){
 
     socket.on('joinGame', function (data) {
       thisGame = dp.findGame(data.code);
-      if (thisGame && data.name.length > 1 && !thisGame.inProgress) {
-        thisUser = thisGame.addPlayer(data.name, socket);
-        socket.emit('joinGameRes', {
-          success: true,
-          game: thisGame.getJsonGame(),
-          player: thisUser.getJson()
-        })
-      } else {
+      if (!thisGame) {
         socket.emit('joinGameRes', {
           success: false,
-          error: 'Failed to join game'
-        })
+          error: 'Game not found'
+        });
+      } else if (data.name.length < 1) {
+        socket.emit('joinGameRes', {
+          success: false,
+          error: 'Name too short'
+        });
+      } else {
+        if (thisGame.inProgress) {
+          console.log('dp length: ' + thisGame.currentRound.disconnectedPlayers.length);
+        }
+        if (!thisGame.inProgress) {
+          thisUser = thisGame.addPlayer(data.name, socket);
+          socket.emit('joinGameRes', {
+            success: true,
+            game: thisGame.getJsonGame(),
+            player: thisUser.getJson()
+          })
+        } else if (thisGame.currentRound.disconnectedPlayers.length > 0){
+          thisUser = thisGame.newPlayer(data.name, socket);
+          socket.emit('replacePlayer', {
+            players: thisGame.currentRound.getPlayersThatNeedToBeReplaced()
+          });
+        } else {
+          socket.emit('joinGameRes', {
+            success: false,
+            error: 'Game in progress'
+          });
+        }
       }
     });
 
@@ -48,12 +68,14 @@ module.exports = function(app){
       }
     });
 
-    socket.on('disconnect', function(data) {
-      if (thisGame && thisGame.inProgress) {
-        thisGame.currentRound.someoneLeft(thisUser.name);
+    socket.on('tryReplacePlayer', function(data) {
+      if (thisUser) {
+        thisUser = thisGame.currentRound.replacePlayer(data.playerToReplace.id, thisUser);
+        thisGame.initPlayer(thisUser);
+        thisGame.currentRound.updateWaitingList();
       }
     });
 
-  })
+  });
 
 }

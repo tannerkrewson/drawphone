@@ -30,6 +30,7 @@ function hideAll() {
   $('#game').addClass('hidden');
   $('#result').addClass('hidden');
   $('#waiting').addClass('hidden');
+  $('#replace').addClass('hidden');
 }
 
 function showElement(jq) {
@@ -85,6 +86,8 @@ function Drawphone() {
 
   this.waiting = new Waiting();
 
+  this.replace = new Replace();
+
   this.screens.push(this.mainMenu);
   this.screens.push(this.joinMenu);
   this.screens.push(this.newMenu);
@@ -92,6 +95,7 @@ function Drawphone() {
   this.screens.push(this.game);
   this.screens.push(this.results);
   this.screens.push(this.waiting);
+  this.screens.push(this.replace);
 }
 
 Drawphone.prototype.initializeAll = function() {
@@ -123,7 +127,11 @@ Drawphone.prototype.attachSocketListeners = function() {
 
   socket.on('viewResults', this.results.show.bind(this.results));
 
+  socket.on('showWaitingList', this.waiting.show.bind(this.waiting));
+
   socket.on('updateWaitingList', this.waiting.updateWaitingList.bind(this.waiting));
+
+  socket.on('replacePlayer', this.replace.show.bind(this.replace));
 }
 
 Drawphone.prototype.begin = function() {
@@ -209,12 +217,10 @@ JoinMenu.prototype.initialize = function() {
     var code = $('#joinincode').val();
     var name = $('#joininname').val();
 
-    if (name.length > 1 && code.length === 4) {
-      socket.emit('joinGame', {
-        code,
-        name
-      });
-    }
+    socket.emit('joinGame', {
+      code,
+      name
+    });
   });
 
   Screen.prototype.setDefaultTitles.call(this);
@@ -241,11 +247,9 @@ NewMenu.prototype.initialize = function() {
   this.goButton.click(function() {
     var name = $('#newinname').val();
 
-    if (name.length > 1) {
-      socket.emit('newGame', {
-        name
-      });
-    }
+    socket.emit('newGame', {
+      name
+    });
   });
 }
 
@@ -290,7 +294,7 @@ Lobby.prototype.show = function(data) {
         data: data.game.players
       });
     } else {
-      swal("Error showing lobby", data.error, "error");
+      swal(data.error, '', "error");
       return;
     }
   }
@@ -584,7 +588,51 @@ function Waiting() {
 }
 
 Waiting.prototype.updateWaitingList = function(data) {
-  this.userList.update(data.players);
+  var notFinished = data.notFinished;
+  var disconnected = data.disconnected;
+  this.userList.update(notFinished, disconnected);
+}
+
+
+Replace.prototype = Object.create(Screen.prototype);
+
+function Replace() {
+  Screen.call(this);
+  this.id = '#replace'
+  Screen.prototype.setTitle.call(this, 'Choose a player to replace');
+  Screen.prototype.setSubtitle.call(this, 'Game on hold');
+}
+
+Replace.prototype.initialize = function() {
+  $('#replace-leave').click(function() {
+    //refresh the page
+    location.reload();
+  });
+  Screen.prototype.initialize.call(this);
+}
+
+Replace.prototype.show = function(data) {
+  var choices = $('#replace-choices');
+  var players = data.players;
+
+  choices.empty();
+
+  var self = this;
+  players.forEach(function(player) {
+    var button = $('<button type="button">' + player.name + '</button>');
+    button.addClass('btn btn-default btn-lg');
+    button.click(function() {
+      self.sendChoice(player);
+    });
+    choices.append(button);
+  });
+  Screen.prototype.show.call(this);
+}
+
+Replace.prototype.sendChoice = function(playerToReplace) {
+  socket.emit('tryReplacePlayer', {
+    playerToReplace
+  });
 }
 
 
@@ -592,16 +640,26 @@ function UserList(ul) {
   this.ul = ul;
 }
 
-UserList.prototype.update = function(newList) {
+UserList.prototype.update = function(newList, disconnectedList) {
   //clear all of the user boxes using jquery
   this.ul.empty();
 
-  for (var i = 0; i < newList.length; i++) {
+  this.draw(newList, false);
+  if (disconnectedList) {
+    this.draw(disconnectedList, true);
+  }
+}
+
+UserList.prototype.draw = function(list, makeBoxDark) {
+  for (var i = 0; i < list.length; i++) {
     var listBox = $('<span></span>')
-    var listItem = $('<li>' + newList[i].name + '</li>').appendTo(listBox);
+    var listItem = $('<li>' + list[i].name + '</li>').appendTo(listBox);
     listItem.addClass('user');
     listBox.addClass('col-xs-6');
     listBox.addClass('user-container');
+    if (makeBoxDark) {
+      listBox.addClass('disconnected');
+    }
     listBox.appendTo(this.ul);
   }
 }

@@ -81,26 +81,36 @@ function Game(code, onEmpty) {
   this.currentRoundNum = 1;
 }
 
-Game.prototype.addPlayer = function(name, socket) {
-  var newPlayer = new Player(name, socket, this.getNextId());
+Game.prototype.newPlayer = function(name, socket) {
+  return new Player(name, socket, this.getNextId());
+}
 
+Game.prototype.addPlayer = function(name, socket) {
+  var newPlayer = this.newPlayer(name, socket);
+  this.initPlayer(newPlayer);
+  this.players.push(newPlayer);
+  this.sendUpdatedPlayersList();
+  return newPlayer;
+}
+
+Game.prototype.initPlayer = function(newPlayer) {
   //if this is the first user, make them admin
   if (this.players.length === 0) {
     this.admin = newPlayer;
     newPlayer.makeAdmin();
   }
-  this.players.push(newPlayer);
-
-  this.sendUpdatedPlayersList();
 
   //when this player disconnects, remove them from this game
   var self = this;
-  socket.on('disconnect', function() {
-    self.removePlayer(newPlayer.id);
+  newPlayer.socket.on('disconnect', function() {
+    newPlayer.isConnected = false;
+    if (self.inProgress) {
+      self.currentRound.findReplacementFor(newPlayer);
+    } else {
+      self.removePlayer(newPlayer.id);
+    }
     self.sendUpdatedPlayersList();
   });
-
-  return newPlayer;
 }
 
 Game.prototype.removePlayer = function(id) {
@@ -189,6 +199,7 @@ function Round(number, players, onEnd) {
   this.players = players;
   this.onEnd = onEnd;
   this.chains = [];
+  this.disconnectedPlayers = [];
   //on creation, chains will already have one link
   this.shouldHaveThisManyLinks = 2;
 
@@ -234,9 +245,10 @@ Round.prototype.receiveLink = function(player, receivedLink, chainId) {
 }
 
 Round.prototype.nextLinkIfEveryoneIsDone = function() {
-  var readyToMoveOn = this.getListOfNotFinishedPlayers().length === 0;
+  var allFinished = this.getListOfNotFinishedPlayers().length === 0;
+  var noneDisconnected = this.disconnectedPlayers.length === 0;
 
-  if (readyToMoveOn) {
+  if (allFinished && noneDisconnected) {
     //check if that was the last link
     if (this.shouldHaveThisManyLinks === this.finalNumOfLinks) {
       this.viewResults();
@@ -322,17 +334,55 @@ Round.prototype.end = function() {
   }
 }
 
-Round.prototype.someoneLeft = function(name) {
-  this.onEnd();
-  this.players.forEach(function(player) {
-    player.sendSomeoneLeft(name);
-  });
+Round.prototype.findReplacementFor = function(player) {
+  this.disconnectedPlayers.push(player.getJson());
+  this.updateWaitingList();
+}
+
+Round.prototype.getPlayersThatNeedToBeReplaced = function() {
+  return this.disconnectedPlayers;
+}
+
+Round.prototype.replacePlayer = function(playerToReplaceId, newPlayer) {
+  var self = this;
+  for (var i = 0; i < this.disconnectedPlayers.length; i++) {
+    if (this.disconnectedPlayers[i].id === playerToReplaceId) {
+      //give 'em the id of the old player
+      newPlayer.id = this.disconnectedPlayers[i].id;
+
+      //replace 'em
+      var playerToReplaceIndex = this.getPlayerIndexById(playerToReplaceId);
+      this.players[playerToReplaceIndex] = newPlayer;
+
+      //delete 'em from disconnectedPlayers
+      this.disconnectedPlayers.splice(i, 1);
+
+      //check if the disconnectedPlayer (dp) had submitted their link
+      var dpChain = this.getChainByLastSentPlayerId(newPlayer.id);
+      var dpDidFinishTheirLink = dpChain.getLength() === this.shouldHaveThisManyLinks
+      if (dpDidFinishTheirLink) {
+        console.log(1);
+        //send this player to the waiting for players page
+        newPlayer.socket.emit('showWaitingList', {});
+      } else {
+        console.log(2);
+        //send them the link they need to finish
+        newPlayer.sendLink(dpChain.getLastLink(), dpChain.id, function(player, link, chainId) {
+          //ran when the player submits their thing
+          self.receiveLink(player, link, chainId);
+        });
+      }
+      return this.players[playerToReplaceIndex];
+    }
+  }
 }
 
 Round.prototype.updateWaitingList = function() {
-  var list = this.getListOfNotFinishedPlayers();
+  var self = this;
   this.players.forEach(function(player) {
-    player.sendUpdateWaitingList(list);
+    var notFinished = self.getListOfNotFinishedPlayers();
+    var disconnected = self.disconnectedPlayers;
+    player.sendUpdateWaitingList(notFinished, disconnected);
   });
 }
 
@@ -342,12 +392,41 @@ Round.prototype.getListOfNotFinishedPlayers = function() {
   //check to make sure every chain is the same length
   for (var i = 0; i < this.chains.length; i++) {
     var thisChain = this.chains[i];
-    if (thisChain.getLength() !== this.shouldHaveThisManyLinks) {
+    var isLastPlayerSentToConnected = this.getPlayer(thisChain.lastPlayerSentTo.id).isConnected;
+
+    if (thisChain.getLength() !== this.shouldHaveThisManyLinks && isLastPlayerSentToConnected) {
       playerList.push(thisChain.lastPlayerSentTo);
     }
   }
 
   return playerList;
+}
+
+Round.prototype.getPlayer = function(id) {
+  for (var i = 0; i < this.players.length; i++) {
+    if (this.players[i].id === id) {
+      return this.players[i];
+    }
+  }
+  return false;
+}
+
+Round.prototype.getPlayerIndexById = function(id) {
+  for (var i = 0; i < this.players.length; i++) {
+    if (this.players[i].id === id) {
+      return i;
+    }
+  }
+  return false;
+}
+
+Round.prototype.getChainByLastSentPlayerId = function(id) {
+  for (var i = 0; i < this.chains.length; i++) {
+    if (this.chains[i].lastPlayerSentTo.id === id) {
+      return this.chains[i];
+    }
+  }
+  return false;
 }
 
 
@@ -412,13 +491,15 @@ function Player(name, socket, id) {
   this.id = id;
   this.doneViewingResults = false;
   this.isAdmin = false;
+  this.isConnected = true;
 }
 
 Player.prototype.getJson = function() {
   return newPlayer = {
     name: this.name,
     id: this.id,
-    isAdmin: this.isAdmin
+    isAdmin: this.isAdmin,
+    isConnected: this.isConnected
   }
 }
 
@@ -457,9 +538,10 @@ Player.prototype.sendViewResults = function(thisPlayersChainLinks, next) {
   });
 }
 
-Player.prototype.sendUpdateWaitingList = function(players) {
+Player.prototype.sendUpdateWaitingList = function(notFinished, disconnected) {
   this.socket.emit('updateWaitingList', {
-    players
+    notFinished,
+    disconnected
   });
 }
 

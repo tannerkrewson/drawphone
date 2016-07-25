@@ -126,8 +126,6 @@ Drawphone.prototype.attachSocketListeners = function() {
 
   socket.on('roundOver', this.game.roundOver.bind(this.game));
 
-  socket.on('someoneLeft', this.game.someoneLeft.bind(this.game));
-
   socket.on('viewResults', this.results.show.bind(this.results));
 
   socket.on('showWaitingList', this.waiting.show.bind(this.waiting));
@@ -526,15 +524,6 @@ Game.prototype.isDrawingBlank = function() {
 
 Game.prototype.roundOver = function() {
   this.onRoundEnd();
-}
-
-Game.prototype.someoneLeft = function(data) {
-  swal(data.name + ' disconnected.', 'The round has ended, and you will return to the lobby.', 'error');
-  this.onRoundEnd();
-}
-
-Game.prototype.onDone = function() {
-
 }
 
 Game.prototype.resizeCanvas = function() {

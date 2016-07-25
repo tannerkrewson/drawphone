@@ -539,12 +539,6 @@ Player.prototype.sendRoundOver = function() {
   this.socket.emit('roundOver', {});
 }
 
-Player.prototype.sendSomeoneLeft = function(name) {
-  this.socket.emit('someoneLeft', {
-    name
-  });
-}
-
 Player.prototype.sendViewResults = function(thisPlayersChainLinks, next) {
   this.socket.emit('viewResults', {
     links: thisPlayersChainLinks

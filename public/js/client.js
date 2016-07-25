@@ -45,6 +45,9 @@ function oppositeLinkType(linkType) {
   }
 }
 
+//sorry
+var globalGameCode = '';
+
 
 //
 //  Objects
@@ -141,8 +144,8 @@ Drawphone.prototype.begin = function() {
 
 function Screen() {
   this.id = '';
-  this.title = 'Error: Title not set';
-  this.subtitle = 'Error: Subtitle not set';
+  this.title = 'Loading Drawphone...';
+  this.subtitle = 'Just a moment!';
 
   this.defaultTitle = 'Drawphone';
   this.defaultSubtitle = 'Telephone with pictures';
@@ -165,6 +168,11 @@ Screen.prototype.setTitle = function(title) {
 
 Screen.prototype.setSubtitle = function(subtitle) {
   this.subtitle = subtitle;
+  $('#subtitle').html(this.subtitle);
+}
+
+Screen.prototype.showTitles = function() {
+  $('#title').html(this.title);
   $('#subtitle').html(this.subtitle);
 }
 
@@ -283,16 +291,14 @@ Lobby.prototype.show = function(data) {
   //if this was called by a socket.io event
   if (data) {
     if (data.success) {
-      this.gameCode = data.game.code;
-
-      Screen.prototype.setTitle.call(this, 'Game Code: <span class="gamecode">' + this.gameCode + '</span>');
-      Screen.prototype.setSubtitle.call(this, 'Waiting for players...');
-
+      globalGameCode = '<span class="gamecode">' + data.game.code + '</span>';
       this.update({
         success: true,
+        gameCode: data.game.code,
         player: data.player,
         data: data.game.players
       });
+
     } else {
       swal(data.error, '', "error");
       return;
@@ -303,6 +309,9 @@ Lobby.prototype.show = function(data) {
 
 Lobby.prototype.update = function(res) {
   if (res.success) {
+    globalGameCode = '<span class="gamecode">' + res.gameCode + '</span>';
+    this.title = 'Game Code: <span class="gamecode">' + res.gameCode + '</span>';
+    this.subtitle = 'Waiting for players...';
     this.userList.update(res.data);
     if (res.player.isAdmin) {
       //show the start game button
@@ -326,7 +335,6 @@ function Game(onRoundEnd, onWait) {
   Screen.call(this);
 
   this.id = '#game';
-  Screen.prototype.setSubtitle.call(this, 'Game in progress');
   this.blankCanvas = document.createElement('canvas');
   this.onRoundEnd = onRoundEnd;
   this.onWait = onWait;
@@ -359,6 +367,11 @@ Game.prototype.initialize = function() {
        self.onDone();
     }
   });
+}
+
+Game.prototype.show = function() {
+  Screen.prototype.show.call(this);
+  Screen.prototype.setSubtitle.call(this, 'Game code: ' + globalGameCode);
 }
 
 Game.prototype.showDrawing = function() {
@@ -583,11 +596,22 @@ function Waiting() {
 
   this.id = '#waiting';
   Screen.prototype.setTitle.call(this, 'Waiting for other players...');
-  Screen.prototype.setSubtitle.call(this, 'Game in progress');
   this.userList = new UserList($('#waiting-players'));
 }
 
+Waiting.prototype.show = function() {
+  Screen.prototype.show.call(this);
+  Screen.prototype.setSubtitle.call(this, 'Game code: ' + globalGameCode);
+}
+
+
 Waiting.prototype.updateWaitingList = function(data) {
+  //show/hide the admin notice
+  if (data.player.isAdmin) {
+    $('#waiting-adminmsg').removeClass('hidden');
+  } else {
+    $('#waiting-adminmsg').addClass('hidden');
+  }
   var notFinished = data.notFinished;
   var disconnected = data.disconnected;
   this.userList.update(notFinished, disconnected);
@@ -600,7 +624,6 @@ function Replace() {
   Screen.call(this);
   this.id = '#replace'
   Screen.prototype.setTitle.call(this, 'Choose a player to replace');
-  Screen.prototype.setSubtitle.call(this, 'Game on hold');
 }
 
 Replace.prototype.initialize = function() {
@@ -612,6 +635,9 @@ Replace.prototype.initialize = function() {
 }
 
 Replace.prototype.show = function(data) {
+  globalGameCode = '<span class="gamecode">' + data.gameCode + '</span>';
+  Screen.prototype.setSubtitle.call(this, 'Ready to join game...');
+
   var choices = $('#replace-choices');
   var players = data.players;
 
@@ -625,6 +651,7 @@ Replace.prototype.show = function(data) {
       self.sendChoice(player);
     });
     choices.append(button);
+    choices.append('<br>');
   });
   Screen.prototype.show.call(this);
 }
@@ -646,7 +673,12 @@ UserList.prototype.update = function(newList, disconnectedList) {
 
   this.draw(newList, false);
   if (disconnectedList) {
-    this.draw(disconnectedList, true);
+    if (disconnectedList.length > 0) {
+      $('#waiting-disconnectedmsg').removeClass('hidden');
+      this.draw(disconnectedList, true);
+    } else {
+      $('#waiting-disconnectedmsg').addClass('hidden');
+    }
   }
 }
 
@@ -655,11 +687,11 @@ UserList.prototype.draw = function(list, makeBoxDark) {
     var listBox = $('<span></span>')
     var listItem = $('<li>' + list[i].name + '</li>').appendTo(listBox);
     listItem.addClass('user');
+    if (makeBoxDark) {
+      listItem.addClass('disconnected');
+    }
     listBox.addClass('col-xs-6');
     listBox.addClass('user-container');
-    if (makeBoxDark) {
-      listBox.addClass('disconnected');
-    }
     listBox.appendTo(this.ul);
   }
 }

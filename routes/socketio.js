@@ -20,9 +20,6 @@ module.exports = function(app){
           error: 'Name too short'
         });
       } else {
-        if (thisGame.inProgress) {
-          console.log('dp length: ' + thisGame.currentRound.disconnectedPlayers.length);
-        }
         if (!thisGame.inProgress) {
           thisUser = thisGame.addPlayer(data.name, socket);
           socket.emit('joinGameRes', {
@@ -33,6 +30,7 @@ module.exports = function(app){
         } else if (thisGame.currentRound.disconnectedPlayers.length > 0){
           thisUser = thisGame.newPlayer(data.name, socket);
           socket.emit('replacePlayer', {
+            gameCode: thisGame.code,
             players: thisGame.currentRound.getPlayersThatNeedToBeReplaced()
           });
         } else {

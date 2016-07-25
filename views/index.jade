@@ -60,7 +60,20 @@ block content
       div.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2
         h4 Still waiting for:
         ul#waiting-players.list-unstyled.row
+        div#waiting-adminmsg.hidden
+          br
+          h4 A note to the admin:
+          p If someone has left the game and their box is still white, tap 
+            | their box to put them up for replacement. Anyone will be able to 
+            | rejoin in their place.
+        div#waiting-disconnectedmsg.hidden
+          br
+          h4 Someone left!
+          p It looks like someone has disconnected. They are marked by a grey 
+            | box above. The game will continue when someone joins this game to 
+            | take their place.
   div#replace.hidden
     div#replace-choices
+    br
     .btn-toolbar#replace-buttons
       button#replace-leave.btn.btn-default.btn-lg(type='button') Leave Game

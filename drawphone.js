@@ -109,8 +109,35 @@ Game.prototype.initPlayer = function(newPlayer) {
     } else {
       self.removePlayer(newPlayer.id);
     }
+    self.onPlayerDisconnect(newPlayer);
     self.sendUpdatedPlayersList();
   });
+}
+
+Game.prototype.onPlayerDisconnect = function(oldPlayer) {
+  //if the player was admin
+  if (oldPlayer.id === this.admin.id) {
+    //find the first connected player to be admin
+    for (var i = 0; i < this.players.length; i++) {
+      var thisPlayer = this.players[i];
+      if (thisPlayer.isConnected) {
+        this.admin = thisPlayer;
+        thisPlayer.makeAdmin();
+        break;
+      }
+    }
+  }
+
+  var allPlayersDisconnected = true;
+  for (var i = 0; i < this.players.length; i++) {
+    if (this.players[i].isConnected) {
+      allPlayersDisconnected = false;
+      break;
+    }
+  }
+  if (allPlayersDisconnected) {
+    this.onEmpty();
+  }
 }
 
 Game.prototype.removePlayer = function(id) {
@@ -124,14 +151,6 @@ Game.prototype.removePlayer = function(id) {
   //if there are no players left
   if (this.players.length === 0) {
     this.onEmpty();
-    return;
-  }
-
-  //if the player was admin
-  if (player.id === this.admin.id) {
-    //find a new admin
-    this.admin = this.players[0];
-    this.players[0].makeAdmin();
   }
 }
 
@@ -171,9 +190,11 @@ Game.prototype.sendUpdatedPlayersList = function() {
 }
 
 Game.prototype.sendToAll = function(event, data) {
+  var self = this;
   this.players.forEach(function(player) {
     player.socket.emit(event, {
       success: true,
+      gameCode: self.code,
       player: player.getJson(),
       data
     });
@@ -361,11 +382,9 @@ Round.prototype.replacePlayer = function(playerToReplaceId, newPlayer) {
       var dpChain = this.getChainByLastSentPlayerId(newPlayer.id);
       var dpDidFinishTheirLink = dpChain.getLength() === this.shouldHaveThisManyLinks
       if (dpDidFinishTheirLink) {
-        console.log(1);
         //send this player to the waiting for players page
         newPlayer.socket.emit('showWaitingList', {});
       } else {
-        console.log(2);
         //send them the link they need to finish
         newPlayer.sendLink(dpChain.getLastLink(), dpChain.id, function(player, link, chainId) {
           //ran when the player submits their thing
@@ -540,6 +559,7 @@ Player.prototype.sendViewResults = function(thisPlayersChainLinks, next) {
 
 Player.prototype.sendUpdateWaitingList = function(notFinished, disconnected) {
   this.socket.emit('updateWaitingList', {
+    player: this.getJson(),
     notFinished,
     disconnected
   });

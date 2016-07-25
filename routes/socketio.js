@@ -30,7 +30,8 @@ module.exports = function(app){
         thisUser = thisGame.addPlayer(data.name, socket);
         socket.emit('joinGameRes', {
           success: true,
-          game: thisGame.getJsonGame()
+          game: thisGame.getJsonGame(),
+          player: thisUser.getJson()
         })
       } else {
         socket.emit('joinGameRes', {

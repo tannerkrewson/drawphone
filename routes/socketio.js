@@ -10,7 +10,7 @@ module.exports = function(app){
     socket.on('joinGame', onJoinGame);
 
     socket.on('newGame', function(data) {
-      if (data.name.length > 1) {
+      if (data.name.length > 2 && data.name.length <= 16) {
         thisGame = dp.newGame();
         thisUser = thisGame.addPlayer(data.name, socket);
         socket.emit('joinGameRes', {
@@ -21,7 +21,7 @@ module.exports = function(app){
       } else {
         socket.emit('joinGameRes', {
           success: false,
-          error: 'Failed to join game'
+          error: 'Name too short/long'
         })
       }
     });
@@ -59,10 +59,10 @@ module.exports = function(app){
           success: false,
           error: 'Game not found'
         });
-      } else if (data.name.length < 1) {
+      } else if (data.name.length <= 2 || data.name.length > 16) {
         socket.emit('joinGameRes', {
           success: false,
-          error: 'Name too short'
+          error: 'Name too short/long'
         });
       } else {
         if (!thisGame.inProgress) {

@@ -16,16 +16,16 @@ block content
       div#joinmenu.hidden
         form
           .form-group
-            input#joinincode.form-control(type='text', placeholder='Enter the game code', maxlength=4)
+            input#joinincode.form-control(type='text', placeholder='Enter the game code', maxlength=4, autocomplete='off')
           .form-group
-            input#joininname.form-control(type='text', placeholder='Enter your name')
+            input#joininname.form-control(type='text', placeholder='Enter your name', maxlength=16)
           .btn-toolbar
             button#joinmenu-back.btn.btn-default.btn-lg(type='button') Back
             button#joinmenu-go.btn.btn-default.btn-lg(type='submit') Join
       div#newmenu.hidden
         form
           .form-group
-            input#newinname.form-control(type='text', placeholder='Enter your name')
+            input#newinname.form-control(type='text', placeholder='Enter your name', maxlength=16)
           .btn-toolbar 
             button#newmenu-back.btn.btn-default.btn-lg(type='button') Back
             button#newmenu-go.btn.btn-default.btn-lg(type='submit') Start

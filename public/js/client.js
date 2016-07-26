@@ -217,6 +217,7 @@ function JoinMenu(onBack) {
   this.id = '#joinmenu';
   this.backButton = $('#joinmenu-back');
   this.goButton = $('#joinmenu-go');
+  this.codeInput = $('#joinincode');
   this.onBack = onBack;
 
   Screen.prototype.setDefaultTitles.call(this);
@@ -234,6 +235,11 @@ JoinMenu.prototype.initialize = function() {
       code,
       name
     });
+  });
+
+  var self = this;
+  this.codeInput.on('keyup', function(e) {
+    self.codeInput.val(self.codeInput.val().toLowerCase());
   });
 
   Screen.prototype.setDefaultTitles.call(this);

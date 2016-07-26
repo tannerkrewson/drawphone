@@ -45,6 +45,13 @@ function oppositeLinkType(linkType) {
   }
 }
 
+function getDataUrlAsync(canvas, next) {
+  setTimeout(function() {
+    var dataUrl = canvas.toDataURL();
+    next(dataUrl);
+  }, 10);
+}
+
 //sorry
 var globalGameCode = '';
 
@@ -333,13 +340,13 @@ function Game(onRoundEnd, onWait) {
   Screen.call(this);
 
   this.id = '#game';
-  this.blankCanvas = document.createElement('canvas');
   this.onRoundEnd = onRoundEnd;
   this.onWait = onWait;
 
   //initialize fabric.js
   this.canvas = new fabric.Canvas('game-drawing-canvas');
   this.canvas.isDrawingMode = true;
+  this.isCanvasBlank = true;
 
   window.addEventListener('resize', this.resizeCanvas.bind(this), false);
 }
@@ -352,6 +359,12 @@ Game.prototype.initialize = function() {
   var self = this;
   $('#game-cleardrawing').click(function() {
     self.canvas.clear();
+    self.isCanvasBlank = true;
+  });
+
+  //if user touches the canvas, it not blank no more
+  $('#game-drawing').on('mousedown touchstart', function() {
+    self.isCanvasBlank = false;
   });
 
   doneButton.click(function() {
@@ -365,6 +378,8 @@ Game.prototype.initialize = function() {
        self.onDone();
     }
   });
+
+  'game-drawing-canvas'
 }
 
 Game.prototype.show = function() {
@@ -441,12 +456,12 @@ Game.prototype.checkIfDone = function(newLinkType) {
   var newLink;
   var self = this;
   if (newLinkType === 'drawing') {
-    if (this.isDrawingBlank()) {
+    if (this.isCanvasBlank) {
       self.showDrawing();
       swal("Your picture is blank!", "Please draw a picture, then try again.", "info");
     }
     else {
-      this.uploadCanvas(function(url) {
+      self.uploadCanvas(function(url) {
         //ran if upload was successful
         newLink = url;
         self.sendLink(newLinkType, newLink);
@@ -455,7 +470,7 @@ Game.prototype.checkIfDone = function(newLinkType) {
         //reshow the canvas and allow the user to try again
         self.showDrawing();
         swal("Upload failed.", "Try again.", "error");
-        Screen.prototype.setTitle.call(this, 'Upload failed, try again.');
+        Screen.prototype.setTitle.call(self, 'Upload failed, try again.');
       });
     }
   }
@@ -475,29 +490,30 @@ Game.prototype.checkIfDone = function(newLinkType) {
 }
 
 Game.prototype.uploadCanvas = function(next, err) {
-  Screen.prototype.setTitle.call(this, 'Uploading...');
-
-  // this code was copied from:
+  // this code was sourced from:
   // http://community.mybb.com/thread-150592.html
   // https://github.com/blueimp/JavaScript-Canvas-to-Blob#usage
-  var file = this.canvas.toDataURL('image/png');
-  var blob = window.dataURLtoBlob(file);
-  var formData = new FormData();
-  formData.append('upload', blob, 'drawing.png');
-  var xhr = new XMLHttpRequest();
-  xhr.open("POST", "http://uploads.im/api");
-  xhr.onload = function() {
-    var res = JSON.parse(xhr.responseText);
-    if (res.status_code === 200) {
-      var url = res.data.img_url;
-      next(url);
-    } else {
-      err();
-    }
-  }
-  xhr.onerror = err;
   try {
-    xhr.send(formData);
+    Screen.prototype.setTitle.call(this, 'Processing...');
+    getDataUrlAsync(this.canvas, function(file) {
+      var blob = window.dataURLtoBlob(file);
+      var formData = new FormData();
+      formData.append('upload', blob, 'drawing.png');
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "http://uploads.im/api", true);
+      xhr.onload = function() {
+        var res = JSON.parse(xhr.responseText);
+        if (res.status_code === 200) {
+          var url = res.data.img_url;
+          next(url);
+        } else {
+          err();
+        }
+      }
+      xhr.onerror = err;
+      xhr.send(formData);
+      Screen.prototype.setTitle.call(this, 'Uploading...');
+    });
   } catch (e) {
     err();
   }
@@ -513,13 +529,6 @@ Game.prototype.sendLink = function(type, data) {
     }
   });
   this.onWait();
-}
-
-Game.prototype.isDrawingBlank = function() {
-  this.blankCanvas.width = this.canvas.width;
-  this.blankCanvas.height = this.canvas.height;
-
-  return this.canvas.toDataURL() == this.blankCanvas.toDataURL();
 }
 
 Game.prototype.roundOver = function() {

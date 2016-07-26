@@ -75,6 +75,7 @@ function Game(code, onEmpty) {
   this.players = [];
   this.admin;
   this.inProgress = false;
+  this.viewingResults = false;
   this.currentRound;
 
   this.currentId = 1;
@@ -126,6 +127,12 @@ Game.prototype.onPlayerDisconnect = function(oldPlayer) {
         break;
       }
     }
+  }
+
+  //if someone leaves while viewing results, we need to check again
+  //  or everyone will get stuck on the Thanks for playing screen
+  if (this.viewingResults) {
+    this.currentRound.end();
   }
 
   var allPlayersDisconnected = true;
@@ -206,18 +213,23 @@ Game.prototype.startNewRound = function() {
 
   var self = this;
   this.currentRound = new Round(this.getNextRoundNum(), this.players, function() {
-    //ran when the round ends
+    //ran when results are sent
     self.inProgress = false;
+    self.viewingResults = true;
+  }, function() {
+    //ran when everyone is done viewing results
     self.sendUpdatedPlayersList();
+    self.viewingResults = false;
   });
 
   this.currentRound.start();
 }
 
 
-function Round(number, players, onEnd) {
+function Round(number, players, onResults, onEnd) {
   this.number = number;
   this.players = players;
+  this.onResults = onResults;
   this.onEnd = onEnd;
   this.chains = [];
   this.disconnectedPlayers = [];
@@ -330,6 +342,8 @@ Round.prototype.getChainByOwnerId = function(ownerId) {
 }
 
 Round.prototype.viewResults = function() {
+  this.onResults();
+
   var self = this;
   this.players.forEach(function(player) {
     //get this player's chain, the one in which they drew the first picture
@@ -349,7 +363,8 @@ Round.prototype.end = function() {
   //check to see if all players are done viewing results
   var allDone = true;
   for (var i = 0; i < this.players.length; i++) {
-    if (!this.players[i].doneViewingResults) {
+    var player = this.players[i];
+    if (!player.doneViewingResults && player.isConnected) {
       allDone = false;
       break;
     }

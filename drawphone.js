@@ -246,7 +246,7 @@ Round.prototype.start = function() {
 
     //sends the link, then runs the function when the player sends it back
     //  when the 'finishedLink' event is received
-    thisChain.sendLastLinkToThen(player, function(data) {
+    thisChain.sendLastLinkToThen(player, self.finalNumOfLinks, function(data) {
       self.receiveLink(player, data.link, thisChain.id);
     });
 
@@ -303,7 +303,7 @@ Round.prototype.startNextLink = function() {
     //sends the link, then runs the function when the player sends it back
     //  when the 'finishedLink' event is received
     (function(chain, player) {
-      chain.sendLastLinkToThen(player, function(data) {
+      chain.sendLastLinkToThen(player, self.finalNumOfLinks, function(data) {
         self.receiveLink(player, data.link, chain.id);
       });
     })(thisChain, thisPlayer);
@@ -406,7 +406,7 @@ Round.prototype.replacePlayer = function(playerToReplaceId, newPlayer) {
       } else {
         //send them the link they need to finish
         var self = this;
-        dpChain.sendLastLinkToThen(newPlayer, function(data) {
+        dpChain.sendLastLinkToThen(newPlayer, this.finalNumOfLinks, function(data) {
           self.receiveLink(newPlayer, data.link, dpChain.id);
         });
       }
@@ -506,12 +506,14 @@ Chain.prototype.playerHasLink = function(player) {
   return false;
 }
 
-Chain.prototype.sendLastLinkToThen = function(player, next) {
+Chain.prototype.sendLastLinkToThen = function(player, finalCount, next) {
   //sends the link, then runs the second function
   //  when the 'finishedLink' event is received
   player.sendThen('nextLink', {
     link: this.getLastLink(),
-    chainId: this.id
+    chainId: this.id,
+    count: this.getLength(),
+    finalCount: finalCount - 1
   }, 'finishedLink', next);
 }
 

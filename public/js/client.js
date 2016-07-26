@@ -379,7 +379,6 @@ Game.prototype.initialize = function() {
     }
   });
 
-  'game-drawing-canvas'
 }
 
 Game.prototype.show = function() {
@@ -418,6 +417,8 @@ Game.prototype.hideBoth = function() {
 Game.prototype.newLink = function(res) {
   var lastLink = res.data.link;
   var lastLinkType = lastLink.type;
+  var count = res.data.count;
+  var finalCount = res.data.finalCount;
   var newLinkType = oppositeLinkType(lastLinkType);
 
   if (lastLinkType === 'drawing') {
@@ -441,6 +442,8 @@ Game.prototype.newLink = function(res) {
     //calculate size of canvas dynamically
     this.resizeCanvas();
   }
+
+  Screen.prototype.setSubtitle.call(this, this.subtitle + ' &nbsp; - &nbsp; ' + count + '/' + finalCount);
 
   //this will be ran when the done button is clicked, or
   //  the enter key is pressed in the word input
@@ -598,8 +601,8 @@ function Waiting() {
 }
 
 Waiting.prototype.show = function() {
+  Screen.prototype.setSubtitle.call(this, $('subtitle').html());
   Screen.prototype.show.call(this);
-  Screen.prototype.setSubtitle.call(this, 'Game code: ' + globalGameCode);
 }
 
 

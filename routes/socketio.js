@@ -7,7 +7,52 @@ module.exports = function(app){
     var thisGame;
     var thisUser;
 
-    socket.on('joinGame', function (data) {
+    socket.on('joinGame', onJoinGame);
+
+    socket.on('newGame', function(data) {
+      if (data.name.length > 1) {
+        thisGame = dp.newGame();
+        thisUser = thisGame.addPlayer(data.name, socket);
+        socket.emit('joinGameRes', {
+          success: true,
+          game: thisGame.getJsonGame(),
+          you: thisUser.getJson()
+        })
+      } else {
+        socket.emit('joinGameRes', {
+          success: false,
+          error: 'Failed to join game'
+        })
+      }
+    });
+
+    socket.on('tryStartGame', function(data) {
+      if (thisUser.isAdmin) {
+        thisGame.sendToAll('gameStart', {});
+        thisGame.startNewRound();
+      }
+    });
+
+    socket.on('tryReplacePlayer', function(data) {
+      var thisRound = thisGame.currentRound;
+      var toReplaceId = data.playerToReplace.id;
+      if (thisUser && thisRound.canBeReplaced(toReplaceId)) {
+        thisUser = thisRound.replacePlayer(toReplaceId, thisUser);
+        thisGame.initPlayer(thisUser);
+        thisRound.updateWaitingList();
+        thisRound.nextLinkIfEveryoneIsDone();
+      }
+      else {
+        //give the user semi-useful error message,
+        //  instead of literally nothing happening
+        onJoinGame({
+          code: thisGame.code,
+          name: thisUser.name
+        });
+      }
+    });
+
+    function onJoinGame(data) {
       thisGame = dp.findGame(data.code);
       if (!thisGame) {
         socket.emit('joinGameRes', {
@@ -40,40 +85,7 @@ module.exports = function(app){
           });
         }
       }
-    });
-
-    socket.on('newGame', function(data) {
-      if (data.name.length > 1) {
-        thisGame = dp.newGame();
-        thisUser = thisGame.addPlayer(data.name, socket);
-        socket.emit('joinGameRes', {
-          success: true,
-          game: thisGame.getJsonGame(),
-          you: thisUser.getJson()
-        })
-      } else {
-        socket.emit('joinGameRes', {
-          success: false,
-          error: 'Failed to join game'
-        })
-      }
-    });
-
-    socket.on('tryStartGame', function(data) {
-      if (thisUser.isAdmin) {
-        thisGame.sendToAll('gameStart', {});
-        thisGame.startNewRound();
-      }
-    });
-
-    socket.on('tryReplacePlayer', function(data) {
-      if (thisUser) {
-        thisUser = thisGame.currentRound.replacePlayer(data.playerToReplace.id, thisUser);
-        thisGame.initPlayer(thisUser);
-        thisGame.currentRound.updateWaitingList();
-        thisGame.currentRound.nextLinkIfEveryoneIsDone();
-      }
-    });
+    }
 
   });
 

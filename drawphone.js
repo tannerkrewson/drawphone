@@ -375,8 +375,16 @@ Round.prototype.getPlayersThatNeedToBeReplaced = function() {
   return this.disconnectedPlayers;
 }
 
+Round.prototype.canBeReplaced = function(playerToReplaceId) {
+  for (var i = 0; i < this.disconnectedPlayers.length; i++) {
+    if (this.disconnectedPlayers[i].id === playerToReplaceId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 Round.prototype.replacePlayer = function(playerToReplaceId, newPlayer) {
-  var self = this;
   for (var i = 0; i < this.disconnectedPlayers.length; i++) {
     if (this.disconnectedPlayers[i].id === playerToReplaceId) {
       //give 'em the id of the old player
@@ -397,6 +405,7 @@ Round.prototype.replacePlayer = function(playerToReplaceId, newPlayer) {
         newPlayer.socket.emit('showWaitingList', {});
       } else {
         //send them the link they need to finish
+        var self = this;
         dpChain.sendLastLinkToThen(newPlayer, function(data) {
           self.receiveLink(newPlayer, data.link, dpChain.id);
         });

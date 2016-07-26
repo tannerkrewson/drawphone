@@ -293,7 +293,7 @@ Lobby.prototype.show = function(data) {
       this.update({
         success: true,
         gameCode: data.game.code,
-        player: data.player,
+        player: data.you,
         data: data.game.players
       });
 
@@ -400,8 +400,8 @@ Game.prototype.hideBoth = function() {
   $('#game-buttons').addClass('hidden');
 }
 
-Game.prototype.newLink = function(data) {
-  var lastLink = data.link
+Game.prototype.newLink = function(res) {
+  var lastLink = res.data.link;
   var lastLinkType = lastLink.type;
   var newLinkType = oppositeLinkType(lastLinkType);
 
@@ -551,9 +551,9 @@ Results.prototype.initialize = function() {
   });
 }
 
-Results.prototype.show = function(data) {
-  var ourChain = data.links;
-  var ourName = ourChain[0].player.name;
+Results.prototype.show = function(res) {
+  var ourChain = res.data.links;
+  var ourName = res.you.name;
 
   Screen.prototype.setTitle.call(this, ourName + "'s Drawphone results");
   Screen.prototype.setSubtitle.call(this, 'Show everyone how it turned out!');
@@ -561,8 +561,8 @@ Results.prototype.show = function(data) {
   var results = $('#result-content');
   results.empty();
 
-  for (var i = 0; i < data.links.length; i++) {
-    var link = data.links[i];
+  for (var i = 0; i < ourChain.length; i++) {
+    var link = ourChain[i];
     if (i === 0) {
       results.append('<h3>The first word:</h3><h1>' + link.data + '</h1>');
     } else if (link.type === 'drawing') {
@@ -594,15 +594,15 @@ Waiting.prototype.show = function() {
 }
 
 
-Waiting.prototype.updateWaitingList = function(data) {
+Waiting.prototype.updateWaitingList = function(res) {
   //show/hide the admin notice
-  if (data.player.isAdmin) {
+  if (res.you.isAdmin) {
     $('#waiting-adminmsg').removeClass('hidden');
   } else {
     $('#waiting-adminmsg').addClass('hidden');
   }
-  var notFinished = data.notFinished;
-  var disconnected = data.disconnected;
+  var notFinished = res.data.notFinished;
+  var disconnected = res.data.disconnected;
   this.userList.update(notFinished, disconnected);
 }
 

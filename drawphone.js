@@ -244,10 +244,14 @@ Round.prototype.start = function() {
     var thisChain = new Chain(getRandomWord(), player, currentChainId++);
     self.chains.push(thisChain);
 
-    player.sendLink(thisChain.getLastLink(), thisChain.id, function(player, link, chainId) {
-      self.receiveLink(player, link, chainId);
+    //sends the link, then runs the function when the player sends it back
+    //  when the 'finishedLink' event is received
+    thisChain.sendLastLinkToThen(player, function(data) {
+      self.receiveLink(player, data.link, thisChain.id);
     });
+
   });
+
 }
 
 Round.prototype.receiveLink = function(player, receivedLink, chainId) {
@@ -266,7 +270,8 @@ Round.prototype.receiveLink = function(player, receivedLink, chainId) {
 }
 
 Round.prototype.nextLinkIfEveryoneIsDone = function() {
-  var allFinished = this.getListOfNotFinishedPlayers().length === 0;
+  var listNotFinished = this.getListOfNotFinishedPlayers();
+  var allFinished = listNotFinished.length === 0;
   var noneDisconnected = this.disconnectedPlayers.length === 0;
 
   if (allFinished && noneDisconnected) {
@@ -295,11 +300,14 @@ Round.prototype.startNextLink = function() {
 
     thisChain.lastPlayerSentTo = thisPlayer.getJson();
 
-    //send the player the last link from the chain
-    thisPlayer.sendLink(thisChain.getLastLink(), thisChain.id, function(player, link, chainId) {
-      //ran when the player submits their thing
-      self.receiveLink(player, link, chainId);
-    });
+    //sends the link, then runs the function when the player sends it back
+    //  when the 'finishedLink' event is received
+    (function(chain, player) {
+      chain.sendLastLinkToThen(player, function(data) {
+        self.receiveLink(player, data.link, chain.id);
+      });
+    })(thisChain, thisPlayer);
+
   }
 }
 
@@ -327,10 +335,13 @@ Round.prototype.viewResults = function() {
     //get this player's chain, the one in which they drew the first picture
     var chain = self.getChainByOwnerId(player.id);
 
-    player.sendViewResults(chain.links, function() {
+    player.sendThen('viewResults', {
+      links: chain.links
+    }, 'doneViewingResults', function(data) {
       player.doneViewingResults = true;
       self.end();
     });
+
   });
 }
 
@@ -350,7 +361,7 @@ Round.prototype.end = function() {
       //set it back for the next round
       player.doneViewingResults = false;
 
-      player.sendRoundOver();
+      player.send('roundOver', {});
     });
   }
 }
@@ -386,9 +397,8 @@ Round.prototype.replacePlayer = function(playerToReplaceId, newPlayer) {
         newPlayer.socket.emit('showWaitingList', {});
       } else {
         //send them the link they need to finish
-        newPlayer.sendLink(dpChain.getLastLink(), dpChain.id, function(player, link, chainId) {
-          //ran when the player submits their thing
-          self.receiveLink(player, link, chainId);
+        dpChain.sendLastLinkToThen(newPlayer, function(data) {
+          self.receiveLink(newPlayer, data.link, dpChain.id);
         });
       }
       return this.players[playerToReplaceIndex];
@@ -397,11 +407,9 @@ Round.prototype.replacePlayer = function(playerToReplaceId, newPlayer) {
 }
 
 Round.prototype.updateWaitingList = function() {
-  var self = this;
-  this.players.forEach(function(player) {
-    var notFinished = self.getListOfNotFinishedPlayers();
-    var disconnected = self.disconnectedPlayers;
-    player.sendUpdateWaitingList(notFinished, disconnected);
+  this.sendToAll('updateWaitingList', {
+    notFinished: this.getListOfNotFinishedPlayers(),
+    disconnected: this.disconnectedPlayers
   });
 }
 
@@ -448,6 +456,12 @@ Round.prototype.getChainByLastSentPlayerId = function(id) {
   return false;
 }
 
+Round.prototype.sendToAll = function(event, data) {
+  this.players.forEach(function(player) {
+    player.send(event, data);
+  });
+}
+
 
 // A chain is the 'chain' of drawings and words.
 // A link is the individual drawing or word in the chain.
@@ -481,6 +495,15 @@ Chain.prototype.playerHasLink = function(player) {
     }
   }
   return false;
+}
+
+Chain.prototype.sendLastLinkToThen = function(player, next) {
+  //sends the link, then runs the second function
+  //  when the 'finishedLink' event is received
+  player.sendThen('nextLink', {
+    link: this.getLastLink(),
+    chainId: this.id
+  }, 'finishedLink', next);
 }
 
 
@@ -522,21 +545,16 @@ Player.prototype.getJson = function() {
   }
 }
 
-Player.prototype.sendLink = function(link, chainId, next) {
-  this.socket.emit('nextLink', {
-    link,
-    chainId
-  });
-
-  //when we get the link back from this Player
-  var self = this;
-  this.socket.once('finishedLink', function(data) {
-    next(self, data.link, chainId);
+Player.prototype.send = function(event, data) {
+  this.socket.emit(event, {
+    you: this.getJson(),
+    data
   });
 }
 
-Player.prototype.sendRoundOver = function() {
-  this.socket.emit('roundOver', {});
+Player.prototype.sendThen = function(event, data, onEvent, next) {
+  this.send(event, data);
+  this.socket.once(onEvent, next);
 }
 
 Player.prototype.sendViewResults = function(thisPlayersChainLinks, next) {
@@ -548,14 +566,6 @@ Player.prototype.sendViewResults = function(thisPlayersChainLinks, next) {
   var self = this;
   this.socket.once('doneViewingResults', function(data) {
     next();
-  });
-}
-
-Player.prototype.sendUpdateWaitingList = function(notFinished, disconnected) {
-  this.socket.emit('updateWaitingList', {
-    player: this.getJson(),
-    notFinished,
-    disconnected
   });
 }
 

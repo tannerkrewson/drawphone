@@ -25,7 +25,7 @@ module.exports = function(app){
           socket.emit('joinGameRes', {
             success: true,
             game: thisGame.getJsonGame(),
-            player: thisUser.getJson()
+            you: thisUser.getJson()
           })
         } else if (thisGame.currentRound.disconnectedPlayers.length > 0){
           thisUser = thisGame.newPlayer(data.name, socket);
@@ -49,7 +49,7 @@ module.exports = function(app){
         socket.emit('joinGameRes', {
           success: true,
           game: thisGame.getJsonGame(),
-          player: thisUser.getJson()
+          you: thisUser.getJson()
         })
       } else {
         socket.emit('joinGameRes', {
@@ -71,6 +71,7 @@ module.exports = function(app){
         thisUser = thisGame.currentRound.replacePlayer(data.playerToReplace.id, thisUser);
         thisGame.initPlayer(thisUser);
         thisGame.currentRound.updateWaitingList();
+        thisGame.currentRound.nextLinkIfEveryoneIsDone();
       }
     });
 

@@ -569,17 +569,34 @@ Results.prototype.initialize = function () {
 };
 
 Results.prototype.show = function (res) {
-	var ourChain = res.data.links;
-	var ourName = res.you.name;
+	var chains = res.data.chains;
+	var ourChain;
+	for (var i = 0; i < chains.length; i++) {
+		var chain = chains[i];
+		if (chain.owner.id === res.you.id) {
+			ourChain = chain;
+			break;
+		}
+	}
 
-	Screen.prototype.setTitle.call(this, ourName + '\'s Drawphone results');
+	this.render(ourChain, chains);
+
+	Screen.prototype.show.call(this);
+};
+
+Results.prototype.render = function(chainToShow, allChains) {
+	Screen.prototype.setTitle.call(this, chainToShow.owner.name + '\'s Drawphone results');
 	Screen.prototype.setSubtitle.call(this, 'Show everyone how it turned out!');
+	this.displayChain(chainToShow);
+	this.displayOtherChainButtons(allChains, chainToShow);
+};
 
+Results.prototype.displayChain = function(chain) {
 	var results = $('#result-content');
 	results.empty();
 
-	for (var i = 0; i < ourChain.length; i++) {
-		var link = ourChain[i];
+	for (var i = 0; i < chain.links.length; i++) {
+		var link = chain.links[i];
 		if (i === 0) {
 			results.append('<h3>The first word:</h3><h1>' + link.data + '</h1>');
 		} else if (link.type === 'drawing') {
@@ -590,8 +607,33 @@ Results.prototype.show = function (res) {
 			console.log('Results: We should never get here');
 		}
 	}
+};
 
-	Screen.prototype.show.call(this);
+Results.prototype.displayOtherChainButtons = function(chainsToList, chainToIgnore) {
+	var others = $('#result-others');
+	others.empty();
+
+	var self = this;
+	for (var i = 0; i < chainsToList.length; i++) {
+		var chain = chainsToList[i];
+
+		//only make a button for the chain if it is not the one we are now displaying
+		if (chain.id !== chainToIgnore.id) {
+			var button = $('<button type="button">' + chain.owner.name + '\'s results</button>');
+			button.addClass('btn btn-default btn-lg');
+			(function(thisChain, chainList) {
+				button.click(function () {
+					self.render(thisChain, chainList);
+
+					//jump to top of the page
+					window.scrollTo(0, 0);
+				});
+			})(chain, chainsToList);
+			others.append(button);
+			others.append('<br>');
+		}
+
+	}
 };
 
 

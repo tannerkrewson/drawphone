@@ -344,13 +344,12 @@ Round.prototype.getChainByOwnerId = function (ownerId) {
 Round.prototype.viewResults = function () {
 	this.onResults();
 
+	var chains = this.getAllChains();
+
 	var self = this;
 	this.players.forEach(function (player) {
-		//get this player's chain, the one in which they drew the first picture
-		var chain = self.getChainByOwnerId(player.id);
-
 		player.sendThen('viewResults', {
-			links: chain.links
+			chains
 		}, 'doneViewingResults', function () {
 			player.doneViewingResults = true;
 			self.end();
@@ -486,6 +485,14 @@ Round.prototype.sendToAll = function (event, data) {
 	});
 };
 
+Round.prototype.getAllChains = function() {
+	var newChains = [];
+	this.chains.forEach(function(chain) {
+		newChains.push(chain.getJson());
+	});
+	return newChains;
+};
+
 
 // A chain is the 'chain' of drawings and words.
 // A link is the individual drawing or word in the chain.
@@ -530,6 +537,14 @@ Chain.prototype.sendLastLinkToThen = function (player, finalCount, next) {
 		count: this.getLength(),
 		finalCount: finalCount - 1
 	}, 'finishedLink', next);
+};
+
+Chain.prototype.getJson = function() {
+	return {
+		owner: this.owner.getJson(),
+		links: this.links,
+		id: this.id
+	};
 };
 
 
@@ -581,17 +596,6 @@ Player.prototype.send = function (event, data) {
 Player.prototype.sendThen = function (event, data, onEvent, next) {
 	this.send(event, data);
 	this.socket.once(onEvent, next);
-};
-
-Player.prototype.sendViewResults = function (thisPlayersChainLinks, next) {
-	this.socket.emit('viewResults', {
-		links: thisPlayersChainLinks
-	});
-
-	//when the player clicks the done button
-	this.socket.once('doneViewingResults', function () {
-		next();
-	});
 };
 
 Player.prototype.makeAdmin = function () {

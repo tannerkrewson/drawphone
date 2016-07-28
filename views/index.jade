@@ -1,79 +1,93 @@
 extends layout
 
 block content
-  div
-    span.glyphicon.glyphicon-pencil(aria-hidden='true',style="padding-right:2px;")
-    span.glyphicon.glyphicon-earphone(aria-hidden='true',style="padding-left:2px;")
-  h1#title
-  p#subtitle
-  hr
-  div#mainmenu
-    .btn-toolbar
-      button#joinbtn.btn.btn-default.btn-lg(type='button') Join Game
-      button#newbtn.btn.btn-default.btn-lg(type='button') New Game
-  div.row
-    div.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2
-      div#joinmenu.hidden
-        form
-          .form-group
-            input#joinincode.form-control(type='text', placeholder='Enter the game code', maxlength=4, autocomplete='off')
-          .form-group
-            input#joininname.form-control(type='text', placeholder='Enter your name', maxlength=16)
-          .btn-toolbar
-            button#joinmenu-back.btn.btn-default.btn-lg(type='button') Back
-            button#joinmenu-go.btn.btn-default.btn-lg(type='submit') Join
-      div#newmenu.hidden
-        form
-          .form-group
-            input#newinname.form-control(type='text', placeholder='Enter your name', maxlength=16)
-          .btn-toolbar 
-            button#newmenu-back.btn.btn-default.btn-lg(type='button') Back
-            button#newmenu-go.btn.btn-default.btn-lg(type='submit') Start
-  div#lobby.hidden
+    div
+        span.glyphicon.glyphicon-pencil(aria-hidden='true',style="padding-right:2px;")
+        span.glyphicon.glyphicon-earphone(aria-hidden='true',style="padding-left:2px;")
+    h1#title
+    p#subtitle
+    hr
+    div#mainmenu
+        .btn-toolbar
+            button#joinbtn.btn.btn-default.btn-lg(type='button') Join Game
+            button#newbtn.btn.btn-default.btn-lg(type='button') New Game
     div.row
-      div.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2
-        h4 Players:
-        ul#lobby-players.list-unstyled.row
+        div.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2
+            div#joinmenu.hidden
+                form
+                    .form-group
+                        input#joinincode.form-control(type='text', placeholder='Enter the game code', maxlength=4, autocomplete='off')
+                    .form-group
+                        input#joininname.form-control(type='text', placeholder='Enter your name', maxlength=16)
+                    .btn-toolbar
+                        button#joinmenu-back.btn.btn-default.btn-lg(type='button') Back
+                        button#joinmenu-go.btn.btn-default.btn-lg(type='submit') Join
+            div#newmenu.hidden
+                form
+                    .form-group
+                        input#newinname.form-control(type='text', placeholder='Enter your name', maxlength=16)
+                    .btn-toolbar 
+                        button#newmenu-back.btn.btn-default.btn-lg(type='button') Back
+                        button#newmenu-go.btn.btn-default.btn-lg(type='submit') Start
+    div#lobby.hidden
+        div.row
+            div.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2
+                h4 Players:
+                ul#lobby-players.list-unstyled.row
+        br
+        .btn-toolbar
+            button#lobby-leave.btn.btn-default.btn-lg(type='button') Leave Game
+            button#lobby-start.btn.btn-default.btn-lg.hidden(type='button') Start Game
+    div#game.hidden
+        div#game-drawing.hidden
+            canvas#game-drawing-canvas.drawing(width='600', height='600')
+        div#game-word.hidden
+            img#game-word-drawingtoname.drawing
+            br
+            br
+            input#game-word-in.form-control(type='text', placeholder='Enter your title here')
+        br
+        .btn-toolbar#game-buttons.hidden
+            button#game-cleardrawing.btn.btn-default.btn-lg.hidden(type='button') Clear
+            button#game-send.btn.btn-default.btn-lg(type='button') Done
+    div#result.hidden
+        div#result-content
+        br
+        h4 View more results:
+        div#result-others
+        br
+        .btn-toolbar#result-buttons
+            button#result-done.btn.btn-default.btn-lg(type='button') Done
+    div#waiting.hidden
+        div.row
+            div.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2
+                h4 Still waiting for:
+                ul#waiting-players.list-unstyled.row
+                div#waiting-adminmsg.hidden
+                    br
+                    h4 A note to the admin:
+                    p If someone has left the game and their box is still white, tap 
+                        | their box to put them up for replacement. Anyone will be able to 
+                        | rejoin in their place.
+                div#waiting-disconnectedmsg.hidden
+                    br
+                    h4 Someone left!
+                    p It looks like someone has disconnected. They are marked by a grey 
+                        | box above. The game will continue when someone joins this game to 
+                        | take their place.
+    div#replace.hidden
+        div#replace-choices
+        br
+        .btn-toolbar#replace-buttons
+            button#replace-leave.btn.btn-default.btn-lg(type='button') Leave Game
+ing-disconnectedmsg.hidden
     br
-    .btn-toolbar
-      button#lobby-leave.btn.btn-default.btn-lg(type='button') Leave Game
-      button#lobby-start.btn.btn-default.btn-lg.hidden(type='button') Start Game
-  div#game.hidden
-    div#game-drawing.hidden
-      canvas#game-drawing-canvas.drawing(width='600', height='600')
-    div#game-word.hidden
-      img#game-word-drawingtoname.drawing
-      br
-      br
-      input#game-word-in.form-control(type='text', placeholder='Enter your title here')
-    br
-    .btn-toolbar#game-buttons.hidden
-      button#game-cleardrawing.btn.btn-default.btn-lg.hidden(type='button') Clear
-      button#game-send.btn.btn-default.btn-lg(type='button') Done
-  div#result.hidden
-    div#result-content
-    br
-    .btn-toolbar#result-buttons
-      button#result-done.btn.btn-default.btn-lg(type='button') Done
-  div#waiting.hidden
-    div.row
-      div.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2
-        h4 Still waiting for:
-        ul#waiting-players.list-unstyled.row
-        div#waiting-adminmsg.hidden
-          br
-          h4 A note to the admin:
-          p If someone has left the game and their box is still white, tap 
-            | their box to put them up for replacement. Anyone will be able to 
-            | rejoin in their place.
-        div#waiting-disconnectedmsg.hidden
-          br
-          h4 Someone left!
-          p It looks like someone has disconnected. They are marked by a grey 
-            | box above. The game will continue when someone joins this game to 
-            | take their place.
-  div#replace.hidden
-    div#replace-choices
-    br
-    .btn-toolbar#replace-buttons
-      button#replace-leave.btn.btn-default.btn-lg(type='button') Leave Game
+    h4 Someone left!
+    p It looks like someone has disconnected. They are marked by a grey 
+        | box above. The game will continue when someone joins this game to 
+        | take their place.
+        div#replace.hidden
+            div#replace-choices
+            br
+            .btn-toolbar#replace-buttons
+                button#replace-leave.btn.btn-default.btn-lg(type='button') Leave Game

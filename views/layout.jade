@@ -1,40 +1,41 @@
 doctype html
 html
-  head
-    meta(charset='utf-8')
-    meta(http-equiv='X-UA-Compatible', content='IE=edge')
-    meta(name='viewport', content='width=device-width, initial-scale=1')
+    head
+        meta(charset='utf-8')
+        meta(http-equiv='X-UA-Compatible', content='IE=edge')
+        meta(name='viewport', content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0')
 
-    title Drawphone
-    
-    // Bootstrap CSS
-    link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css', integrity='sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7', crossorigin='anonymous')
-    // SweetAlert for Bootstrap CSS
-    link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bootstrap-sweetalert/1.0.1/sweetalert.min.css')
-    // Slabo Font
-    link(href='https://fonts.googleapis.com/css?family=Slabo+27px', rel='stylesheet', type='text/css')
-    // Drawphone CSS
-    link(rel='stylesheet', href='/stylesheets/style.css')
-  body
-    .container.text-center
-      .main-content
-        block content
-        hr
-        div
-          | Drawphone by Tanner Krewson - 
-          a(href='https://github.com/tannerkrewson/drawphone', target='_blank') View on GitHub
-      
-    // jQuery
-    script(src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js')
-    // Bootstrap JS
-    script(src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js', integrity='sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS', crossorigin='anonymous')
-    // Socket.IO
-    script(src='/socket.io/socket.io.js')
-    // Fabric.js
-    script(src='https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.3/fabric.min.js')
-    // javascript-canvas-to-blob
-    script(src='https://cdnjs.cloudflare.com/ajax/libs/javascript-canvas-to-blob/3.3.0/js/canvas-to-blob.min.js')
-    // SweetAlert for Bootstrap JS
-    script(src='https://cdnjs.cloudflare.com/ajax/libs/bootstrap-sweetalert/1.0.1/sweetalert.min.js')
-    // Drawphone JS
-    script(src='js/client.js')
+
+        title Drawphone
+
+        // Bootstrap CSS
+        link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css', integrity='sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7', crossorigin='anonymous')
+        // SweetAlert for Bootstrap CSS
+        link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bootstrap-sweetalert/1.0.1/sweetalert.min.css')
+        // Slabo Font
+        link(href='https://fonts.googleapis.com/css?family=Slabo+27px', rel='stylesheet', type='text/css')
+        // Drawphone CSS
+        link(rel='stylesheet', href='/stylesheets/style.css')
+    body
+        .container.text-center
+            .main-content
+                block content
+                hr
+                div
+                    | Drawphone by Tanner Krewson - 
+                    a(href='https://github.com/tannerkrewson/drawphone', target='_blank') View on GitHub
+
+        // jQuery
+        script(src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js')
+        // Bootstrap JS
+        script(src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js', integrity='sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS', crossorigin='anonymous')
+        // Socket.IO
+        script(src='/socket.io/socket.io.js')
+        // Fabric.js
+        script(src='https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.3/fabric.min.js')
+        // javascript-canvas-to-blob
+        script(src='https://cdnjs.cloudflare.com/ajax/libs/javascript-canvas-to-blob/3.3.0/js/canvas-to-blob.min.js')
+        // SweetAlert for Bootstrap JS
+        script(src='https://cdnjs.cloudflare.com/ajax/libs/bootstrap-sweetalert/1.0.1/sweetalert.min.js')
+        // Drawphone JS
+        script(src='js/client.js')

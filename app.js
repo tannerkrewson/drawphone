@@ -12,7 +12,7 @@ app.io = io;
 
 var devModeEnabled = (app.get('env') === 'development');
 
-var Drawphone = require('./drawphone');
+var Drawphone = require('./app/drawphone');
 app.drawphone = new Drawphone(devModeEnabled);
 
 require('./routes')(app);

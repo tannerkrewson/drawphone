@@ -47,7 +47,7 @@ Drawphone.prototype.findGame = function (code) {
 Drawphone.prototype.generateCode = function () {
 	var code;
 	do {
-		//generate 6 letter code
+		//generate 4 letter code
 		code = '';
 		var possible = 'abcdefghijklmnopqrstuvwxyz';
 		for (var i = 0; i < 4; i++) {

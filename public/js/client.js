@@ -711,10 +711,11 @@ var socket = io();
 
 //try to join the dev game
 var relativeUrl = window.location.pathname + window.location.search;
+
 if (relativeUrl === '/dev') {
 	socket.emit('joinGame', {
 		code: 'ffff',
-		name: Math.random().toString()
+		name: Math.random().toString().substring(2, 6)
 	});
 }
 

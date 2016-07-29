@@ -199,6 +199,7 @@ function MainMenu(onJoin, onNew) {
 	this.id = '#mainmenu';
 	this.joinButton = $('#joinbtn');
 	this.newButton = $('#newbtn');
+	this.howButton = $('#howbtn');
 	this.onJoin = onJoin;
 	this.onNew = onNew;
 
@@ -210,6 +211,9 @@ MainMenu.prototype.initialize = function () {
 
 	this.joinButton.click(this.onJoin);
 	this.newButton.click(this.onNew);
+	this.howButton.click(function() {
+		window.location.href = '/howtoplay';
+	});
 };
 
 

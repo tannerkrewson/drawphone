@@ -1,0 +1,67 @@
+extends layout
+
+block content
+  div
+    span.glyphicon.glyphicon-pencil(aria-hidden='true',style="padding-right:2px;")
+    span.glyphicon.glyphicon-earphone(aria-hidden='true',style="padding-left:2px;")
+  h1 How to Play
+  p An Introduction to Drawphone
+  hr
+  .drawphone-info
+    h3 <b>tl;dr:</b>
+    p If you've ever played Telestrations, you'll understand Drawphone. Watch 
+      |this for a simple explanation of Telestrations:
+      .embed-responsive.embed-responsive-16by9
+        iframe.embed-responsive-item(src='https://www.youtube.com/embed/t8-XTMbszPk')
+    br
+    h3 <b>About</b>
+    p Drawphone is a game in which players will create drawings, and guess what 
+      |other players drew.
+    p It works like the telephone game, in which "one person whispers a message to 
+      |another, which is passed through a line of people until the last player 
+      |announces the message to the entire group." -
+      a(href="https://en.wikipedia.org/wiki/Chinese_whispers") Wikipedia
+    p Drawphone was inspired by the gameplay of Telestrations, a physical party
+      |game, and by the design of the online version of Spyfall. 
+    br
+    h3 <b>How it works</b>
+    p With Drawphone, the app will do most of the work for you, so you don't have to 
+      |know how to play before getting started. I would actually recommened playing 
+      |blind your first time! But if you are curious, here's a 
+      |rundown:
+      ol
+        li Start a new game, and give the code to your friends to join.
+        li When everyone has joined in, the host may start the game.
+        li Each player will be given a random word to draw.
+        li Once eveyone has submitted their drawing, the game will move on.
+        li The drawings will be digitally "passed" by Drawphone to another player at 
+          |random, and it will appear on their screen.
+        li Each player must now guess what this new drawing is.
+        li Once everyone has made their guesses, they are passed around like before.
+        li This continues to alternate until each "chain" of words and drawings has 
+          |been passed to every player.
+        li Once complete, Drawphone will show you the results of your original 
+          |drawing. You will also be able to view everyone else's results.
+    p Remember that you don't need to memorize these instructions to play Drawphone.
+      |The app will do everything but draw and guess for you, so it's very easy to 
+      |jump in and play, even having never played before.
+    br
+    h3 <b>Tips</b>
+    ul
+      li Drawphone will work with any number of players, but it is recommened that 
+        |you have at least four.
+      li If you can, try to play with an even number of players. This will result in 
+        |the game ending with a guess (as opposed to a drawing, with an odd number 
+        |of players).
+      li Drawphone does not have any scoring system implemented (yet), but the best 
+        |parts is the laughs!
+      li Remember that once everyone returns to the lobby, the drawings and guesses 
+        |are gone forever! So if you get a funny one, don't forget to screenshot it.
+    br
+    h3 <b>Behind the scenes</b>
+    p Drawphone was programmed by myself, Tanner Krewson, with Node.js. Drawphone is 
+      |100% free and open-source, and is available on GitHub for your tinkering. If 
+      |you run into any issues, or have any features you would like to see in 
+      |Drawphone, feel free to open an issue on the GitHub repo. Hope you like it! <3
+    br
+  a.btn.btn-default.btn-lg(type='button', href="/") Back to Drawphone

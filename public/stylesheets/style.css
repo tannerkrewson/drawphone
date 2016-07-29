@@ -62,3 +62,8 @@ input[type="text"] {
 .disconnected {
   background-color: LightGrey;
 }
+
+.drawphone-info {
+  text-align:left;
+  font-size: 125%;
+}

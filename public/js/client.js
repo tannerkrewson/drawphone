@@ -211,7 +211,7 @@ MainMenu.prototype.initialize = function () {
 
 	this.joinButton.click(this.onJoin);
 	this.newButton.click(this.onNew);
-	this.howButton.click(function() {
+	this.howButton.click(function () {
 		window.location.href = '/howtoplay';
 	});
 };
@@ -588,14 +588,14 @@ Results.prototype.show = function (res) {
 	Screen.prototype.show.call(this);
 };
 
-Results.prototype.render = function(chainToShow, allChains) {
+Results.prototype.render = function (chainToShow, allChains) {
 	Screen.prototype.setTitle.call(this, chainToShow.owner.name + '\'s Drawphone results');
 	Screen.prototype.setSubtitle.call(this, 'Show everyone how it turned out!');
 	this.displayChain(chainToShow);
 	this.displayOtherChainButtons(allChains, chainToShow);
 };
 
-Results.prototype.displayChain = function(chain) {
+Results.prototype.displayChain = function (chain) {
 	var results = $('#result-content');
 	results.empty();
 
@@ -613,7 +613,7 @@ Results.prototype.displayChain = function(chain) {
 	}
 };
 
-Results.prototype.displayOtherChainButtons = function(chainsToList, chainToIgnore) {
+Results.prototype.displayOtherChainButtons = function (chainsToList, chainToIgnore) {
 	var others = $('#result-others');
 	others.empty();
 
@@ -625,7 +625,7 @@ Results.prototype.displayOtherChainButtons = function(chainsToList, chainToIgnor
 		if (chain.id !== chainToIgnore.id) {
 			var button = $('<button type="button">' + chain.owner.name + '\'s results</button>');
 			button.addClass('btn btn-default btn-lg');
-			(function(thisChain, chainList) {
+			(function (thisChain, chainList) {
 				button.click(function () {
 					self.render(thisChain, chainList);
 
@@ -666,7 +666,26 @@ Waiting.prototype.updateWaitingList = function (res) {
 	}
 	var notFinished = res.data.notFinished;
 	var disconnected = res.data.disconnected;
-	this.userList.update(notFinished, disconnected);
+	this.userList.update(notFinished, disconnected, function (tappedPlayer) {
+		//ran when the client taps one of the usernames
+		if (res.you.isAdmin) {
+			swal({
+				title: 'Kick ' + tappedPlayer.name + '?',
+				text: 'Someone will have to join this game to replace them.',
+				type: 'warning',
+				showCancelButton: true,
+				confirmButtonClass: 'btn-danger',
+				confirmButtonText: 'Kick',
+				closeOnConfirm: false
+			}, function () {
+				socket.emit('kickPlayer', {
+					playerToKick: tappedPlayer
+				});
+				swal('Done!', tappedPlayer.name + ' was kicked.', 'success');
+			});
+		}
+	});
+
 };
 
 
@@ -719,11 +738,11 @@ function UserList(ul) {
 	this.ul = ul;
 }
 
-UserList.prototype.update = function (newList, disconnectedList) {
+UserList.prototype.update = function (newList, disconnectedList, onPress) {
 	//clear all of the user boxes using jquery
 	this.ul.empty();
 
-	this.draw(newList, false);
+	this.draw(newList, false, onPress);
 	if (disconnectedList) {
 		if (disconnectedList.length > 0) {
 			$('#waiting-disconnectedmsg').removeClass('hidden');
@@ -734,7 +753,7 @@ UserList.prototype.update = function (newList, disconnectedList) {
 	}
 };
 
-UserList.prototype.draw = function (list, makeBoxDark) {
+UserList.prototype.draw = function (list, makeBoxDark, onPress) {
 	for (var i = 0; i < list.length; i++) {
 		var listBox = $('<span></span>');
 		var listItem = $('<li>' + list[i].name + '</li>').appendTo(listBox);
@@ -744,6 +763,13 @@ UserList.prototype.draw = function (list, makeBoxDark) {
 		}
 		listBox.addClass('col-xs-6');
 		listBox.addClass('user-container');
+		if (onPress) {
+			(function (player) {
+				listBox.click(function () {
+					onPress(player);
+				});
+			})(list[i]);
+		}
 		listBox.appendTo(this.ul);
 	}
 };

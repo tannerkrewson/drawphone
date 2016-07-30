@@ -51,6 +51,17 @@ module.exports = function (app) {
 			}
 		});
 
+		socket.on('kickPlayer', function(data) {
+			console.log(data);
+			var idToKick = data.playerToKick.id;
+			var playerToKick = thisGame.getPlayer(idToKick);
+			if (thisUser.isAdmin && playerToKick) {
+				//this will simulate the 'disconnect' event, and run all of the
+				//	methods that were tied into that in the initPlayer function
+				playerToKick.socket.disconnect();
+			}
+		});
+
 		function onJoinGame(data) {
 			thisGame = dp.findGame(data.code);
 			if (!thisGame) {

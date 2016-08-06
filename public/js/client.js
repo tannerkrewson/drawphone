@@ -56,6 +56,29 @@ function getDataUrlAsync(canvas, next) {
 	}, 10);
 }
 
+// http://stackoverflow.com/questions/20618355/the-simplest-possible-javascript-countdown-timer
+function startTimer(duration, onTick) {
+	var timer = duration,
+		minutes, seconds;
+
+	var tick = function () {
+		minutes = parseInt(timer / 60, 10);
+		seconds = parseInt(timer % 60, 10);
+
+		minutes = minutes < 10 ? '0' + minutes : minutes;
+		seconds = seconds < 10 ? '0' + seconds : seconds;
+
+		onTick(minutes + ':' + seconds);
+
+		if (--timer < 0) {
+			timer = duration;
+		}
+	};
+
+	tick();
+	return setInterval(tick, 1000);
+}
+
 //sorry
 var globalGameCode = '';
 
@@ -289,7 +312,12 @@ function Lobby() {
 	this.id = '#lobby';
 	this.leaveButton = $('#lobby-leave');
 	this.startButton = $('#lobby-start');
+	this.gameSettings = $('#lobby-settings');
+	this.timeLimitDropdown = $('#lobby-settings-timelimit');
 	this.gameCode = '';
+
+	//this is what the admin selects from the dropdown of time limits
+	this.selectedTimeLimit = false;
 
 	this.userList = new UserList($('#lobby-players'));
 }
@@ -297,12 +325,42 @@ function Lobby() {
 Lobby.prototype.initialize = function () {
 	Screen.prototype.initialize.call(this);
 
+	var self = this;
 	this.leaveButton.click(function () {
 		//refresh the page
 		location.reload();
 	});
 	this.startButton.click(function () {
-		socket.emit('tryStartGame', {});
+		if (self.selectedTimeLimit !== false) {
+			socket.emit('tryStartGame', {
+				timeLimit: self.selectedTimeLimit
+			});
+		}
+	});
+	this.timeLimitDropdown.on('change', function () {
+		//un-grey-out start button
+		self.startButton.removeClass('disabled');
+
+		switch (self.timeLimitDropdown[0].value) {
+		case 'No time limit (Default)':
+			self.selectedTimeLimit = 0;
+			break;
+		case '5 seconds':
+			self.selectedTimeLimit = 5;
+			break;
+		case '10 seconds':
+			self.selectedTimeLimit = 10;
+			break;
+		case '15 seconds':
+			self.selectedTimeLimit = 15;
+			break;
+		case '30 seconds':
+			self.selectedTimeLimit = 30;
+			break;
+		case '1 minute':
+			self.selectedTimeLimit = 60;
+			break;
+		}
 	});
 };
 
@@ -311,6 +369,7 @@ Lobby.prototype.show = function (data) {
 	if (data) {
 		if (data.success) {
 			globalGameCode = '<span class="gamecode">' + data.game.code + '</span>';
+			this.selectedTimeLimit = false;
 			this.update({
 				success: true,
 				gameCode: data.game.code,
@@ -322,7 +381,15 @@ Lobby.prototype.show = function (data) {
 			swal(data.error, '', 'error');
 			return;
 		}
+	} else {
+		//reset the time limit selector
+		this.selectedTimeLimit = false;
+		this.timeLimitDropdown.prop('selectedIndex', 0);
+
+		//grey-out start button
+		this.startButton.addClass('disabled');
 	}
+
 	Screen.prototype.show.call(this);
 };
 
@@ -332,11 +399,15 @@ Lobby.prototype.update = function (res) {
 		this.title = 'Game Code: <span class="gamecode">' + res.gameCode + '</span>';
 		this.subtitle = 'Waiting for players...';
 		this.userList.update(res.data);
+
 		if (res.player.isAdmin) {
 			//show the start game button
 			this.startButton.removeClass('hidden');
+			//show the game Settings
+			this.gameSettings.removeClass('hidden');
 		} else {
 			this.startButton.addClass('hidden');
+			this.gameSettings.addClass('hidden');
 		}
 	} else {
 		swal('Error updating lobby', res.error, 'error');
@@ -357,10 +428,15 @@ function Game(onRoundEnd, onWait) {
 	this.onRoundEnd = onRoundEnd;
 	this.onWait = onWait;
 
+	this.wordInput = $('#game-word-in');
+	this.timerDisplay = $('#game-timer');
+
 	//initialize fabric.js
 	this.canvas = new fabric.Canvas('game-drawing-canvas');
 	this.canvas.isDrawingMode = true;
 	this.isCanvasBlank = true;
+
+	this.submitTimer;
 
 	window.addEventListener('resize', this.resizeCanvas.bind(this), false);
 }
@@ -378,6 +454,20 @@ Game.prototype.initialize = function () {
 
 	//if user touches the canvas, it not blank no more
 	$('#game-drawing').on('mousedown touchstart', function () {
+		//if this is their first mark
+		if (self.isCanvasBlank && self.timeLimit > 0 && !self.submitTimer) {
+			//start the timer
+			self.displayTimerInterval = startTimer(self.timeLimit, function (timeLeft) {
+				self.timerDisplay.text(timeLeft + ' left to finish your drawing');
+			});
+			self.submitTimer = window.setTimeout(function () {
+				//when the time runs out...
+				//we don't care if it is blank
+				self.isCanvasBlank = false;
+				//submit
+				self.onDone();
+			}, self.timeLimit * 1000);
+		}
 		self.isCanvasBlank = false;
 	});
 
@@ -398,12 +488,27 @@ Game.prototype.initialize = function () {
 Game.prototype.show = function () {
 	Screen.prototype.show.call(this);
 	Screen.prototype.setSubtitle.call(this, 'Game code: ' + globalGameCode);
+
+	//allow touch events on the canvas
+	$('#game-drawing').css('pointer-events', 'auto');
+	this.done = false;
 };
 
-Game.prototype.showDrawing = function () {
+Game.prototype.showDrawing = function (disallowChanges) {
 	showElement('#game-drawing');
-	this.showButtons(true);
+	this.showButtons(!disallowChanges);
 	this.show();
+
+	if (this.timeLimit > 0) {
+		this.timerDisplay.text('Begin drawing to start the timer.');
+	} else {
+		this.timerDisplay.text('No time limit to draw.');
+	}
+
+	if (disallowChanges) {
+		//lock the canvas so the user can't make any changes
+		$('#game-drawing').css('pointer-events', 'none');
+	}
 };
 
 Game.prototype.showWord = function () {
@@ -433,6 +538,7 @@ Game.prototype.newLink = function (res) {
 	var count = res.data.count;
 	var finalCount = res.data.finalCount;
 	var newLinkType = oppositeLinkType(lastLinkType);
+	this.timeLimit = res.data.timeLimit;
 
 	if (lastLinkType === 'drawing') {
 		//show the previous drawing
@@ -445,6 +551,7 @@ Game.prototype.newLink = function (res) {
 	} else if (lastLinkType === 'word') {
 		//clear the previous drawing
 		this.canvas.clear();
+		this.isCanvasBlank = true;
 
 		Screen.prototype.setTitle.call(this, 'Please draw: ' + lastLink.data);
 
@@ -465,6 +572,14 @@ Game.prototype.newLink = function (res) {
 };
 
 Game.prototype.checkIfDone = function (newLinkType) {
+	this.done = true;
+
+	//disable the submit timer to prevent duplicate sends
+	clearTimeout(this.submitTimer);
+	clearInterval(this.displayTimerInterval);
+	this.submitTimer = undefined;
+	this.displayTimerInterval = undefined;
+
 	//hide the drawing
 	this.hideBoth();
 
@@ -482,7 +597,7 @@ Game.prototype.checkIfDone = function (newLinkType) {
 			}, function () {
 				//ran if upload was unsuccessful
 				//reshow the canvas and allow the user to try again
-				self.showDrawing();
+				self.showDrawing(true);
 				swal('Upload failed.', 'Try again.', 'error');
 				Screen.prototype.setTitle.call(self, 'Upload failed, try again.');
 			});
@@ -552,6 +667,12 @@ Game.prototype.resizeCanvas = function () {
 	this.canvas.setHeight(container.width());
 	this.canvas.setWidth(container.width());
 	this.canvas.renderAll();
+};
+
+Game.prototype.setTimer = function () {
+	if (this.timeLimit && !this.timeLimit === 0) {
+		window.setTimeout();
+	}
 };
 
 

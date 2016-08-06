@@ -31,7 +31,7 @@ block content
       div#newmenu.hidden
         form
           .form-group
-            input#newinname.form-control(type='text', placeholder='Enter your name', maxlength=16)
+            input#newinname.form-control(type='text', placeholdexr='Enter your name', maxlength=16)
           .btn-toolbar 
             button#newmenu-back.btn.btn-default.btn-lg(type='button') Back
             button#newmenu-go.btn.btn-default.btn-lg(type='submit') Start
@@ -40,12 +40,24 @@ block content
       div.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2
         h4 Players:
         ul#lobby-players.list-unstyled.row
+      br
+      div#lobby-settings.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2.hidden
+        h4 Game Settings:
+        select.form-control#lobby-settings-timelimit
+          option(disabled='', selected='') Select a drawing time limit...
+          option No time limit (Default)
+          option 5 seconds
+          option 10 seconds
+          option 15 seconds
+          option 30 seconds
+          option 1 minute
     br
     .btn-toolbar
       button#lobby-leave.btn.btn-default.btn-lg(type='button') Leave Game
-      button#lobby-start.btn.btn-default.btn-lg.hidden(type='button') Start Game
+      button#lobby-start.btn.btn-default.btn-lg.disabled.hidden(type='button') Start Game
   div#game.hidden
     div#game-drawing.hidden
+      h4#game-timer
       canvas#game-drawing-canvas.drawing(width='600', height='600')
     div#game-word.hidden
       img#game-word-drawingtoname.drawing

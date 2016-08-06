@@ -26,10 +26,10 @@ module.exports = function (app) {
 			}
 		});
 
-		socket.on('tryStartGame', function () {
-			if (thisUser.isAdmin) {
+		socket.on('tryStartGame', function (data) {
+			if (data.timeLimit !== false && thisUser.isAdmin) {
 				thisGame.sendToAll('gameStart', {});
-				thisGame.startNewRound();
+				thisGame.startNewRound(data.timeLimit);
 			}
 		});
 

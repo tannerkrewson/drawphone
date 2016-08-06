@@ -9,9 +9,10 @@ var Chain = require('./chain');
 var DrawingLink = require('./link/drawinglink');
 var WordLink = require('./link/wordlink');
 
-function Round(number, players, onResults, onEnd) {
+function Round(number, players, timeLimit, onResults, onEnd) {
 	this.number = number;
 	this.players = players;
+	this.timeLimit = timeLimit;
 	this.onResults = onResults;
 	this.onEnd = onEnd;
 	this.chains = [];
@@ -36,7 +37,7 @@ Round.prototype.start = function () {
 	var self = this;
 	this.players.forEach(function (player) {
 		//give each player a chain of their own
-		var thisChain = new Chain(getRandomWord(), player, currentChainId++);
+		var thisChain = new Chain(getRandomWord(), player, currentChainId++, self.timeLimit);
 		self.chains.push(thisChain);
 
 		//sends the link, then runs the function when the player sends it back

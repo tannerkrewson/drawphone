@@ -495,20 +495,35 @@ Game.prototype.show = function () {
 };
 
 Game.prototype.showDrawing = function (disallowChanges) {
-	showElement('#game-drawing');
-	this.showButtons(!disallowChanges);
+	var shouldShowClearButton;
+
+	showElement('#game-drawing');!disallowChanges
 	this.show();
 
 	if (this.timeLimit > 0) {
 		this.timerDisplay.text('Begin drawing to start the timer.');
+
+		if (this.timeLimit <= 5) {
+			//if the time limit is less than 5 seconds
+			//	don't show the clear button
+			//because players don't really have enough time to try drawing again
+			//	when they only have 5 seconds
+			shouldShowClearButton = false;
+		} else {
+			shouldShowClearButton = true;
+		}
 	} else {
 		this.timerDisplay.text('No time limit to draw.');
+		shouldShowClearButton = true;
 	}
 
 	if (disallowChanges) {
 		//lock the canvas so the user can't make any changes
 		$('#game-drawing').css('pointer-events', 'none');
+		shouldShowClearButton = false;
 	}
+
+	this.showButtons(shouldShowClearButton);
 };
 
 Game.prototype.showWord = function () {

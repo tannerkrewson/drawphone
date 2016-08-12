@@ -497,7 +497,8 @@ Game.prototype.show = function () {
 Game.prototype.showDrawing = function (disallowChanges) {
 	var shouldShowClearButton;
 
-	showElement('#game-drawing');!disallowChanges
+	showElement('#game-drawing');
+	!disallowChanges
 	this.show();
 
 	if (this.timeLimit > 0) {
@@ -609,11 +610,11 @@ Game.prototype.checkIfDone = function (newLinkType) {
 				//ran if upload was successful
 				newLink = url;
 				self.sendLink(newLinkType, newLink);
-			}, function () {
+			}, function (e) {
 				//ran if upload was unsuccessful
 				//reshow the canvas and allow the user to try again
 				self.showDrawing(true);
-				swal('Upload failed.', 'Try again.', 'error');
+				swal('Upload failed, try again.', e, 'error');
 				Screen.prototype.setTitle.call(self, 'Upload failed, try again.');
 			});
 		}
@@ -633,32 +634,32 @@ Game.prototype.checkIfDone = function (newLinkType) {
 
 Game.prototype.uploadCanvas = function (next, err) {
 	// this code was sourced from:
-	// http://community.mybb.com/thread-150592.html
-	// https://github.com/blueimp/JavaScript-Canvas-to-Blob#usage
-	try {
-		Screen.prototype.setTitle.call(this, 'Processing...');
-		getDataUrlAsync(this.canvas, function (file) {
-			var blob = window.dataURLtoBlob(file);
-			var formData = new FormData();
-			formData.append('upload', blob, 'drawing.png');
-			var xhr = new XMLHttpRequest();
-			xhr.open('POST', 'http://uploads.im/api', true);
-			xhr.onload = function () {
-				var res = JSON.parse(xhr.responseText);
+	// http://stackoverflow.com/questions/6974684/how-to-send-formdata-objects-with-ajax-requests-in-jquery/8244082#8244082
+	Screen.prototype.setTitle.call(this, 'Processing...');
+	getDataUrlAsync(this.canvas, function (file) {
+		var blob = window.dataURLtoBlob(file);
+		var formData = new FormData();
+		formData.append('upload', blob, 'drawing.png');
+		$.ajax({
+			url: 'http://uploads.im/api',
+			data: formData,
+			processData: false,
+			contentType: false,
+			type: 'POST',
+			success: function (res) {
 				if (res.status_code === 200) {
 					var url = res.data.img_url;
 					next(url);
 				} else {
-					err();
+					err('POST Status Code: ' + res.status_code);
 				}
-			};
-			xhr.onerror = err;
-			xhr.send(formData);
-			Screen.prototype.setTitle.call(this, 'Uploading...');
+			},
+			error: function (xmlReq) {
+				err('XMLHttpRequest Status Code: ' + xmlReq.status);
+			}
 		});
-	} catch (e) {
-		err();
-	}
+		Screen.prototype.setTitle.call(this, 'Uploading...');
+	});
 };
 
 Game.prototype.sendLink = function (type, data) {

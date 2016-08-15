@@ -342,7 +342,7 @@ Lobby.prototype.initialize = function () {
 		self.startButton.removeClass('disabled');
 
 		switch (self.timeLimitDropdown[0].value) {
-		case 'No time limit (Default)':
+		case 'No time limit (recommended)':
 			self.selectedTimeLimit = 0;
 			break;
 		case '5 seconds':

@@ -498,7 +498,6 @@ Game.prototype.showDrawing = function (disallowChanges) {
 	var shouldShowClearButton;
 
 	showElement('#game-drawing');
-	!disallowChanges
 	this.show();
 
 	if (this.timeLimit > 0) {

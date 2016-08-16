@@ -62,7 +62,7 @@ WordPacks.prototype.getRandomWord = function (packName) {
 
 WordPacks.getAllPackNames = function () {
 	var names = [];
-	fs.readdirSync(path.join(__dirname, '..\\words')).forEach(function(file) {
+	fs.readdirSync(path.join(__dirname, '../words')).forEach(function(file) {
 		//removes the .txt from the end of the filename
 		var packName = file.substring(0, file.length - 4);
 		names.push(packName);

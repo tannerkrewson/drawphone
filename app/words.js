@@ -13,11 +13,11 @@ WordPacks.prototype.loadAll = function () {
 	var self = this;
 	//reads each txt file in the words folder
 	//the name of the file will be the name of the pack
-	fs.readdirSync(path.join(__dirname, '..\\words')).forEach(function(file) {
+	fs.readdirSync(path.join(__dirname, '../words')).forEach(function(file) {
 		//removes the .txt from the end of the filename
 		var packName = file.substring(0, file.length - 4);
 
-		var pathToTxt = __dirname + '\\..\\words\\' + file;
+		var pathToTxt = __dirname + '/../words/' + file;
 		var arrayOfWords = fs.readFileSync(pathToTxt).toString().split(/\r?\n/);
 
 		//remove all blank lines

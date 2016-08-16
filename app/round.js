@@ -4,15 +4,19 @@
 
 var shuffle = require('knuth-shuffle').knuthShuffle;
 
-var getRandomWord = require('./words');
 var Chain = require('./chain');
 var DrawingLink = require('./link/drawinglink');
 var WordLink = require('./link/wordlink');
 
-function Round(number, players, timeLimit, onResults, onEnd) {
+var WordPacks = require('./words');
+var words = new WordPacks();
+words.loadAll();
+
+function Round(number, players, timeLimit, wordPackName, onResults, onEnd) {
 	this.number = number;
 	this.players = players;
 	this.timeLimit = timeLimit;
+	this.wordPackName = wordPackName;
 	this.onResults = onResults;
 	this.onEnd = onEnd;
 	this.chains = [];
@@ -37,7 +41,8 @@ Round.prototype.start = function () {
 	var self = this;
 	this.players.forEach(function (player) {
 		//give each player a chain of their own
-		var thisChain = new Chain(getRandomWord(), player, currentChainId++, self.timeLimit);
+		var wordToDraw = words.getRandomWord(self.wordPackName);
+		var thisChain = new Chain(wordToDraw, player, currentChainId++, self.timeLimit);
 		self.chains.push(thisChain);
 
 		//sends the link, then runs the function when the player sends it back

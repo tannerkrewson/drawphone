@@ -314,10 +314,13 @@ function Lobby() {
 	this.startButton = $('#lobby-start');
 	this.gameSettings = $('#lobby-settings');
 	this.timeLimitDropdown = $('#lobby-settings-timelimit');
+	this.wordPackDropdown = $('#lobby-settings-wordpack');
 	this.gameCode = '';
+	this.completedOptions = [];
 
-	//this is what the admin selects from the dropdown of time limits
+	//this is what the admin selects from the dropdowns
 	this.selectedTimeLimit = false;
+	this.wordPack = false;
 
 	this.userList = new UserList($('#lobby-players'));
 }
@@ -331,15 +334,14 @@ Lobby.prototype.initialize = function () {
 		location.reload();
 	});
 	this.startButton.click(function () {
-		if (self.selectedTimeLimit !== false) {
+		if (self.selectedTimeLimit !== false && self.wordPack !== false) {
 			socket.emit('tryStartGame', {
-				timeLimit: self.selectedTimeLimit
+				timeLimit: self.selectedTimeLimit,
+				wordPackName: self.wordPack
 			});
 		}
 	});
 	this.timeLimitDropdown.on('change', function () {
-		//un-grey-out start button
-		self.startButton.removeClass('disabled');
 
 		switch (self.timeLimitDropdown[0].value) {
 		case 'No time limit (recommended)':
@@ -361,6 +363,12 @@ Lobby.prototype.initialize = function () {
 			self.selectedTimeLimit = 60;
 			break;
 		}
+
+		self.checkIfReadyToStart('time-limit');
+	});
+	this.wordPackDropdown.on('change', function () {
+		self.wordPack = self.wordPackDropdown[0].value;
+		self.checkIfReadyToStart('word-pack');
 	});
 };
 
@@ -385,6 +393,10 @@ Lobby.prototype.show = function (data) {
 		//reset the time limit selector
 		this.selectedTimeLimit = false;
 		this.timeLimitDropdown.prop('selectedIndex', 0);
+
+		//reset the word pack selector
+		this.wordPack = false;
+		this.wordPackDropdown.prop('selectedIndex', 0);
 
 		//grey-out start button
 		this.startButton.addClass('disabled');
@@ -416,6 +428,27 @@ Lobby.prototype.update = function (res) {
 
 Lobby.prototype.updatePlayerList = function (list) {
 	this.userList.update(list);
+};
+
+Lobby.prototype.checkIfReadyToStart = function (optionName) {
+	//the completedOptions variable stores the name of all of the
+	//	admin options that have been completed so far
+
+	//if optionName is not already completed, add it.
+	if (this.completedOptions.indexOf(optionName) === -1) {
+		this.completedOptions.push(optionName);
+	}
+
+	//once the variable is equal to the number of options the admin must select,
+	//	undisable the start button
+	//right now there are two options, time limit and word pack
+	if (this.completedOptions.length === 2) {
+		//reset the variable for next time
+		this.completedOptions = [];
+
+		//un-grey-out start button
+		this.startButton.removeClass('disabled');
+	}
 };
 
 

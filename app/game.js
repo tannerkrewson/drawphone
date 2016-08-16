@@ -144,11 +144,11 @@ Game.prototype.sendToAll = function (event, data) {
 	});
 };
 
-Game.prototype.startNewRound = function (timeLimit) {
+Game.prototype.startNewRound = function (timeLimit, wordPackName) {
 	this.inProgress = true;
 
 	var self = this;
-	this.currentRound = new Round(this.getNextRoundNum(), this.players, timeLimit, function () {
+	this.currentRound = new Round(this.getNextRoundNum(), this.players, timeLimit, wordPackName, function () {
 		//ran when results are sent
 		self.inProgress = false;
 		self.viewingResults = true;

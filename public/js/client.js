@@ -759,7 +759,8 @@ Results.prototype.show = function (res) {
 
 Results.prototype.render = function (chainToShow, allChains) {
 	Screen.prototype.setTitle.call(this, chainToShow.owner.name + '\'s Drawphone results');
-	Screen.prototype.setSubtitle.call(this, 'Show everyone how it turned out!');
+	var subtitle = 'Now, take turns holding up your phones where everyone can see, and reading off your results to the group.';
+	Screen.prototype.setSubtitle.call(this, subtitle);
 	this.displayChain(chainToShow);
 	this.displayOtherChainButtons(allChains, chainToShow);
 };
@@ -803,7 +804,6 @@ Results.prototype.displayOtherChainButtons = function (chainsToList, chainToIgno
 				});
 			})(chain, chainsToList);
 			others.append(button);
-			others.append('<br>');
 		}
 
 	}

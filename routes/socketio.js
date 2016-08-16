@@ -52,7 +52,6 @@ module.exports = function (app) {
 		});
 
 		socket.on('kickPlayer', function(data) {
-			console.log(data);
 			var idToKick = data.playerToKick.id;
 			var playerToKick = thisGame.getPlayer(idToKick);
 			if (thisUser.isAdmin && playerToKick) {

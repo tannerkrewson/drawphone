@@ -154,8 +154,6 @@ Drawphone.prototype.attachSocketListeners = function () {
 
 	socket.on('updatePlayerList', this.lobby.update.bind(this.lobby));
 
-	socket.on('gameStart', this.game.show.bind(this.game));
-
 	socket.on('nextLink', this.game.newLink.bind(this.game));
 
 	socket.on('roundOver', this.game.roundOver.bind(this.game));

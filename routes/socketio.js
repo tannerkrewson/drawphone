@@ -28,7 +28,6 @@ module.exports = function (app) {
 
 		socket.on('tryStartGame', function (data) {
 			if (data.timeLimit !== false && thisUser.isAdmin) {
-				thisGame.sendToAll('gameStart', {});
 				thisGame.startNewRound(data.timeLimit, data.wordPackName);
 			}
 		});

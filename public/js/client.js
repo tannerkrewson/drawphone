@@ -7,12 +7,15 @@
 
 //blocks use of https, required for the uploads.im api,
 //  as it does not have https
+//commented out for switch to imgur api
+/*
 window.onload = function () {
 	$(function () {
 		if (window.location.protocol === 'https:')
 			window.location.protocol = 'http';
 	});
 };
+*/
 
 //prevent page from refreshing when Join game buttons are pressed
 $(function () {
@@ -669,23 +672,27 @@ Game.prototype.uploadCanvas = function (next, err) {
 	getDataUrlAsync(this.canvas, function (file) {
 		var blob = window.dataURLtoBlob(file);
 		var formData = new FormData();
-		formData.append('upload', blob, 'drawing.png');
+		formData.append('image', blob, 'drawing.png');
 		$.ajax({
-			url: 'http://uploads.im/api',
+			url: 'https://api.imgur.com/3/upload',
+			headers: {
+					'Authorization': 'Client-ID 457a07332e1ec67'
+			},
 			data: formData,
 			processData: false,
 			contentType: false,
 			type: 'POST',
 			success: function (res) {
-				if (res.status_code === 200) {
-					var url = res.data.img_url;
+				console.log(res);
+				if (res.status === 200) {
+					var url = res.data.link;
 					next(url);
 				} else {
-					err('POST Status Code: ' + res.status_code);
+					err('Error Code: A' + res.status);
 				}
 			},
 			error: function (xmlReq) {
-				err('XMLHttpRequest Status Code: ' + xmlReq.status);
+				err('Error Code: B' + xmlReq.status);
 			}
 		});
 		Screen.prototype.setTitle.call(this, 'Uploading...');

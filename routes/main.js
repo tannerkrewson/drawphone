@@ -9,8 +9,16 @@ module.exports = function (app) {
 		});
 	});
 
-	app.get('/howtoplay', function (req, res) {
+	app.get('/how-to-play', function (req, res) {
 		res.render('howtoplay');
+	});
+
+	app.get('/screenshots', function (req, res) {
+		res.render('screenshots');
+	});
+
+	app.get('/more-games', function (req, res) {
+		res.render('moregames');
 	});
 
 	app.get('/stats', function (req, res) {

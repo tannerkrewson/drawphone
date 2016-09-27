@@ -224,6 +224,8 @@ function MainMenu(onJoin, onNew) {
 	this.joinButton = $('#joinbtn');
 	this.newButton = $('#newbtn');
 	this.howButton = $('#howbtn');
+	this.ssButton = $('#ssbtn');
+	this.mgButton = $('#mgbtn');
 	this.onJoin = onJoin;
 	this.onNew = onNew;
 
@@ -236,7 +238,13 @@ MainMenu.prototype.initialize = function () {
 	this.joinButton.click(this.onJoin);
 	this.newButton.click(this.onNew);
 	this.howButton.click(function () {
-		window.location.href = '/howtoplay';
+		window.location.href = '/how-to-play';
+	});
+	this.ssButton.click(function () {
+		window.location.href = '/screenshots';
+	});
+	this.mgButton.click(function () {
+		window.location.href = '/more-games';
 	});
 };
 

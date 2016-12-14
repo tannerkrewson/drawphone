@@ -804,6 +804,13 @@ Results.prototype.displayChain = function (chain) {
 			console.log('Results: We should never get here');
 		}
 	}
+
+	var wentFromBox = '';
+	wentFromBox += '<br><div class="well">';
+	wentFromBox += '<h4>You started with:</h4><h2>' + chain.links[0].data + '</h2><br>';
+	wentFromBox += '<h4>and ended up with:</h4><h2>' + chain.links[chain.links.length-1].data + '</h2>';
+	wentFromBox += '</div>';
+	results.append(wentFromBox);
 };
 
 Results.prototype.displayOtherChainButtons = function (chainsToList, chainToIgnore) {

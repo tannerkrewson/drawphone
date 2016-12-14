@@ -342,7 +342,7 @@ Lobby.prototype.initialize = function () {
 		location.reload();
 	});
 	this.startButton.click(function () {
-		if (self.selectedTimeLimit !== false && self.wordPack !== false) {
+		if (self.selectedTimeLimit !== false && self.wordPack !== false && self.userList.numberOfPlayers > 1) {
 			socket.emit('tryStartGame', {
 				timeLimit: self.selectedTimeLimit,
 				wordPackName: self.wordPack
@@ -935,6 +935,7 @@ Replace.prototype.sendChoice = function (playerToReplace) {
 
 function UserList(ul) {
 	this.ul = ul;
+	this.numberOfPlayers = 0;
 }
 
 UserList.prototype.update = function (newList, disconnectedList, onPress) {
@@ -953,7 +954,9 @@ UserList.prototype.update = function (newList, disconnectedList, onPress) {
 };
 
 UserList.prototype.draw = function (list, makeBoxDark, onPress) {
+	this.numberOfPlayers = 0;
 	for (var i = 0; i < list.length; i++) {
+		this.numberOfPlayers++;
 		var listBox = $('<span></span>');
 		var listItem = $('<li>' + list[i].name + '</li>').appendTo(listBox);
 		listItem.addClass('user');

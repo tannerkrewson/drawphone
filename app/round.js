@@ -34,6 +34,13 @@ Round.prototype.start = function () {
 	//  for the original word
 	this.finalNumOfLinks = this.players.length + 1;
 
+	//contrary to the above comment, i now want every chain to end in a word
+	// so that the Start to End results box always starts and ends works correctly.
+	//to do this, i take away on link if there is an even number of final links
+	if (this.finalNumOfLinks % 2 === 0) {
+		this.finalNumOfLinks = this.finalNumOfLinks - 1;
+	}
+
 	//shuffle the player list in place
 	shuffle(this.players);
 

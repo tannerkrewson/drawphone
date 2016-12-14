@@ -65,12 +65,6 @@ Game.prototype.onPlayerDisconnect = function (oldPlayer) {
 		}
 	}
 
-	//if someone leaves while viewing results, we need to check again
-	//  or everyone will get stuck on the Thanks for playing screen
-	if (this.viewingResults) {
-		this.currentRound.end();
-	}
-
 	var allPlayersDisconnected = true;
 	for (var j = 0; j < this.players.length; j++) {
 		if (this.players[j].isConnected) {

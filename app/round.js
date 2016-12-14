@@ -135,38 +135,12 @@ Round.prototype.viewResults = function () {
 
 	var chains = this.getAllChains();
 
-	var self = this;
 	this.players.forEach(function (player) {
-		player.sendThen('viewResults', {
+		player.send('viewResults', {
 			chains
-		}, 'doneViewingResults', function () {
-			player.doneViewingResults = true;
-			self.end();
 		});
 
 	});
-};
-
-Round.prototype.end = function () {
-	//check to see if all players are done viewing results
-	var allDone = true;
-	for (var i = 0; i < this.players.length; i++) {
-		var player = this.players[i];
-		if (!player.doneViewingResults && player.isConnected) {
-			allDone = false;
-			break;
-		}
-	}
-
-	if (allDone) {
-		this.onEnd();
-		this.players.forEach(function (player) {
-			//set it back for the next round
-			player.doneViewingResults = false;
-
-			player.send('roundOver', {});
-		});
-	}
 };
 
 Round.prototype.findReplacementFor = function (player) {

@@ -115,14 +115,14 @@ function Drawphone() {
 	this.lobby = new Lobby();
 
 	this.game = new Game(function () {
-		//ran when the round ends
-		self.lobby.show();
-	}, function () {
 		//ran when the player sends
 		self.waiting.show();
 	});
 
-	this.results = new Results();
+	this.results = new Results(function () {
+		//ran when done button on results page is tapped
+		self.lobby.show();
+	});
 
 	this.waiting = new Waiting();
 
@@ -158,8 +158,6 @@ Drawphone.prototype.attachSocketListeners = function () {
 	socket.on('updatePlayerList', this.lobby.update.bind(this.lobby));
 
 	socket.on('nextLink', this.game.newLink.bind(this.game));
-
-	socket.on('roundOver', this.game.roundOver.bind(this.game));
 
 	socket.on('viewResults', this.results.show.bind(this.results));
 
@@ -463,11 +461,10 @@ Lobby.prototype.checkIfReadyToStart = function (optionName) {
 
 Game.prototype = Object.create(Screen.prototype);
 
-function Game(onRoundEnd, onWait) {
+function Game(onWait) {
 	Screen.call(this);
 
 	this.id = '#game';
-	this.onRoundEnd = onRoundEnd;
 	this.onWait = onWait;
 
 	this.wordInput = $('#game-word-in');
@@ -684,14 +681,13 @@ Game.prototype.uploadCanvas = function (next, err) {
 		$.ajax({
 			url: 'https://api.imgur.com/3/upload',
 			headers: {
-					'Authorization': 'Client-ID 457a07332e1ec67'
+				'Authorization': 'Client-ID 457a07332e1ec67'
 			},
 			data: formData,
 			processData: false,
 			contentType: false,
 			type: 'POST',
 			success: function (res) {
-				console.log(res);
 				if (res.status === 200) {
 					var url = res.data.link;
 					next(url);
@@ -719,10 +715,6 @@ Game.prototype.sendLink = function (type, data) {
 	this.onWait();
 };
 
-Game.prototype.roundOver = function () {
-	this.onRoundEnd();
-};
-
 Game.prototype.resizeCanvas = function () {
 	var container = $('#game-drawing');
 	this.canvas.setHeight(container.width());
@@ -739,18 +731,18 @@ Game.prototype.setTimer = function () {
 
 Results.prototype = Object.create(Screen.prototype);
 
-function Results() {
+function Results(onDoneViewingResults) {
 	Screen.call(this);
+
+	this.onDoneViewingResults = onDoneViewingResults;
 
 	this.id = '#result';
 }
 
 Results.prototype.initialize = function () {
+	var self = this;
 	$('#result-done').on('click', function () {
-		hideAll();
-		Screen.prototype.setTitle.call(this, 'Thanks for playing Drawphone!');
-		Screen.prototype.setSubtitle.call(this, 'Waiting for other players...');
-		socket.emit('doneViewingResults', {});
+		self.onDoneViewingResults();
 	});
 };
 

@@ -6,7 +6,6 @@ function Player(name, socket, id) {
 	this.name = name;
 	this.socket = socket;
 	this.id = id;
-	this.doneViewingResults = false;
 	this.isAdmin = false;
 	this.isConnected = true;
 }

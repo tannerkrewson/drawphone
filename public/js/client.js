@@ -322,6 +322,7 @@ function Lobby() {
 	this.gameSettings = $('#lobby-settings');
 	this.timeLimitDropdown = $('#lobby-settings-timelimit');
 	this.wordPackDropdown = $('#lobby-settings-wordpack');
+	this.viewPreviousResultsButton = $('#lobby-prevres');
 	this.gameCode = '';
 	this.completedOptions = [];
 
@@ -377,6 +378,9 @@ Lobby.prototype.initialize = function () {
 		self.wordPack = self.wordPackDropdown[0].value;
 		self.checkIfReadyToStart('word-pack');
 	});
+	this.viewPreviousResultsButton.click(function () {
+		socket.emit('viewPreviousResults', {});
+	});
 };
 
 Lobby.prototype.show = function (data) {
@@ -389,7 +393,10 @@ Lobby.prototype.show = function (data) {
 				success: true,
 				gameCode: data.game.code,
 				player: data.you,
-				data: data.game.players
+				data: {
+					players: data.game.players,
+					canViewLastRoundResults: data.game.canViewLastRoundResults
+				}
 			});
 
 		} else {
@@ -417,7 +424,7 @@ Lobby.prototype.update = function (res) {
 		globalGameCode = '<span class="gamecode">' + res.gameCode + '</span>';
 		this.title = 'Game Code: <span class="gamecode">' + res.gameCode + '</span>';
 		this.subtitle = 'Waiting for players...';
-		this.userList.update(res.data);
+		this.userList.update(res.data.players);
 
 		if (res.player.isAdmin) {
 			//show the start game button
@@ -427,6 +434,12 @@ Lobby.prototype.update = function (res) {
 		} else {
 			this.startButton.addClass('hidden');
 			this.gameSettings.addClass('hidden');
+		}
+
+		if (res.data.canViewLastRoundResults) {
+			this.viewPreviousResultsButton.removeClass('hidden');
+		} else {
+			this.viewPreviousResultsButton.addClass('hidden');
 		}
 	} else {
 		swal('Error updating lobby', res.error, 'error');
@@ -757,7 +770,12 @@ Results.prototype.show = function (res) {
 		}
 	}
 
-	this.render(ourChain, chains);
+	//if we don't own a chain, just show the first one
+	if (ourChain) {
+		this.render(ourChain, chains);
+	} else {
+		this.render(chains[0], chains);
+	}
 
 	Screen.prototype.show.call(this);
 };

@@ -12,17 +12,17 @@ var WordPacks = require('./words');
 var words = new WordPacks();
 words.loadAll();
 
-function Round(number, players, timeLimit, wordPackName, onResults, onEnd) {
+function Round(number, players, timeLimit, wordPackName, onResults) {
 	this.number = number;
 	this.players = players;
 	this.timeLimit = timeLimit;
 	this.wordPackName = wordPackName;
 	this.onResults = onResults;
-	this.onEnd = onEnd;
 	this.chains = [];
 	this.disconnectedPlayers = [];
 	//on creation, chains will already have one link
 	this.shouldHaveThisManyLinks = 2;
+	this.canViewLastRoundResults = false;
 
 	this.finalNumOfLinks;
 }
@@ -131,9 +131,12 @@ Round.prototype.getChainByOwnerId = function (ownerId) {
 };
 
 Round.prototype.viewResults = function () {
-	this.onResults();
-
 	var chains = this.getAllChains();
+
+	//starts as false, and will be true every round after first round
+	this.canViewLastRoundResults = true;
+
+	this.onResults();
 
 	this.players.forEach(function (player) {
 		player.send('viewResults', {

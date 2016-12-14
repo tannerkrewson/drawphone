@@ -11,7 +11,6 @@ function Game(code, onEmpty) {
 	this.players = [];
 	this.admin;
 	this.inProgress = false;
-	this.viewingResults = false;
 	this.currentRound;
 
 	this.currentId = 1;
@@ -48,6 +47,14 @@ Game.prototype.initPlayer = function (newPlayer) {
 		}
 		self.onPlayerDisconnect(newPlayer);
 		self.sendUpdatedPlayersList();
+	});
+
+	newPlayer.socket.on('viewPreviousResults', function () {
+		if (self.currentRound && self.currentRound.canViewLastRoundResults) {
+			newPlayer.send('viewResults', {
+				chains: self.currentRound.getAllChains()
+			});
+		}
 	});
 };
 
@@ -117,13 +124,17 @@ Game.prototype.getJsonGame = function () {
 	var jsonGame = {
 		code: this.code,
 		players,
-		inProgress: this.inProgress
+		inProgress: this.inProgress,
+		canViewLastRoundResults: (this.currentRound !== undefined) && this.currentRound.canViewLastRoundResults
 	};
 	return jsonGame;
 };
 
 Game.prototype.sendUpdatedPlayersList = function () {
-	this.sendToAll('updatePlayerList', this.getJsonGame().players);
+	this.sendToAll('updatePlayerList', {
+		players: this.getJsonGame().players,
+		canViewLastRoundResults: (this.currentRound !== undefined) && this.currentRound.canViewLastRoundResults
+	});
 };
 
 Game.prototype.sendToAll = function (event, data) {
@@ -145,11 +156,7 @@ Game.prototype.startNewRound = function (timeLimit, wordPackName) {
 	this.currentRound = new Round(this.getNextRoundNum(), this.players, timeLimit, wordPackName, function () {
 		//ran when results are sent
 		self.inProgress = false;
-		self.viewingResults = true;
-	}, function () {
-		//ran when everyone is done viewing results
-		self.sendUpdatedPlayersList();
-		self.viewingResults = false;
+		self.sendUpdatedPlayersList(); //this makes sure the View Last Round Results button shows up
 	});
 
 	this.currentRound.start();

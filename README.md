@@ -5,7 +5,7 @@
     Play now at: <a href="http://drawphone.tannerkrewson.com/">drawphone.tannerkrewson.com</a>
   </h2>
   <br>
-  <img src="http://i.imgur.com/RCV31fE.png" width="222"/><img src="http://i.imgur.com/e2FLTuC.png" width="222"/><img src="http://i.imgur.com/T1LwsQf.png" width="222"/><img src="http://i.imgur.com/9SJ7XB5.png" width="222"/>
+  <img src="https://i.imgur.com/RA5HwjB.png" width="222"/><img src="https://i.imgur.com/JgFvlRb.png" width="222"/><img src="https://i.imgur.com/nVdQccl.png" width="222"/><img src="https://i.imgur.com/VlfnAvL.png" width="222"/>
 </div>
 <br>
 

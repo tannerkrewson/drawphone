@@ -7,15 +7,15 @@
 
 //blocks use of https, required for the uploads.im api,
 //  as it does not have https
-//commented out for switch to imgur api
-/*
+//not required for imgur api
+
 window.onload = function () {
 	$(function () {
 		if (window.location.protocol === 'https:')
 			window.location.protocol = 'http';
 	});
 };
-*/
+
 
 //prevent page from refreshing when Join game buttons are pressed
 $(function () {
@@ -690,31 +690,91 @@ Game.prototype.uploadCanvas = function (next, err) {
 	getDataUrlAsync(this.canvas, function (file) {
 		var blob = window.dataURLtoBlob(file);
 		var formData = new FormData();
-		formData.append('image', blob, 'drawing.png');
-		$.ajax({
-			url: 'https://api.imgur.com/3/upload',
-			headers: {
-				'Authorization': 'Client-ID 457a07332e1ec67'
-			},
-			data: formData,
-			processData: false,
-			contentType: false,
-			type: 'POST',
-			success: function (res) {
-				if (res.status === 200) {
-					var url = res.data.link;
-					next(url);
-				} else {
-					err('Error Code: A' + res.status);
-				}
-			},
-			error: function (xmlReq) {
-				err('Error Code: B' + xmlReq.status);
-			}
-		});
+
+		uploadToPigy(blob, formData, next, err);
+
 		Screen.prototype.setTitle.call(this, 'Uploading...');
 	});
+
+
 };
+
+function uploadToPigy(blob, formData, next, err) {
+	formData.append('file', blob, 'drawing.png');
+	$.ajax({
+		url: 'http://pi.gy/api/image',
+		data: formData,
+		processData: false,
+		contentType: false,
+		type: 'POST',
+		success: function (res) {
+			if (res.success) {
+				var url = res.image.url;
+				next(url);
+			} else {
+				Screen.prototype.setTitle.call(this, 'Upload failed, trying again.');
+				uploadToUploadsIm(blob, formData, next, err);
+			}
+		},
+		error: function () {
+			Screen.prototype.setTitle.call(this, 'Upload failed, trying again.');
+			uploadToUploadsIm(blob, formData, next, err);
+		}
+	});
+}
+
+function uploadToUploadsIm(blob, formData, next, err) {
+	formData.append('upload', blob, 'drawing.png');
+	$.ajax({
+		url: 'http://uploads.im/api',
+		data: formData,
+		processData: false,
+		contentType: false,
+		type: 'POST',
+		success: function (res) {
+			if (res.status_code === 200) {
+				var url = res.data.img_url;
+				next(url);
+			} else {
+				Screen.prototype.setTitle.call(this, 'Upload failed again, one more try.');
+				uploadToImgur(blob, formData, next, err);
+			}
+		},
+		error: function () {
+			Screen.prototype.setTitle.call(this, 'Upload failed again, one more try.');
+			uploadToImgur(blob, formData, next, err);
+		}
+	});
+}
+
+function uploadToImgur(blob, formData, next, err) {
+	formData.append('image', blob, 'drawing.png');
+	$.ajax({
+		url: 'https://api.imgur.com/3/upload',
+		headers: {
+			'Authorization': 'Client-ID 457a07332e1ec67'
+		},
+		data: formData,
+		processData: false,
+		contentType: false,
+		type: 'POST',
+		success: function (res) {
+			if (res.status === 200) {
+				var url = res.data.link;
+				next(url);
+			} else {
+				err('Error Code: A' + res.status);
+			}
+		},
+		error: function (xmlReq) {
+			if (xmlReq.status === 429) {
+				err('Imgur image upload limit exceeded.');
+			} else {
+				err('Error Code: B' + xmlReq.status);
+			}
+		}
+	});
+}
 
 Game.prototype.sendLink = function (type, data) {
 	Screen.prototype.setTitle.call(this, 'Sending...');

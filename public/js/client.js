@@ -9,12 +9,12 @@
 //  as it does not have https
 //not required for imgur api
 
-window.onload = function () {
+/*window.onload = function () {
 	$(function () {
 		if (window.location.protocol === 'https:')
 			window.location.protocol = 'http';
 	});
-};
+};*/
 
 
 //prevent page from refreshing when Join game buttons are pressed
@@ -713,29 +713,30 @@ function uploadToPigy(blob, formData, next, err) {
 				next(url);
 			} else {
 				Screen.prototype.setTitle.call(this, 'Upload failed, trying again.');
-				uploadToUploadsIm(blob, formData, next, err);
+				uploadToSpiky(blob, formData, next, err);
 			}
 		},
 		error: function () {
 			Screen.prototype.setTitle.call(this, 'Upload failed, trying again.');
-			uploadToUploadsIm(blob, formData, next, err);
+			uploadToSpiky(blob, formData, next, err);
 		}
 	});
 }
 
-function uploadToUploadsIm(blob, formData, next, err) {
-	formData.append('upload', blob, 'drawing.png');
+function uploadToSpiky(blob, formData, next, err) {
+	formData.append('file', blob, 'drawing.png');
 	$.ajax({
-		url: 'http://uploads.im/api',
+		url: 'https://spiky.io/up',
 		data: formData,
 		processData: false,
 		contentType: false,
 		type: 'POST',
 		success: function (res) {
-			if (res.status_code === 200) {
-				var url = res.data.img_url;
+			if (res.r && res.r === '1') {
+				var url = 'https://spiky.io/' + res.f + '.png';
 				next(url);
 			} else {
+				console.log(res);
 				Screen.prototype.setTitle.call(this, 'Upload failed again, one more try.');
 				uploadToImgur(blob, formData, next, err);
 			}

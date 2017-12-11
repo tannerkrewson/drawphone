@@ -147,11 +147,6 @@ Drawphone.prototype.initializeAll = function () {
 };
 
 Drawphone.prototype.attachSocketListeners = function () {
-	socket.on('disconnect', function () {
-		swal('Connection lost!', 'Reloading...', 'error');
-		//refresh the page
-		location.reload();
-	});
 
 	socket.on('joinGameRes', this.lobby.show.bind(this.lobby));
 
@@ -244,6 +239,12 @@ MainMenu.prototype.initialize = function () {
 	this.mgButton.click(function () {
 		window.location.href = '/more-games';
 	});
+};
+
+Lobby.prototype.show = function () {
+	socket.off('disconnect');
+
+	Lobby.prototype.show.call(this);
 };
 
 
@@ -384,6 +385,12 @@ Lobby.prototype.initialize = function () {
 };
 
 Lobby.prototype.show = function (data) {
+	socket.on('disconnect', function () {
+		swal('Connection lost!', 'Reloading...', 'error');
+		//refresh the page
+		location.reload();
+	});
+
 	//if this was called by a socket.io event
 	if (data) {
 		if (data.success) {

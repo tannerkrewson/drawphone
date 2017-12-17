@@ -1,34 +1,35 @@
 {
-	"name": "drawphone",
-	"version": "1.0.0",
-	"description": "Telephone with pictures",
-	"main": "app.js",
-	"scripts": {
-		"start": "node ./bin/www",
-		"test": "echo \"Error: no test specified\" && exit 1"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/tannerkrewson/drawphone.git"
-	},
-	"author": "Tanner Krewson",
-	"license": "MIT",
-	"bugs": {
-		"url": "https://github.com/tannerkrewson/drawphone/issues"
-	},
-	"homepage": "https://github.com/tannerkrewson/drawphone#readme",
-	"dependencies": {
-		"body-parser": "~1.15.1",
-		"cookie-parser": "~1.4.3",
-		"debug": "~2.2.0",
-		"express": "~4.13.4",
-		"jade": "~1.11.0",
-		"knuth-shuffle": "^1.0.1",
-		"morgan": "~1.7.0",
-		"serve-favicon": "~2.3.0",
-		"socket.io": "^1.4.8"
-	},
-	"devDependencies": {
-		"eslint": "^3.1.1"
-	}
+  "name": "drawphone",
+  "version": "1.0.0",
+  "description": "Telephone with pictures",
+  "main": "app.js",
+  "scripts": {
+    "start": "node ./bin/www",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tannerkrewson/drawphone.git"
+  },
+  "author": "Tanner Krewson",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tannerkrewson/drawphone/issues"
+  },
+  "homepage": "https://github.com/tannerkrewson/drawphone#readme",
+  "dependencies": {
+    "body-parser": "~1.15.1",
+    "cookie-parser": "~1.4.3",
+    "debug": "~2.2.0",
+    "express": "~4.13.4",
+    "express-minify": "^1.0.0",
+    "jade": "~1.11.0",
+    "knuth-shuffle": "^1.0.1",
+    "morgan": "~1.7.0",
+    "serve-favicon": "~2.3.0",
+    "socket.io": "^1.4.8"
+  },
+  "devDependencies": {
+    "eslint": "^3.1.1"
+  }
 }

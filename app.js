@@ -5,6 +5,7 @@ var path = require('path');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var minify = require('express-minify');
 
 var app = express();
 var io = socketio();
@@ -23,9 +24,10 @@ app.set('view engine', 'jade');
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-
 if (devModeEnabled) {
 	app.use(logger('dev'));
+} else {
+	app.use(minify());
 }
 
 app.use(bodyParser.json());
@@ -36,7 +38,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // catch 404 and forward to error handler
-app.use(function (req, res, next) {
+app.use(function(req, res, next) {
 	var err = new Error('Not Found');
 	err.status = 404;
 	next(err);
@@ -47,7 +49,7 @@ app.use(function (req, res, next) {
 // development error handler
 // will print stacktrace
 if (devModeEnabled) {
-	app.use(function (err, req, res, next) {
+	app.use(function(err, req, res, next) {
 		res.status(err.status || 500);
 		res.render('error', {
 			message: err.message,
@@ -60,7 +62,7 @@ if (devModeEnabled) {
 
 // production error handler
 // error handler
-app.use(function (err, req, res, next) {
+app.use(function(err, req, res, next) {
 	res.status(err.status || 500);
 	res.render('error', {
 		message: err.message,
@@ -68,6 +70,5 @@ app.use(function (err, req, res, next) {
 	});
 	next();
 });
-
 
 module.exports = app;

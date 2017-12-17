@@ -271,8 +271,8 @@ JoinMenu.prototype.initialize = function () {
 		var name = $('#joininname').val();
 
 		socket.emit('joinGame', {
-			code,
-			name
+			code: code,
+			name: name
 		});
 	});
 
@@ -306,7 +306,7 @@ NewMenu.prototype.initialize = function () {
 		var name = $('#newinname').val();
 
 		socket.emit('newGame', {
-			name
+			name: name
 		});
 	});
 };
@@ -805,8 +805,8 @@ Game.prototype.sendLink = function (type, data) {
 
 	socket.emit('finishedLink', {
 		link: {
-			type,
-			data
+			type: type,
+			data: data
 		}
 	});
 	ga('send', 'event', 'Link', 'submit', type);
@@ -1017,7 +1017,7 @@ Replace.prototype.show = function (data) {
 
 Replace.prototype.sendChoice = function (playerToReplace) {
 	socket.emit('tryReplacePlayer', {
-		playerToReplace
+		playerToReplace: playerToReplace
 	});
 	ga('send', 'event', 'Player replacement', 'replace', self.timeLimit);
 };

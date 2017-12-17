@@ -3,7 +3,7 @@
 //  By Tanner Krewson
 //
 
-/* global $, swal, fabric, io */
+/* global $, swal, fabric, io, ga */
 
 //blocks use of https, required for the uploads.im api,
 //  as it does not have https
@@ -339,6 +339,7 @@ Lobby.prototype.initialize = function () {
 
 	var self = this;
 	this.leaveButton.click(function () {
+		ga('send', 'event', 'Lobby', 'leave');
 		//refresh the page
 		location.reload();
 	});
@@ -348,6 +349,12 @@ Lobby.prototype.initialize = function () {
 				timeLimit: self.selectedTimeLimit,
 				wordPackName: self.wordPack
 			});
+			ga('send', 'event', 'Game', 'start');
+			ga('send', 'event', 'Game', 'time limit', self.selectedTimeLimit);
+			ga('send', 'event', 'Game', 'word pack', self.wordPack);
+			ga('send', 'event', 'Game', 'number of players', self.userList.numberOfPlayers);
+		} else {
+			ga('send', 'event', 'Lobby', 'disallowed start attempt');
 		}
 	});
 	this.timeLimitDropdown.on('change', function () {
@@ -378,10 +385,15 @@ Lobby.prototype.initialize = function () {
 	this.wordPackDropdown.on('change', function () {
 		self.wordPack = self.wordPackDropdown[0].value;
 		self.checkIfReadyToStart('word-pack');
+
+		ga('send', 'event', 'Lobby', 'word pack change', self.wordPack);
 	});
 	this.viewPreviousResultsButton.click(function () {
 		socket.emit('viewPreviousResults', {});
+
+		ga('send', 'event', 'Lobby', 'view previous results');
 	});
+	ga('send', 'event', 'Lobby', 'created');
 };
 
 Lobby.prototype.show = function (data) {
@@ -525,6 +537,7 @@ Game.prototype.initialize = function () {
 				self.isCanvasBlank = false;
 				//submit
 				self.onDone();
+				ga('send', 'event', 'Drawing', 'timer forced submit', self.timeLimit);
 			}, self.timeLimit * 1000);
 		}
 		self.isCanvasBlank = false;
@@ -718,6 +731,7 @@ function uploadToPigy(blob, formData, next, err) {
 			if (res.success) {
 				var url = res.image.url;
 				next(url);
+				ga('send', 'event', 'Drawing', 'upload', 'pigy');
 			} else {
 				Screen.prototype.setTitle.call(this, 'Upload failed, trying again.');
 				uploadToSpiky(blob, formData, next, err);
@@ -742,6 +756,7 @@ function uploadToSpiky(blob, formData, next, err) {
 			if (res.r && res.r === '1') {
 				var url = 'https://spiky.io/' + res.f + '.png';
 				next(url);
+				ga('send', 'event', 'Drawing', 'upload', 'spiky');
 			} else {
 				console.log(res);
 				Screen.prototype.setTitle.call(this, 'Upload failed again, one more try.');
@@ -770,6 +785,7 @@ function uploadToImgur(blob, formData, next, err) {
 			if (res.status === 200) {
 				var url = res.data.link;
 				next(url);
+				ga('send', 'event', 'Drawing', 'upload', 'imgur');
 			} else {
 				err('Error Code: A' + res.status);
 			}
@@ -793,6 +809,7 @@ Game.prototype.sendLink = function (type, data) {
 			data
 		}
 	});
+	ga('send', 'event', 'Link', 'submit', type);
 	this.onWait();
 };
 
@@ -899,6 +916,8 @@ Results.prototype.displayOtherChainButtons = function (chainsToList, chainToIgno
 
 					//jump to top of the page
 					window.scrollTo(0, 0);
+
+					ga('send', 'event', 'Results', 'display another chain');
 				});
 			})(chain, chainsToList);
 			others.append(button);
@@ -949,7 +968,9 @@ Waiting.prototype.updateWaitingList = function (res) {
 					playerToKick: tappedPlayer
 				});
 				swal('Done!', tappedPlayer.name + ' was kicked.', 'success');
+				ga('send', 'event', 'User list', 'Admin kick player');
 			});
+			ga('send', 'event', 'User list', 'Admin tap player');
 		}
 	});
 
@@ -998,6 +1019,7 @@ Replace.prototype.sendChoice = function (playerToReplace) {
 	socket.emit('tryReplacePlayer', {
 		playerToReplace
 	});
+	ga('send', 'event', 'Player replacement', 'replace', self.timeLimit);
 };
 
 

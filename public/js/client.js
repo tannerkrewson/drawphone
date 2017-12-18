@@ -280,8 +280,14 @@ JoinMenu.prototype.initialize = function () {
 	});
 
 	var self = this;
-	this.codeInput.on('keyup', function () {
-		self.codeInput.val(self.codeInput.val().toLowerCase());
+
+	this.codeInput.on('input', function () {
+		self.codeInput.val(self.codeInput.val().substring(0,4).toLowerCase().replace(/[^a-z]/g, ''));
+		if (self.codeInput.val()) {
+			self.codeInput.addClass('gamecode-entry');
+		} else {
+			self.codeInput.removeClass('gamecode-entry');
+		}
 	});
 
 	Screen.prototype.setDefaultTitles.call(this);

@@ -50,6 +50,10 @@ input[type="text"] {
   padding: 5px;
 }
 
+.gamecode-entry {
+    font-family: monospace;
+}
+
 .user {
   border: 1px solid LightGrey;
   padding: 8px;

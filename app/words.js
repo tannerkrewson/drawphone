@@ -55,8 +55,8 @@ WordPacks.prototype.getRandomWord = function (packName) {
 	if (thisPack) {
 		return thisPack.getRandomWord();
 	} else {
-		console.err('Pack ' + packName + ' does not exist.');
-		process.exit(1);
+		console.error('Wordpack ' + packName + ' does not exist.');
+		return this.wordPacks[0].getRandomWord();
 	}
 };
 

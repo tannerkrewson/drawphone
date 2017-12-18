@@ -82,9 +82,6 @@ function startTimer(duration, onTick) {
 	return setInterval(tick, 1000);
 }
 
-//sorry
-var globalGameCode = '';
-
 
 //
 //  Objects
@@ -205,6 +202,12 @@ Screen.prototype.showTitles = function () {
 Screen.prototype.setDefaultTitles = function () {
 	this.setTitle(this.defaultTitle);
 	this.setSubtitle(this.defaultSubtitle);
+};
+
+Screen.gameCode = '';
+
+Screen.getGameCodeHTML = function () {
+	return '<span class="gamecode">' + Screen.gameCode + '</span>';
 };
 
 
@@ -406,7 +409,7 @@ Lobby.prototype.show = function (data) {
 	//if this was called by a socket.io event
 	if (data) {
 		if (data.success) {
-			globalGameCode = '<span class="gamecode">' + data.game.code + '</span>';
+			Screen.gameCode = data.game.code;
 			this.selectedTimeLimit = false;
 			this.update({
 				success: true,
@@ -440,8 +443,8 @@ Lobby.prototype.show = function (data) {
 
 Lobby.prototype.update = function (res) {
 	if (res.success) {
-		globalGameCode = '<span class="gamecode">' + res.gameCode + '</span>';
-		this.title = 'Game Code: <span class="gamecode">' + res.gameCode + '</span>';
+		Screen.gameCode = res.gameCode;
+		this.title = 'Game Code: ' + Screen.getGameCodeHTML();
 		this.subtitle = 'Waiting for players...';
 		this.userList.update(res.data.players);
 
@@ -559,7 +562,7 @@ Game.prototype.initialize = function () {
 
 Game.prototype.show = function () {
 	Screen.prototype.show.call(this);
-	Screen.prototype.setSubtitle.call(this, 'Game code: ' + globalGameCode);
+	Screen.prototype.setSubtitle.call(this, 'Game code: ' + Screen.getGameCodeHTML());
 
 	//allow touch events on the canvas
 	$('#game-drawing').css('pointer-events', 'auto');
@@ -991,7 +994,7 @@ Replace.prototype.initialize = function () {
 };
 
 Replace.prototype.show = function (data) {
-	globalGameCode = '<span class="gamecode">' + data.gameCode + '</span>';
+	Screen.gameCode = data.gameCode;
 	Screen.prototype.setSubtitle.call(this, 'Ready to join game...');
 
 	var choices = $('#replace-choices');

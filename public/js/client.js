@@ -26,30 +26,30 @@ $(function () {
 
 
 //
+//  Constants
+//
+const HIDDEN = 'hidden';
+const DRAWING = 'drawing';
+const WORD = 'word';
+
+
+//
 //  UI Methods
 //
 
 function hideAll() {
-	$('#mainmenu').addClass('hidden');
-	$('#joinmenu').addClass('hidden');
-	$('#newmenu').addClass('hidden');
-	$('#lobby').addClass('hidden');
-	$('#game').addClass('hidden');
-	$('#result').addClass('hidden');
-	$('#waiting').addClass('hidden');
-	$('#replace').addClass('hidden');
+	$('#mainmenu').addClass(HIDDEN);
+	$('#joinmenu').addClass(HIDDEN);
+	$('#newmenu').addClass(HIDDEN);
+	$('#lobby').addClass(HIDDEN);
+	$('#game').addClass(HIDDEN);
+	$('#result').addClass(HIDDEN);
+	$('#waiting').addClass(HIDDEN);
+	$('#replace').addClass(HIDDEN);
 }
 
 function showElement(jq) {
-	$(jq).removeClass('hidden');
-}
-
-function oppositeLinkType(linkType) {
-	if (linkType === 'drawing') {
-		return 'word';
-	} else {
-		return 'drawing';
-	}
+	$(jq).removeClass(HIDDEN);
 }
 
 function getDataUrlAsync(canvas, next) {
@@ -447,18 +447,18 @@ Lobby.prototype.update = function (res) {
 
 		if (res.player.isAdmin) {
 			//show the start game button
-			this.startButton.removeClass('hidden');
+			this.startButton.removeClass(HIDDEN);
 			//show the game Settings
-			this.gameSettings.removeClass('hidden');
+			this.gameSettings.removeClass(HIDDEN);
 		} else {
-			this.startButton.addClass('hidden');
-			this.gameSettings.addClass('hidden');
+			this.startButton.addClass(HIDDEN);
+			this.gameSettings.addClass(HIDDEN);
 		}
 
 		if (res.data.canViewLastRoundResults) {
-			this.viewPreviousResultsButton.removeClass('hidden');
+			this.viewPreviousResultsButton.removeClass(HIDDEN);
 		} else {
-			this.viewPreviousResultsButton.addClass('hidden');
+			this.viewPreviousResultsButton.addClass(HIDDEN);
 		}
 	} else {
 		swal('Error updating lobby', res.error, 'error');
@@ -608,15 +608,15 @@ Game.prototype.showButtons = function (showClearButton) {
 	if (showClearButton) {
 		showElement('#game-cleardrawing');
 	} else {
-		$('#game-cleardrawing').addClass('hidden');
+		$('#game-cleardrawing').addClass(HIDDEN);
 	}
 	showElement('#game-buttons');
 };
 
 Game.prototype.hideBoth = function () {
-	$('#game-drawing').addClass('hidden');
-	$('#game-word').addClass('hidden');
-	$('#game-buttons').addClass('hidden');
+	$('#game-drawing').addClass(HIDDEN);
+	$('#game-word').addClass(HIDDEN);
+	$('#game-buttons').addClass(HIDDEN);
 };
 
 Game.prototype.newLink = function (res) {
@@ -624,10 +624,10 @@ Game.prototype.newLink = function (res) {
 	var lastLinkType = lastLink.type;
 	var count = res.data.count;
 	var finalCount = res.data.finalCount;
-	var newLinkType = oppositeLinkType(lastLinkType);
+	var newLinkType = lastLinkType === DRAWING ? WORD : DRAWING;
 	this.timeLimit = res.data.timeLimit;
 
-	if (lastLinkType === 'drawing') {
+	if (lastLinkType === DRAWING) {
 		//show the previous drawing
 		$('#game-word-drawingtoname').attr('src', lastLink.data);
 
@@ -635,7 +635,7 @@ Game.prototype.newLink = function (res) {
 
 		//show the word creator
 		this.showWord();
-	} else if (lastLinkType === 'word') {
+	} else if (lastLinkType === WORD) {
 		//clear the previous drawing
 		this.canvas.clear();
 		this.isCanvasBlank = true;
@@ -672,7 +672,7 @@ Game.prototype.checkIfDone = function (newLinkType) {
 
 	var newLink;
 	var self = this;
-	if (newLinkType === 'drawing') {
+	if (newLinkType === DRAWING) {
 		if (this.isCanvasBlank) {
 			self.showDrawing();
 			swal('Your picture is blank!', 'Please draw a picture, then try again.', 'info');
@@ -689,7 +689,7 @@ Game.prototype.checkIfDone = function (newLinkType) {
 				Screen.prototype.setTitle.call(self, 'Upload failed, try again.');
 			});
 		}
-	} else if (newLinkType === 'word') {
+	} else if (newLinkType === WORD) {
 		newLink = $('#game-word-in').val().trim();
 		//check if it is blank
 		if (newLink === '') {
@@ -880,12 +880,10 @@ Results.prototype.displayChain = function (chain) {
 		var link = chain.links[i];
 		if (i === 0) {
 			results.append('<h3>The first word:</h3><h1>' + link.data + '</h1>');
-		} else if (link.type === 'drawing') {
+		} else if (link.type === DRAWING) {
 			results.append('<h3>' + link.player.name + ' drew:</h3><img class="drawing" src="' + link.data + '"></img>');
-		} else if (link.type === 'word') {
+		} else if (link.type === WORD) {
 			results.append('<h3>' + link.player.name + ' thought that was:</h3><h1>' + link.data + '</h1>');
-		} else {
-			console.log('Results: We should never get here');
 		}
 	}
 
@@ -945,9 +943,9 @@ Waiting.prototype.show = function () {
 Waiting.prototype.updateWaitingList = function (res) {
 	//show/hide the admin notice
 	if (res.you.isAdmin) {
-		$('#waiting-adminmsg').removeClass('hidden');
+		$('#waiting-adminmsg').removeClass(HIDDEN);
 	} else {
-		$('#waiting-adminmsg').addClass('hidden');
+		$('#waiting-adminmsg').addClass(HIDDEN);
 	}
 	var notFinished = res.data.notFinished;
 	var disconnected = res.data.disconnected;
@@ -1034,10 +1032,10 @@ UserList.prototype.update = function (newList, disconnectedList, onPress) {
 	this.draw(newList, false, onPress);
 	if (disconnectedList) {
 		if (disconnectedList.length > 0) {
-			$('#waiting-disconnectedmsg').removeClass('hidden');
+			$('#waiting-disconnectedmsg').removeClass(HIDDEN);
 			this.draw(disconnectedList, true);
 		} else {
-			$('#waiting-disconnectedmsg').addClass('hidden');
+			$('#waiting-disconnectedmsg').addClass(HIDDEN);
 		}
 	}
 };

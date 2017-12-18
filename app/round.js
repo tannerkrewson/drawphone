@@ -3,6 +3,7 @@
 //
 
 var shuffle = require('knuth-shuffle').knuthShuffle;
+var stripTags = require('striptags');
 
 var Chain = require('./chain');
 var DrawingLink = require('./link/drawinglink');
@@ -68,7 +69,7 @@ Round.prototype.receiveLink = function (player, receivedLink, chainId) {
 	if (receivedLink.type === 'drawing') {
 		chain.addLink(new DrawingLink(player, receivedLink.data));
 	} else if (receivedLink.type === 'word') {
-		chain.addLink(new WordLink(player, receivedLink.data));
+		chain.addLink(new WordLink(player, stripTags(receivedLink.data)));
 	} else {
 		console.log('receivedLink.type is ' + receivedLink.type);
 	}

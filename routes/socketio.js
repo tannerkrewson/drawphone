@@ -1,6 +1,7 @@
 module.exports = function (app) {
 
 	var dp = app.drawphone;
+	var stripTags = require('striptags');
 
 	app.io.on('connection', function (socket) {
 
@@ -10,9 +11,10 @@ module.exports = function (app) {
 		socket.on('joinGame', onJoinGame);
 
 		socket.on('newGame', function (data) {
-			if (data.name.length > 2 && data.name.length <= 16) {
+			var theName = stripTags(data.name);
+			if (theName.length > 2 && theName.length <= 16) {
 				thisGame = dp.newGame();
-				thisUser = thisGame.addPlayer(data.name, socket);
+				thisUser = thisGame.addPlayer(theName, socket);
 				socket.emit('joinGameRes', {
 					success: true,
 					game: thisGame.getJsonGame(),
@@ -62,26 +64,27 @@ module.exports = function (app) {
 
 		function onJoinGame(data) {
 			thisGame = dp.findGame(data.code);
+			var theName = stripTags(data.name);
 			if (!thisGame) {
 				socket.emit('joinGameRes', {
 					success: false,
 					error: 'Game not found'
 				});
-			} else if (data.name.length <= 2 || data.name.length > 16) {
+			} else if (theName.length <= 2 || theName.length > 16) {
 				socket.emit('joinGameRes', {
 					success: false,
 					error: 'Name too short/long'
 				});
 			} else {
 				if (!thisGame.inProgress) {
-					thisUser = thisGame.addPlayer(data.name, socket);
+					thisUser = thisGame.addPlayer(theName, socket);
 					socket.emit('joinGameRes', {
 						success: true,
 						game: thisGame.getJsonGame(),
 						you: thisUser.getJson()
 					});
 				} else if (thisGame.currentRound.disconnectedPlayers.length > 0) {
-					thisUser = thisGame.newPlayer(data.name, socket);
+					thisUser = thisGame.newPlayer(theName, socket);
 					socket.emit('replacePlayer', {
 						gameCode: thisGame.code,
 						players: thisGame.currentRound.getPlayersThatNeedToBeReplaced()

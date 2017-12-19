@@ -408,6 +408,10 @@ Lobby.prototype.initialize = function () {
 Lobby.prototype.show = function (data) {
 	socket.on('disconnect', function () {
 		swal('Connection lost!', 'Reloading...', 'error');
+		ga('send', 'exception', {
+			'exDescription': 'Socket connection lost',
+			'exFatal': false
+		});
 		//refresh the page
 		location.reload();
 	});
@@ -428,6 +432,10 @@ Lobby.prototype.show = function (data) {
 			});
 
 		} else {
+			ga('send', 'exception', {
+				'exDescription': data.error,
+				'exFatal': false
+			});
 			swal(data.error, '', 'error');
 			return;
 		}
@@ -470,6 +478,10 @@ Lobby.prototype.update = function (res) {
 			this.viewPreviousResultsButton.addClass(HIDDEN);
 		}
 	} else {
+		ga('send', 'exception', {
+			'exDescription': res.error,
+			'exFatal': false
+		});
 		swal('Error updating lobby', res.error, 'error');
 	}
 };
@@ -776,6 +788,10 @@ function uploadToUploadsIm(blob, formData, next, err) {
 			uploadToImgur(blob, formData, next, err);
 		}
 	});
+	ga('send', 'exception', {
+		'exDescription': 'Upload to pigy failed',
+		'exFatal': false
+	});
 }
 
 function uploadToImgur(blob, formData, next, err) {
@@ -796,15 +812,31 @@ function uploadToImgur(blob, formData, next, err) {
 				ga('send', 'event', 'Drawing', 'upload', 'imgur');
 			} else {
 				err('Error Code: A' + res.status);
+				ga('send', 'exception', {
+					'exDescription': 'Upload to imgur failed: ' + res.status,
+					'exFatal': false
+				});
 			}
 		},
 		error: function (xmlReq) {
 			if (xmlReq.status === 429) {
 				err('Imgur image upload limit exceeded.');
+				ga('send', 'exception', {
+					'exDescription': 'Upload to imgur failed: upload limit exceeded',
+					'exFatal': false
+				});
 			} else {
 				err('Error Code: B' + xmlReq.status);
+				ga('send', 'exception', {
+					'exDescription': 'Upload to imgur failed: ' + xmlReq.status,
+					'exFatal': false
+				});
 			}
 		}
+	});
+	ga('send', 'exception', {
+		'exDescription': 'Upload to uploads.im failed',
+		'exFatal': false
 	});
 }
 

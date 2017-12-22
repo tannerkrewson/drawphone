@@ -83,7 +83,8 @@ block content
       input#game-word-in.form-control(type='text', placeholder='Enter your title here')
     br
     .btn-toolbar#game-buttons.hidden
-      button#game-cleardrawing.btn.btn-default.btn-lg.hidden(type='button') Clear
+      button#game-drawing-undo.btn.btn-default.btn-lg.disabled(type='button') Undo
+      button#game-drawing-redo.btn.btn-default.btn-lg.disabled(type='button') Redo
       button#game-send.btn.btn-default.btn-lg(type='button') Done
   div#result.hidden
     div#result-content

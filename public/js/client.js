@@ -870,9 +870,11 @@ Game.prototype.sendLink = function (type, data) {
 
 Game.prototype.resizeCanvas = function () {
 	var container = $('#game-drawing');
-	this.canvas.setHeight(container.width());
-	this.canvas.setWidth(container.width());
-	this.canvas.renderAll();
+	if (this.canvas) {
+		this.canvas.setHeight(container.width());
+		this.canvas.setWidth(container.width());
+		this.canvas.renderAll();
+	}
 };
 
 Game.prototype.setTimer = function () {

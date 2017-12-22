@@ -12,6 +12,17 @@ block content
   p#subtitle Telephone with pictures
   hr
   div#mainmenu
+    .alert.alert-info.alert-dismissible(role='alert')
+        button.close(type='button', data-dismiss='alert', aria-label='Close')
+            span(aria-hidden='true') ×
+        b New update!
+        |  As suggested, I have added three new features:
+        ul
+          li A game option which allows players to write what they want to be drawn as the first step
+          li The ability undo and redo parts of your drawing
+          li A Christmas-themed word pack
+        |  Thanks you so much for playing! 
+        span.glyphicon.glyphicon-heart(aria-hidden='true')
     .btn-toolbar
       button#joinbtn.btn.btn-default.btn-lg(type='button') Join Game
       button#newbtn.btn.btn-default.btn-lg(type='button') New Game

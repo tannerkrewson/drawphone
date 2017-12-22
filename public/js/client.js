@@ -334,7 +334,6 @@ function Lobby() {
 	this.wordPackDropdown = $('#lobby-settings-wordpack');
 	this.viewPreviousResultsButton = $('#lobby-prevres');
 	this.gameCode = '';
-	this.completedOptions = [];
 
 	//this is what the admin selects from the dropdowns
 	this.selectedTimeLimit = false;
@@ -353,7 +352,11 @@ Lobby.prototype.initialize = function () {
 		location.reload();
 	});
 	this.startButton.click(function () {
-		if (self.selectedTimeLimit !== false && self.wordPack !== false && self.userList.numberOfPlayers > 1) {
+		console.log({
+			timeLimit: self.selectedTimeLimit,
+			wordPackName: self.wordPack
+		});
+		if (self.checkIfReadyToStart()) {
 			socket.emit('tryStartGame', {
 				timeLimit: self.selectedTimeLimit,
 				wordPackName: self.wordPack
@@ -363,6 +366,7 @@ Lobby.prototype.initialize = function () {
 			ga('send', 'event', 'Game', 'word pack', self.wordPack);
 			ga('send', 'event', 'Game', 'number of players', self.userList.numberOfPlayers);
 		} else {
+			swal('Not ready to start', 'Make sure have selected a word pack, a drawing time limit, and that you have at least four players.', 'error');
 			ga('send', 'event', 'Lobby', 'disallowed start attempt');
 		}
 	});
@@ -389,11 +393,11 @@ Lobby.prototype.initialize = function () {
 			break;
 		}
 
-		self.checkIfReadyToStart('time-limit');
+		self.checkIfReadyToStart();
 	});
 	this.wordPackDropdown.on('change', function () {
 		self.wordPack = self.wordPackDropdown[0].value;
-		self.checkIfReadyToStart('word-pack');
+		self.checkIfReadyToStart();
 
 		ga('send', 'event', 'Lobby', 'word pack change', self.wordPack);
 	});
@@ -402,6 +406,10 @@ Lobby.prototype.initialize = function () {
 
 		ga('send', 'event', 'Lobby', 'view previous results');
 	});
+
+	this.timeLimitDropdown.prop('selectedIndex', 0);
+	this.wordPackDropdown.prop('selectedIndex', 0);
+
 	ga('send', 'event', 'Lobby', 'created');
 };
 
@@ -461,6 +469,7 @@ Lobby.prototype.update = function (res) {
 		this.title = 'Game Code: ' + Screen.getGameCodeHTML();
 		this.subtitle = 'Waiting for players...';
 		this.userList.update(res.data.players);
+		this.checkIfReadyToStart();
 
 		if (res.player.isAdmin) {
 			//show the start game button
@@ -486,28 +495,14 @@ Lobby.prototype.update = function (res) {
 	}
 };
 
-Lobby.prototype.updatePlayerList = function (list) {
-	this.userList.update(list);
-};
-
-Lobby.prototype.checkIfReadyToStart = function (optionName) {
-	//the completedOptions variable stores the name of all of the
-	//	admin options that have been completed so far
-
-	//if optionName is not already completed, add it.
-	if (this.completedOptions.indexOf(optionName) === -1) {
-		this.completedOptions.push(optionName);
-	}
-
-	//once the variable is equal to the number of options the admin must select,
-	//	undisable the start button
-	//right now there are two options, time limit and word pack
-	if (this.completedOptions.length === 2) {
-		//reset the variable for next time
-		this.completedOptions = [];
-
+Lobby.prototype.checkIfReadyToStart = function () {
+	if (this.selectedTimeLimit !== false && this.wordPack !== false && this.userList.numberOfPlayers >= 4) {
 		//un-grey-out start button
 		this.startButton.removeClass('disabled');
+		return true;
+	} else {
+		this.startButton.addClass('disabled');
+		return false;
 	}
 };
 

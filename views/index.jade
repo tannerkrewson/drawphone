@@ -12,6 +12,17 @@ block content
   p#subtitle Telephone with pictures
   hr
   div#mainmenu
+    .alert.alert-info.alert-dismissible(role='alert')
+        button.close(type='button', data-dismiss='alert', aria-label='Close')
+            span(aria-hidden='true') ×
+        b New update!
+        |  As suggested, I have added three new features:
+        ul
+          li A game option which allows players to write what they want to be drawn as the first step
+          li The ability undo and redo parts of your drawing
+          li A Christmas-themed word pack
+        |  Thanks you so much for playing! 
+        span.glyphicon.glyphicon-heart(aria-hidden='true')
     .btn-toolbar
       button#joinbtn.btn.btn-default.btn-lg(type='button') Join Game
       button#newbtn.btn.btn-default.btn-lg(type='button') New Game
@@ -51,6 +62,10 @@ block content
       br
       div#lobby-settings.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2.hidden
         h4 Game Settings:
+        .checkbox
+          label
+            input#lobby-settings-wordfirst(type='checkbox')
+            | Players write first word (not recommended for first time)
         select.form-control#lobby-settings-wordpack
           option(disabled='', selected='') Select a word pack...
           for item in wordpacks
@@ -79,7 +94,8 @@ block content
       input#game-word-in.form-control(type='text', placeholder='Enter your title here')
     br
     .btn-toolbar#game-buttons.hidden
-      button#game-cleardrawing.btn.btn-default.btn-lg.hidden(type='button') Clear
+      button#game-drawing-undo.btn.btn-default.btn-lg.disabled(type='button') Undo
+      button#game-drawing-redo.btn.btn-default.btn-lg.disabled(type='button') Redo
       button#game-send.btn.btn-default.btn-lg(type='button') Done
   div#result.hidden
     div#result-content

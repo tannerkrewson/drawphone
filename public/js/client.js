@@ -31,6 +31,7 @@ $(function () {
 const HIDDEN = 'hidden';
 const DRAWING = 'drawing';
 const WORD = 'word';
+const FIRST_WORD = 'first-word';
 
 
 //
@@ -330,6 +331,7 @@ function Lobby() {
 	this.leaveButton = $('#lobby-leave');
 	this.startButton = $('#lobby-start');
 	this.gameSettings = $('#lobby-settings');
+	this.wordFirstCheckbox = $('#lobby-settings-wordfirst');
 	this.timeLimitDropdown = $('#lobby-settings-timelimit');
 	this.wordPackDropdown = $('#lobby-settings-wordpack');
 	this.viewPreviousResultsButton = $('#lobby-prevres');
@@ -352,10 +354,6 @@ Lobby.prototype.initialize = function () {
 		location.reload();
 	});
 	this.startButton.click(function () {
-		console.log({
-			timeLimit: self.selectedTimeLimit,
-			wordPackName: self.wordPack
-		});
 		if (self.checkIfReadyToStart()) {
 			socket.emit('tryStartGame', {
 				timeLimit: self.selectedTimeLimit,
@@ -369,6 +367,16 @@ Lobby.prototype.initialize = function () {
 			swal('Not ready to start', 'Make sure have selected a word pack, a drawing time limit, and that you have at least four players.', 'error');
 			ga('send', 'event', 'Lobby', 'disallowed start attempt');
 		}
+	});
+	this.wordFirstCheckbox.on('change', function () {
+		if (self.wordFirstCheckbox.is(':checked')) {
+			self.wordPack = false;
+			self.wordPackDropdown.prop('selectedIndex', 0);
+			self.wordPackDropdown.prop('disabled', true);
+		} else {
+			self.wordPackDropdown.prop('disabled', false);
+		}
+		self.checkIfReadyToStart();
 	});
 	this.timeLimitDropdown.on('change', function () {
 
@@ -407,8 +415,10 @@ Lobby.prototype.initialize = function () {
 		ga('send', 'event', 'Lobby', 'view previous results');
 	});
 
+	this.wordFirstCheckbox.prop('checked', false);
 	this.timeLimitDropdown.prop('selectedIndex', 0);
 	this.wordPackDropdown.prop('selectedIndex', 0);
+	this.wordPackDropdown.prop('disabled', false);
 
 	ga('send', 'event', 'Lobby', 'created');
 };
@@ -448,6 +458,9 @@ Lobby.prototype.show = function (data) {
 			return;
 		}
 	} else {
+		//reset the word first wordFirstCheckbox
+		this.wordFirstCheckbox.prop('checked', false);
+
 		//reset the time limit selector
 		this.selectedTimeLimit = false;
 		this.timeLimitDropdown.prop('selectedIndex', 0);
@@ -455,6 +468,7 @@ Lobby.prototype.show = function (data) {
 		//reset the word pack selector
 		this.wordPack = false;
 		this.wordPackDropdown.prop('selectedIndex', 0);
+		this.wordPackDropdown.prop('disabled', false);
 
 		//grey-out start button
 		this.startButton.addClass('disabled');
@@ -496,7 +510,7 @@ Lobby.prototype.update = function (res) {
 };
 
 Lobby.prototype.checkIfReadyToStart = function () {
-	if (this.selectedTimeLimit !== false && this.wordPack !== false && this.userList.numberOfPlayers >= 4) {
+	if (this.selectedTimeLimit !== false && (this.wordPack !== false || this.wordFirstCheckbox.is(':checked')) && this.userList.numberOfPlayers >= 4) {
 		//un-grey-out start button
 		this.startButton.removeClass('disabled');
 		return true;
@@ -518,10 +532,7 @@ function Game(onWait) {
 	this.wordInput = $('#game-word-in');
 	this.timerDisplay = $('#game-timer');
 
-	//initialize fabric.js
-	this.canvas = new fabric.Canvas('game-drawing-canvas');
-	this.canvas.isDrawingMode = true;
-	this.isCanvasBlank = true;
+	this.canvas;
 
 	this.submitTimer;
 
@@ -534,15 +545,11 @@ Game.prototype.initialize = function () {
 
 	//bind clear canvas to clear drawing button
 	var self = this;
-	$('#game-cleardrawing').click(function () {
-		self.canvas.clear();
-		self.isCanvasBlank = true;
-	});
 
 	//if user touches the canvas, it not blank no more
 	$('#game-drawing').on('mousedown touchstart', function () {
 		//if this is their first mark
-		if (self.isCanvasBlank && self.timeLimit > 0 && !self.submitTimer) {
+		if (self.canvas.isBlank && self.timeLimit > 0 && !self.submitTimer) {
 			//start the timer
 			self.displayTimerInterval = startTimer(self.timeLimit, function (timeLeft) {
 				self.timerDisplay.text(timeLeft + ' left to finish your drawing');
@@ -550,13 +557,13 @@ Game.prototype.initialize = function () {
 			self.submitTimer = window.setTimeout(function () {
 				//when the time runs out...
 				//we don't care if it is blank
-				self.isCanvasBlank = false;
+				self.canvas.isBlank = false;
 				//submit
 				self.onDone();
 				ga('send', 'event', 'Drawing', 'timer forced submit', self.timeLimit);
 			}, self.timeLimit * 1000);
 		}
-		self.isCanvasBlank = false;
+		self.canvas.isBlank = false;
 	});
 
 	doneButton.click(function () {
@@ -580,10 +587,16 @@ Game.prototype.show = function () {
 	//allow touch events on the canvas
 	$('#game-drawing').css('pointer-events', 'auto');
 	this.done = false;
+
+
 };
 
 Game.prototype.showDrawing = function (disallowChanges) {
-	var shouldShowClearButton;
+	if (!disallowChanges) {
+		this.canvas = getDrawingCanvas();
+	}
+
+	var shouldShowUndoButtons;
 
 	showElement('#game-drawing');
 	this.show();
@@ -593,25 +606,25 @@ Game.prototype.showDrawing = function (disallowChanges) {
 
 		if (this.timeLimit <= 5) {
 			//if the time limit is less than 5 seconds
-			//	don't show the clear button
+			//	don't show the undo button
 			//because players don't really have enough time to try drawing again
 			//	when they only have 5 seconds
-			shouldShowClearButton = false;
+			shouldShowUndoButtons = false;
 		} else {
-			shouldShowClearButton = true;
+			shouldShowUndoButtons = true;
 		}
 	} else {
 		this.timerDisplay.text('No time limit to draw.');
-		shouldShowClearButton = true;
+		shouldShowUndoButtons = true;
 	}
 
 	if (disallowChanges) {
 		//lock the canvas so the user can't make any changes
 		$('#game-drawing').css('pointer-events', 'none');
-		shouldShowClearButton = false;
+		shouldShowUndoButtons = false;
 	}
 
-	this.showButtons(shouldShowClearButton);
+	this.showButtons(shouldShowUndoButtons);
 };
 
 Game.prototype.showWord = function () {
@@ -622,9 +635,13 @@ Game.prototype.showWord = function () {
 
 Game.prototype.showButtons = function (showClearButton) {
 	if (showClearButton) {
-		showElement('#game-cleardrawing');
+		showElement('#game-drawing-redo');
+		showElement('#game-drawing-undo');
+		$('#game-drawing-redo').addClass('disabled');
+		$('#game-drawing-undo').addClass('disabled');
 	} else {
-		$('#game-cleardrawing').addClass(HIDDEN);
+		$('#game-drawing-redo').addClass(HIDDEN);
+		$('#game-drawing-undo').addClass(HIDDEN);
 	}
 	showElement('#game-buttons');
 };
@@ -640,7 +657,7 @@ Game.prototype.newLink = function (res) {
 	var lastLinkType = lastLink.type;
 	var count = res.data.count;
 	var finalCount = res.data.finalCount;
-	var newLinkType = lastLinkType === DRAWING ? WORD : DRAWING;
+	var newLinkType = (lastLinkType === DRAWING) || (lastLinkType === FIRST_WORD) ? WORD : DRAWING;
 	this.timeLimit = res.data.timeLimit;
 
 	if (lastLinkType === DRAWING) {
@@ -652,10 +669,6 @@ Game.prototype.newLink = function (res) {
 		//show the word creator
 		this.showWord();
 	} else if (lastLinkType === WORD) {
-		//clear the previous drawing
-		this.canvas.clear();
-		this.isCanvasBlank = true;
-
 		Screen.prototype.setTitle.call(this, 'Please draw: ' + lastLink.data);
 
 		//show drawing creator
@@ -663,6 +676,11 @@ Game.prototype.newLink = function (res) {
 
 		//calculate size of canvas dynamically
 		this.resizeCanvas();
+	} else if (lastLinkType === FIRST_WORD) {
+		Screen.prototype.setTitle.call(this, 'What should be drawn?');
+
+		//show the word creator
+		this.showWord();
 	}
 
 	Screen.prototype.setSubtitle.call(this, this.subtitle + ' &nbsp; - &nbsp; ' + count + '/' + finalCount);
@@ -689,12 +707,14 @@ Game.prototype.checkIfDone = function (newLinkType) {
 	var newLink;
 	var self = this;
 	if (newLinkType === DRAWING) {
-		if (this.isCanvasBlank) {
-			self.showDrawing();
+		if (this.canvas.isBlank) {
+			showElement('#game-drawing');
+			showElement('#game-buttons');
 			swal('Your picture is blank!', 'Please draw a picture, then try again.', 'info');
 		} else {
 			self.uploadCanvas(function (url) {
 				//ran if upload was successful
+				self.canvas.remove();
 				newLink = url;
 				self.sendLink(newLinkType, newLink);
 			}, function (e) {
@@ -850,9 +870,11 @@ Game.prototype.sendLink = function (type, data) {
 
 Game.prototype.resizeCanvas = function () {
 	var container = $('#game-drawing');
-	this.canvas.setHeight(container.width());
-	this.canvas.setWidth(container.width());
-	this.canvas.renderAll();
+	if (this.canvas) {
+		this.canvas.setHeight(container.width());
+		this.canvas.setWidth(container.width());
+		this.canvas.renderAll();
+	}
 };
 
 Game.prototype.setTimer = function () {
@@ -914,8 +936,10 @@ Results.prototype.displayChain = function (chain) {
 
 	for (var i = 0; i < chain.links.length; i++) {
 		var link = chain.links[i];
-		if (i === 0) {
+		if (i === 0 && link.type === WORD) {
 			results.append('<h3>The first word:</h3><h1>' + link.data + '</h1>');
+		} else if (i === 1 && chain.links[0].type === FIRST_WORD) {
+			results.append('<h3>' + link.player.name + ' wanted someone to draw:</h3><h1>' + link.data + '</h1>');
 		} else if (link.type === DRAWING) {
 			results.append('<h3>' + link.player.name + ' drew:</h3><img class="drawing" src="' + link.data + '"></img>');
 		} else if (link.type === WORD) {
@@ -925,7 +949,8 @@ Results.prototype.displayChain = function (chain) {
 
 	var wentFromBox = '';
 	wentFromBox += '<br><div class="well">';
-	wentFromBox += '<h4>You started with:</h4><h2>' + chain.links[0].data + '</h2><br>';
+	var firstIndex = chain.links[0].type === FIRST_WORD ? 1 : 0;
+	wentFromBox += '<h4>You started with:</h4><h2>' + chain.links[firstIndex].data + '</h2><br>';
 	wentFromBox += '<h4>and ended up with:</h4><h2>' + chain.links[chain.links.length-1].data + '</h2>';
 	wentFromBox += '</div>';
 	results.append(wentFromBox);
@@ -1099,6 +1124,121 @@ UserList.prototype.draw = function (list, makeBoxDark, onPress) {
 	}
 };
 
+// https://github.com/abhi06991/Undo-Redo-Fabricjs
+function getDrawingCanvas() {
+	var thisCanvas = new fabric.Canvas('game-drawing-canvas');
+	thisCanvas.isDrawingMode = true;
+	thisCanvas.isBlank = true;
+
+	var state = {
+		canvasState: [],
+		currentStateIndex: -1,
+		undoStatus: false,
+		redoStatus: false,
+		undoFinishedStatus: 1,
+		redoFinishedStatus: 1,
+		undoButton: $('#game-drawing-undo'),
+		redoButton: $('#game-drawing-redo'),
+	};
+	thisCanvas.on(
+		'path:created',
+		function() {
+			updateCanvasState();
+		}
+	);
+
+	var updateCanvasState = function() {
+		state.undoButton.removeClass('disabled');
+		thisCanvas.isBlank = false;
+		if ((state.undoStatus == false && state.redoStatus == false)) {
+			var jsonData = thisCanvas.toJSON();
+			var canvasAsJson = JSON.stringify(jsonData);
+			if (state.currentStateIndex < state.canvasState.length - 1) {
+				var indexToBeInserted = state.currentStateIndex + 1;
+				state.canvasState[indexToBeInserted] = canvasAsJson;
+				var numberOfElementsToRetain = indexToBeInserted + 1;
+				state.canvasState = state.canvasState.splice(0, numberOfElementsToRetain);
+			} else {
+				state.canvasState.push(canvasAsJson);
+			}
+			state.currentStateIndex = state.canvasState.length - 1;
+			if ((state.currentStateIndex == state.canvasState.length - 1) && state.currentStateIndex != -1) {
+				state.redoButton.addClass('disabled');
+			}
+		}
+	};
+
+
+	var undo = function() {
+		if (state.undoFinishedStatus) {
+			if (state.currentStateIndex == -1) {
+				state.undoStatus = false;
+			} else {
+				if (state.canvasState.length >= 1) {
+					state.undoFinishedStatus = 0;
+					if (state.currentStateIndex != 0) {
+						state.undoStatus = true;
+						thisCanvas.loadFromJSON(state.canvasState[state.currentStateIndex - 1], function() {
+							thisCanvas.renderAll();
+							state.undoStatus = false;
+							state.currentStateIndex -= 1;
+							state.undoButton.removeClass('disabled');
+							if (state.currentStateIndex !== state.canvasState.length - 1) {
+								state.redoButton.removeClass('disabled');
+							}
+							state.undoFinishedStatus = 1;
+						});
+					} else if (state.currentStateIndex == 0) {
+						thisCanvas.clear();
+						state.undoFinishedStatus = 1;
+						state.undoButton.addClass('disabled');
+						state.redoButton.removeClass('disabled');
+						thisCanvas.isBlank = true;
+						state.currentStateIndex -= 1;
+					}
+				}
+			}
+		}
+	};
+
+	var redo = function() {
+		if (state.redoFinishedStatus) {
+			if ((state.currentStateIndex == state.canvasState.length - 1) && state.currentStateIndex != -1) {
+				state.redoButton.addClass('disabled');
+			} else {
+				if (state.canvasState.length > state.currentStateIndex && state.canvasState.length != 0) {
+					state.redoFinishedStatus = 0;
+					state.redoStatus = true;
+					thisCanvas.loadFromJSON(state.canvasState[state.currentStateIndex + 1], function() {
+						thisCanvas.isBlank = false;
+						thisCanvas.renderAll();
+						state.redoStatus = false;
+						state.currentStateIndex += 1;
+						if (state.currentStateIndex != -1) {
+							state.undoButton.removeClass('disabled');
+						}
+						state.redoFinishedStatus = 1;
+						if ((state.currentStateIndex == state.canvasState.length - 1) && state.currentStateIndex != -1) {
+							state.redoButton.addClass('disabled');
+						}
+					});
+				}
+			}
+		}
+	};
+
+	state.undoButton.on('click', undo);
+	state.redoButton.on('click', redo);
+
+	thisCanvas.remove = function () {
+		state.undoButton.off('click');
+		state.redoButton.off('click');
+		thisCanvas.dispose();
+		$('#game-drawing-canvas').empty();
+	};
+
+	return thisCanvas;
+}
 
 //
 //  Main

@@ -22,9 +22,18 @@ module.exports = function (app) {
 	});
 
 	app.get('/stats', function (req, res) {
+		var games = [];
+		for (var game of dp.games) {
+			var strippedGame = {
+				numberOfPlayers: game.players.length,
+				inProgress: game.inProgress,
+				roundsPlayed: game.currentRoundNum - 1
+			};
+			games.push(strippedGame);
+		}
 		res.json({
-			gamesInProgress: dp.games.length,
-			numberOfConnectedUsers: app.io.engine.clientsCount
+			numberOfConnectedUsers: app.io.engine.clientsCount,
+			games: games
 		});
 	});
 

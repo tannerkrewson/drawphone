@@ -21,30 +21,49 @@ function Round(number, players, timeLimit, wordPackName, onResults) {
 	this.onResults = onResults;
 	this.chains = [];
 	this.disconnectedPlayers = [];
-	//on creation, chains will already have one link
-	this.shouldHaveThisManyLinks = 2;
 	this.canViewLastRoundResults = false;
+	this.isWordFirstGame = !this.wordPackName;
+
+	if (this.isWordFirstGame) {
+		this.shouldHaveThisManyLinks = 1;
+	} else {
+		//chains will already have one link
+		this.shouldHaveThisManyLinks = 2;
+	}
 
 	this.finalNumOfLinks;
 }
 
 Round.prototype.start = function () {
+
+	this.finalNumOfLinks = this.players.length;
+
 	//each player will have to complete one link for how many players there are
 	//  the final number of links each chain should have at the end of this
 	//  round is number of players + 1, because each chain has an extra link
 	//  for the original word
-	this.finalNumOfLinks = this.players.length + 1;
+	if (!this.isWordFirstGame) {
+		this.finalNumOfLinks++;
+	}
 
 	//contrary to the above comment, i now want every chain to end in a word
 	// so that the Start to End results box always starts and ends works correctly.
 	//to do this, i take away on link if there is an even number of final links
 	if (this.finalNumOfLinks % 2 === 0) {
-		this.finalNumOfLinks = this.finalNumOfLinks - 1;
+		this.finalNumOfLinks--;
 	}
 
 	//shuffle the player list in place
 	shuffle(this.players);
 
+	if (!this.isWordFirstGame) {
+		this.sendNewChains();
+	} else {
+		this.sendWordFirstChains();
+	}
+};
+
+Round.prototype.sendNewChains = function () {
 	var currentChainId = 0;
 	var self = this;
 	this.players.forEach(function (player) {
@@ -60,7 +79,23 @@ Round.prototype.start = function () {
 		});
 
 	});
+};
 
+Round.prototype.sendWordFirstChains = function () {
+	var currentChainId = 0;
+	var self = this;
+	this.players.forEach(function (player) {
+		//give each player a chain of their own
+		var thisChain = new Chain(false, player, currentChainId++, self.timeLimit);
+		self.chains.push(thisChain);
+
+		//sends the link, then runs the function when the player sends it back
+		//  when the 'finishedLink' event is received
+		thisChain.sendLastLinkToThen(player, self.finalNumOfLinks, function (data) {
+			self.receiveLink(player, data.link, thisChain.id);
+		});
+
+	});
 };
 
 Round.prototype.receiveLink = function (player, receivedLink, chainId) {
@@ -217,7 +252,6 @@ Round.prototype.getListOfNotFinishedPlayers = function () {
 	for (var i = 0; i < this.chains.length; i++) {
 		var thisChain = this.chains[i];
 		var isLastPlayerSentToConnected = this.getPlayer(thisChain.lastPlayerSentTo.id).isConnected;
-
 		if (thisChain.getLength() !== this.shouldHaveThisManyLinks && isLastPlayerSentToConnected) {
 			playerList.push(thisChain.lastPlayerSentTo);
 		}

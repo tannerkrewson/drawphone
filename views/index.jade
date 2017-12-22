@@ -51,6 +51,10 @@ block content
       br
       div#lobby-settings.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2.hidden
         h4 Game Settings:
+        .checkbox
+          label
+            input#lobby-settings-wordfirst(type='checkbox')
+            | Players write first word (not recommended for first time)
         select.form-control#lobby-settings-wordpack
           option(disabled='', selected='') Select a word pack...
           for item in wordpacks

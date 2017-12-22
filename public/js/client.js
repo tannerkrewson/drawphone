@@ -533,7 +533,7 @@ function Game(onWait) {
 	this.timerDisplay = $('#game-timer');
 
 	//initialize fabric.js
-	this.canvas = new fabric.Canvas('game-drawing-canvas');
+	this.canvas = getDrawingCanvas();
 	this.canvas.isDrawingMode = true;
 	this.isCanvasBlank = true;
 
@@ -594,6 +594,8 @@ Game.prototype.show = function () {
 	//allow touch events on the canvas
 	$('#game-drawing').css('pointer-events', 'auto');
 	this.done = false;
+
+
 };
 
 Game.prototype.showDrawing = function (disallowChanges) {
@@ -1121,6 +1123,108 @@ UserList.prototype.draw = function (list, makeBoxDark, onPress) {
 	}
 };
 
+// https://github.com/abhi06991/Undo-Redo-Fabricjs
+function getDrawingCanvas() {
+	var thisCanvas = new fabric.Canvas('game-drawing-canvas');
+
+	var state = {
+		canvasState: [],
+		currentStateIndex: -1,
+		undoStatus: false,
+		redoStatus: false,
+		undoFinishedStatus: 1,
+		redoFinishedStatus: 1,
+		undoButton: document.getElementById('game-drawing-undo'),
+		redoButton: document.getElementById('game-drawing-redo'),
+	};
+	thisCanvas.on(
+		'path:created',
+		function() {
+			updateCanvasState();
+		}
+	);
+
+	var updateCanvasState = function() {
+		if ((state.undoStatus == false && state.redoStatus == false)) {
+			var jsonData = thisCanvas.toJSON();
+			var canvasAsJson = JSON.stringify(jsonData);
+			if (state.currentStateIndex < state.canvasState.length - 1) {
+				var indexToBeInserted = state.currentStateIndex + 1;
+				state.canvasState[indexToBeInserted] = canvasAsJson;
+				var numberOfElementsToRetain = indexToBeInserted + 1;
+				state.canvasState = state.canvasState.splice(0, numberOfElementsToRetain);
+			} else {
+				state.canvasState.push(canvasAsJson);
+			}
+			state.currentStateIndex = state.canvasState.length - 1;
+			if ((state.currentStateIndex == state.canvasState.length - 1) && state.currentStateIndex != -1) {
+				state.redoButton.disabled = 'disabled';
+			}
+		}
+	};
+
+
+	var undo = function() {
+		if (state.undoFinishedStatus) {
+			if (state.currentStateIndex == -1) {
+				state.undoStatus = false;
+			} else {
+				if (state.canvasState.length >= 1) {
+					state.undoFinishedStatus = 0;
+					if (state.currentStateIndex != 0) {
+						state.undoStatus = true;
+						thisCanvas.loadFromJSON(state.canvasState[state.currentStateIndex - 1], function() {
+							thisCanvas.renderAll();
+							state.undoStatus = false;
+							state.currentStateIndex -= 1;
+							state.undoButton.removeAttribute('disabled');
+							if (state.currentStateIndex !== state.canvasState.length - 1) {
+								state.redoButton.removeAttribute('disabled');
+							}
+							state.undoFinishedStatus = 1;
+						});
+					} else if (state.currentStateIndex == 0) {
+						thisCanvas.clear();
+						state.undoFinishedStatus = 1;
+						state.undoButton.disabled = 'disabled';
+						state.redoButton.removeAttribute('disabled');
+						state.currentStateIndex -= 1;
+					}
+				}
+			}
+		}
+	};
+
+	var redo = function() {
+		if (state.redoFinishedStatus) {
+			if ((state.currentStateIndex == state.canvasState.length - 1) && state.currentStateIndex != -1) {
+				state.redoButton.disabled = 'disabled';
+			} else {
+				if (state.canvasState.length > state.currentStateIndex && state.canvasState.length != 0) {
+					state.redoFinishedStatus = 0;
+					state.redoStatus = true;
+					thisCanvas.loadFromJSON(state.canvasState[state.currentStateIndex + 1], function() {
+						thisCanvas.renderAll();
+						state.redoStatus = false;
+						state.currentStateIndex += 1;
+						if (state.currentStateIndex != -1) {
+							state.undoButton.removeAttribute('disabled');
+						}
+						state.redoFinishedStatus = 1;
+						if ((state.currentStateIndex == state.canvasState.length - 1) && state.currentStateIndex != -1) {
+							state.redoButton.disabled = 'disabled';
+						}
+					});
+				}
+			}
+		}
+	};
+
+	state.undoButton.addEventListener('click', undo);
+	state.redoButton.addEventListener('click', redo);
+
+	return thisCanvas;
+}
 
 //
 //  Main

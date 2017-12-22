@@ -533,7 +533,6 @@ function Game(onWait) {
 	this.timerDisplay = $('#game-timer');
 
 	this.canvas;
-	this.isCanvasBlank = true;
 
 	this.submitTimer;
 
@@ -550,7 +549,7 @@ Game.prototype.initialize = function () {
 	//if user touches the canvas, it not blank no more
 	$('#game-drawing').on('mousedown touchstart', function () {
 		//if this is their first mark
-		if (self.isCanvasBlank && self.timeLimit > 0 && !self.submitTimer) {
+		if (self.canvas.isBlank && self.timeLimit > 0 && !self.submitTimer) {
 			//start the timer
 			self.displayTimerInterval = startTimer(self.timeLimit, function (timeLeft) {
 				self.timerDisplay.text(timeLeft + ' left to finish your drawing');
@@ -558,13 +557,13 @@ Game.prototype.initialize = function () {
 			self.submitTimer = window.setTimeout(function () {
 				//when the time runs out...
 				//we don't care if it is blank
-				self.isCanvasBlank = false;
+				self.canvas.isBlank = false;
 				//submit
 				self.onDone();
 				ga('send', 'event', 'Drawing', 'timer forced submit', self.timeLimit);
 			}, self.timeLimit * 1000);
 		}
-		self.isCanvasBlank = false;
+		self.canvas.isBlank = false;
 	});
 
 	doneButton.click(function () {
@@ -593,7 +592,9 @@ Game.prototype.show = function () {
 };
 
 Game.prototype.showDrawing = function (disallowChanges) {
-	this.canvas = getDrawingCanvas();
+	if (!disallowChanges) {
+		this.canvas = getDrawingCanvas();
+	}
 
 	var shouldShowUndoButtons;
 
@@ -668,8 +669,6 @@ Game.prototype.newLink = function (res) {
 		//show the word creator
 		this.showWord();
 	} else if (lastLinkType === WORD) {
-		this.isCanvasBlank = true;
-
 		Screen.prototype.setTitle.call(this, 'Please draw: ' + lastLink.data);
 
 		//show drawing creator
@@ -708,8 +707,9 @@ Game.prototype.checkIfDone = function (newLinkType) {
 	var newLink;
 	var self = this;
 	if (newLinkType === DRAWING) {
-		if (this.isCanvasBlank) {
-			self.showDrawing();
+		if (this.canvas.isBlank) {
+			showElement('#game-drawing');
+			showElement('#game-buttons');
 			swal('Your picture is blank!', 'Please draw a picture, then try again.', 'info');
 		} else {
 			self.uploadCanvas(function (url) {
@@ -1126,6 +1126,7 @@ UserList.prototype.draw = function (list, makeBoxDark, onPress) {
 function getDrawingCanvas() {
 	var thisCanvas = new fabric.Canvas('game-drawing-canvas');
 	thisCanvas.isDrawingMode = true;
+	thisCanvas.isBlank = true;
 
 	var state = {
 		canvasState: [],
@@ -1146,6 +1147,7 @@ function getDrawingCanvas() {
 
 	var updateCanvasState = function() {
 		state.undoButton.removeClass('disabled');
+		thisCanvas.isBlank = false;
 		if ((state.undoStatus == false && state.redoStatus == false)) {
 			var jsonData = thisCanvas.toJSON();
 			var canvasAsJson = JSON.stringify(jsonData);
@@ -1189,6 +1191,7 @@ function getDrawingCanvas() {
 						state.undoFinishedStatus = 1;
 						state.undoButton.addClass('disabled');
 						state.redoButton.removeClass('disabled');
+						thisCanvas.isBlank = true;
 						state.currentStateIndex -= 1;
 					}
 				}
@@ -1205,6 +1208,7 @@ function getDrawingCanvas() {
 					state.redoFinishedStatus = 0;
 					state.redoStatus = true;
 					thisCanvas.loadFromJSON(state.canvasState[state.currentStateIndex + 1], function() {
+						thisCanvas.isBlank = false;
 						thisCanvas.renderAll();
 						state.redoStatus = false;
 						state.currentStateIndex += 1;

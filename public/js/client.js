@@ -687,6 +687,7 @@ Game.prototype.newLink = function (res) {
 		//calculate size of canvas dynamically
 		this.resizeCanvas();
 	} else if (lastLinkType === FIRST_WORD) {
+		$('#game-word-drawingtoname').removeAttr('src');
 		Screen.prototype.setTitle.call(this, 'What should be drawn?');
 
 		//show the word creator

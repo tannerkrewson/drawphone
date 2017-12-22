@@ -205,6 +205,8 @@ Screen.prototype.setDefaultTitles = function () {
 	this.setSubtitle(this.defaultSubtitle);
 };
 
+Screen.waitingForResponse = false;
+
 Screen.gameCode = '';
 
 Screen.getGameCodeHTML = function () {
@@ -271,13 +273,17 @@ JoinMenu.prototype.initialize = function () {
 
 	this.backButton.click(this.onBack);
 	this.goButton.click(function () {
-		var code = $('#joinincode').val();
-		var name = $('#joininname').val();
+		if (!Screen.waitingForResponse) {
+			console.log('join');
+			Screen.waitingForResponse = true;
+			var code = $('#joinincode').val();
+			var name = $('#joininname').val();
 
-		socket.emit('joinGame', {
-			code: code,
-			name: name
-		});
+			socket.emit('joinGame', {
+				code: code,
+				name: name
+			});
+		}
 	});
 
 	var self = this;
@@ -313,11 +319,13 @@ NewMenu.prototype.initialize = function () {
 
 	this.backButton.click(this.onBack);
 	this.goButton.click(function () {
-		var name = $('#newinname').val();
-
-		socket.emit('newGame', {
-			name: name
-		});
+		if (!Screen.waitingForResponse) {
+			Screen.waitingForResponse = true;
+			var name = $('#newinname').val();
+			socket.emit('newGame', {
+				name: name
+			});
+		}
 	});
 };
 
@@ -354,7 +362,8 @@ Lobby.prototype.initialize = function () {
 		location.reload();
 	});
 	this.startButton.click(function () {
-		if (self.checkIfReadyToStart()) {
+		if (!Screen.waitingForResponse && self.checkIfReadyToStart()) {
+			Screen.waitingForResponse = true;
 			socket.emit('tryStartGame', {
 				timeLimit: self.selectedTimeLimit,
 				wordPackName: self.wordPack
@@ -473,6 +482,7 @@ Lobby.prototype.show = function (data) {
 		//grey-out start button
 		this.startButton.addClass('disabled');
 	}
+	Screen.waitingForResponse = false;
 
 	Screen.prototype.show.call(this);
 };
@@ -690,6 +700,7 @@ Game.prototype.newLink = function (res) {
 	this.onDone = function () {
 		this.checkIfDone(newLinkType);
 	};
+	Screen.waitingForResponse = false;
 };
 
 Game.prototype.checkIfDone = function (newLinkType) {

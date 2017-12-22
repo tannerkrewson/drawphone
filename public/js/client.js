@@ -532,9 +532,7 @@ function Game(onWait) {
 	this.wordInput = $('#game-word-in');
 	this.timerDisplay = $('#game-timer');
 
-	//initialize fabric.js
-	this.canvas = getDrawingCanvas();
-	this.canvas.isDrawingMode = true;
+	this.canvas;
 	this.isCanvasBlank = true;
 
 	this.submitTimer;
@@ -548,10 +546,6 @@ Game.prototype.initialize = function () {
 
 	//bind clear canvas to clear drawing button
 	var self = this;
-	$('#game-cleardrawing').click(function () {
-		self.canvas.clear();
-		self.isCanvasBlank = true;
-	});
 
 	//if user touches the canvas, it not blank no more
 	$('#game-drawing').on('mousedown touchstart', function () {
@@ -599,7 +593,9 @@ Game.prototype.show = function () {
 };
 
 Game.prototype.showDrawing = function (disallowChanges) {
-	var shouldShowClearButton;
+	this.canvas = getDrawingCanvas();
+
+	var shouldShowUndoButtons;
 
 	showElement('#game-drawing');
 	this.show();
@@ -609,25 +605,25 @@ Game.prototype.showDrawing = function (disallowChanges) {
 
 		if (this.timeLimit <= 5) {
 			//if the time limit is less than 5 seconds
-			//	don't show the clear button
+			//	don't show the undo button
 			//because players don't really have enough time to try drawing again
 			//	when they only have 5 seconds
-			shouldShowClearButton = false;
+			shouldShowUndoButtons = false;
 		} else {
-			shouldShowClearButton = true;
+			shouldShowUndoButtons = true;
 		}
 	} else {
 		this.timerDisplay.text('No time limit to draw.');
-		shouldShowClearButton = true;
+		shouldShowUndoButtons = true;
 	}
 
 	if (disallowChanges) {
 		//lock the canvas so the user can't make any changes
 		$('#game-drawing').css('pointer-events', 'none');
-		shouldShowClearButton = false;
+		shouldShowUndoButtons = false;
 	}
 
-	this.showButtons(shouldShowClearButton);
+	this.showButtons(shouldShowUndoButtons);
 };
 
 Game.prototype.showWord = function () {
@@ -638,9 +634,13 @@ Game.prototype.showWord = function () {
 
 Game.prototype.showButtons = function (showClearButton) {
 	if (showClearButton) {
-		showElement('#game-cleardrawing');
+		showElement('#game-drawing-redo');
+		showElement('#game-drawing-undo');
+		$('#game-drawing-redo').addClass('disabled');
+		$('#game-drawing-undo').addClass('disabled');
 	} else {
-		$('#game-cleardrawing').addClass(HIDDEN);
+		$('#game-drawing-redo').addClass(HIDDEN);
+		$('#game-drawing-undo').addClass(HIDDEN);
 	}
 	showElement('#game-buttons');
 };
@@ -668,8 +668,6 @@ Game.prototype.newLink = function (res) {
 		//show the word creator
 		this.showWord();
 	} else if (lastLinkType === WORD) {
-		//clear the previous drawing
-		this.canvas.clear();
 		this.isCanvasBlank = true;
 
 		Screen.prototype.setTitle.call(this, 'Please draw: ' + lastLink.data);
@@ -716,6 +714,7 @@ Game.prototype.checkIfDone = function (newLinkType) {
 		} else {
 			self.uploadCanvas(function (url) {
 				//ran if upload was successful
+				self.canvas.remove();
 				newLink = url;
 				self.sendLink(newLinkType, newLink);
 			}, function (e) {
@@ -1126,6 +1125,7 @@ UserList.prototype.draw = function (list, makeBoxDark, onPress) {
 // https://github.com/abhi06991/Undo-Redo-Fabricjs
 function getDrawingCanvas() {
 	var thisCanvas = new fabric.Canvas('game-drawing-canvas');
+	thisCanvas.isDrawingMode = true;
 
 	var state = {
 		canvasState: [],
@@ -1134,8 +1134,8 @@ function getDrawingCanvas() {
 		redoStatus: false,
 		undoFinishedStatus: 1,
 		redoFinishedStatus: 1,
-		undoButton: document.getElementById('game-drawing-undo'),
-		redoButton: document.getElementById('game-drawing-redo'),
+		undoButton: $('#game-drawing-undo'),
+		redoButton: $('#game-drawing-redo'),
 	};
 	thisCanvas.on(
 		'path:created',
@@ -1145,6 +1145,7 @@ function getDrawingCanvas() {
 	);
 
 	var updateCanvasState = function() {
+		state.undoButton.removeClass('disabled');
 		if ((state.undoStatus == false && state.redoStatus == false)) {
 			var jsonData = thisCanvas.toJSON();
 			var canvasAsJson = JSON.stringify(jsonData);
@@ -1158,7 +1159,7 @@ function getDrawingCanvas() {
 			}
 			state.currentStateIndex = state.canvasState.length - 1;
 			if ((state.currentStateIndex == state.canvasState.length - 1) && state.currentStateIndex != -1) {
-				state.redoButton.disabled = 'disabled';
+				state.redoButton.addClass('disabled');
 			}
 		}
 	};
@@ -1177,17 +1178,17 @@ function getDrawingCanvas() {
 							thisCanvas.renderAll();
 							state.undoStatus = false;
 							state.currentStateIndex -= 1;
-							state.undoButton.removeAttribute('disabled');
+							state.undoButton.removeClass('disabled');
 							if (state.currentStateIndex !== state.canvasState.length - 1) {
-								state.redoButton.removeAttribute('disabled');
+								state.redoButton.removeClass('disabled');
 							}
 							state.undoFinishedStatus = 1;
 						});
 					} else if (state.currentStateIndex == 0) {
 						thisCanvas.clear();
 						state.undoFinishedStatus = 1;
-						state.undoButton.disabled = 'disabled';
-						state.redoButton.removeAttribute('disabled');
+						state.undoButton.addClass('disabled');
+						state.redoButton.removeClass('disabled');
 						state.currentStateIndex -= 1;
 					}
 				}
@@ -1198,7 +1199,7 @@ function getDrawingCanvas() {
 	var redo = function() {
 		if (state.redoFinishedStatus) {
 			if ((state.currentStateIndex == state.canvasState.length - 1) && state.currentStateIndex != -1) {
-				state.redoButton.disabled = 'disabled';
+				state.redoButton.addClass('disabled');
 			} else {
 				if (state.canvasState.length > state.currentStateIndex && state.canvasState.length != 0) {
 					state.redoFinishedStatus = 0;
@@ -1208,11 +1209,11 @@ function getDrawingCanvas() {
 						state.redoStatus = false;
 						state.currentStateIndex += 1;
 						if (state.currentStateIndex != -1) {
-							state.undoButton.removeAttribute('disabled');
+							state.undoButton.removeClass('disabled');
 						}
 						state.redoFinishedStatus = 1;
 						if ((state.currentStateIndex == state.canvasState.length - 1) && state.currentStateIndex != -1) {
-							state.redoButton.disabled = 'disabled';
+							state.redoButton.addClass('disabled');
 						}
 					});
 				}
@@ -1220,8 +1221,15 @@ function getDrawingCanvas() {
 		}
 	};
 
-	state.undoButton.addEventListener('click', undo);
-	state.redoButton.addEventListener('click', redo);
+	state.undoButton.on('click', undo);
+	state.redoButton.on('click', redo);
+
+	thisCanvas.remove = function () {
+		state.undoButton.off('click');
+		state.redoButton.off('click');
+		thisCanvas.dispose();
+		$('#game-drawing-canvas').empty();
+	};
 
 	return thisCanvas;
 }

@@ -31,6 +31,7 @@ $(function () {
 const HIDDEN = 'hidden';
 const DRAWING = 'drawing';
 const WORD = 'word';
+const FIRST_WORD = 'first-word';
 
 
 //
@@ -330,6 +331,7 @@ function Lobby() {
 	this.leaveButton = $('#lobby-leave');
 	this.startButton = $('#lobby-start');
 	this.gameSettings = $('#lobby-settings');
+	this.wordFirstCheckbox = $('#lobby-settings-wordfirst');
 	this.timeLimitDropdown = $('#lobby-settings-timelimit');
 	this.wordPackDropdown = $('#lobby-settings-wordpack');
 	this.viewPreviousResultsButton = $('#lobby-prevres');
@@ -352,10 +354,6 @@ Lobby.prototype.initialize = function () {
 		location.reload();
 	});
 	this.startButton.click(function () {
-		console.log({
-			timeLimit: self.selectedTimeLimit,
-			wordPackName: self.wordPack
-		});
 		if (self.checkIfReadyToStart()) {
 			socket.emit('tryStartGame', {
 				timeLimit: self.selectedTimeLimit,
@@ -369,6 +367,16 @@ Lobby.prototype.initialize = function () {
 			swal('Not ready to start', 'Make sure have selected a word pack, a drawing time limit, and that you have at least four players.', 'error');
 			ga('send', 'event', 'Lobby', 'disallowed start attempt');
 		}
+	});
+	this.wordFirstCheckbox.on('change', function () {
+		if (self.wordFirstCheckbox.is(':checked')) {
+			self.wordPack = false;
+			self.wordPackDropdown.prop('selectedIndex', 0);
+			self.wordPackDropdown.prop('disabled', true);
+		} else {
+			self.wordPackDropdown.prop('disabled', false);
+		}
+		self.checkIfReadyToStart();
 	});
 	this.timeLimitDropdown.on('change', function () {
 
@@ -407,8 +415,10 @@ Lobby.prototype.initialize = function () {
 		ga('send', 'event', 'Lobby', 'view previous results');
 	});
 
+	this.wordFirstCheckbox.prop('checked', false);
 	this.timeLimitDropdown.prop('selectedIndex', 0);
 	this.wordPackDropdown.prop('selectedIndex', 0);
+	this.wordPackDropdown.prop('disabled', false);
 
 	ga('send', 'event', 'Lobby', 'created');
 };
@@ -448,6 +458,9 @@ Lobby.prototype.show = function (data) {
 			return;
 		}
 	} else {
+		//reset the word first wordFirstCheckbox
+		this.wordFirstCheckbox.prop('checked', false);
+
 		//reset the time limit selector
 		this.selectedTimeLimit = false;
 		this.timeLimitDropdown.prop('selectedIndex', 0);
@@ -455,6 +468,7 @@ Lobby.prototype.show = function (data) {
 		//reset the word pack selector
 		this.wordPack = false;
 		this.wordPackDropdown.prop('selectedIndex', 0);
+		this.wordPackDropdown.prop('disabled', false);
 
 		//grey-out start button
 		this.startButton.addClass('disabled');
@@ -496,7 +510,7 @@ Lobby.prototype.update = function (res) {
 };
 
 Lobby.prototype.checkIfReadyToStart = function () {
-	if (this.selectedTimeLimit !== false && this.wordPack !== false && this.userList.numberOfPlayers >= 4) {
+	if (this.selectedTimeLimit !== false && (this.wordPack !== false || this.wordFirstCheckbox.is(':checked')) && this.userList.numberOfPlayers >= 4) {
 		//un-grey-out start button
 		this.startButton.removeClass('disabled');
 		return true;
@@ -640,7 +654,7 @@ Game.prototype.newLink = function (res) {
 	var lastLinkType = lastLink.type;
 	var count = res.data.count;
 	var finalCount = res.data.finalCount;
-	var newLinkType = lastLinkType === DRAWING ? WORD : DRAWING;
+	var newLinkType = (lastLinkType === DRAWING) || (lastLinkType === FIRST_WORD) ? WORD : DRAWING;
 	this.timeLimit = res.data.timeLimit;
 
 	if (lastLinkType === DRAWING) {
@@ -663,6 +677,11 @@ Game.prototype.newLink = function (res) {
 
 		//calculate size of canvas dynamically
 		this.resizeCanvas();
+	} else if (lastLinkType === FIRST_WORD) {
+		Screen.prototype.setTitle.call(this, 'What should be drawn?');
+
+		//show the word creator
+		this.showWord();
 	}
 
 	Screen.prototype.setSubtitle.call(this, this.subtitle + ' &nbsp; - &nbsp; ' + count + '/' + finalCount);
@@ -914,8 +933,10 @@ Results.prototype.displayChain = function (chain) {
 
 	for (var i = 0; i < chain.links.length; i++) {
 		var link = chain.links[i];
-		if (i === 0) {
+		if (i === 0 && link.type === WORD) {
 			results.append('<h3>The first word:</h3><h1>' + link.data + '</h1>');
+		} else if (i === 1 && chain.links[0].type === FIRST_WORD) {
+			results.append('<h3>' + link.player.name + ' wanted someone to draw:</h3><h1>' + link.data + '</h1>');
 		} else if (link.type === DRAWING) {
 			results.append('<h3>' + link.player.name + ' drew:</h3><img class="drawing" src="' + link.data + '"></img>');
 		} else if (link.type === WORD) {
@@ -925,7 +946,8 @@ Results.prototype.displayChain = function (chain) {
 
 	var wentFromBox = '';
 	wentFromBox += '<br><div class="well">';
-	wentFromBox += '<h4>You started with:</h4><h2>' + chain.links[0].data + '</h2><br>';
+	var firstIndex = chain.links[0].type === FIRST_WORD ? 1 : 0;
+	wentFromBox += '<h4>You started with:</h4><h2>' + chain.links[firstIndex].data + '</h2><br>';
 	wentFromBox += '<h4>and ended up with:</h4><h2>' + chain.links[chain.links.length-1].data + '</h2>';
 	wentFromBox += '</div>';
 	results.append(wentFromBox);

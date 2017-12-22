@@ -3,6 +3,7 @@
 //
 
 var WordLink = require('./link/wordlink');
+var FirstWordLink = require('./link/firstwordlink');
 
 // A chain is the 'chain' of drawings and words.
 // A link is the individual drawing or word in the chain.
@@ -14,7 +15,11 @@ function Chain(firstWord, owner, id, timeLimit) {
 
 	this.lastPlayerSentTo = owner.getJson();
 
-	this.addLink(new WordLink(this.owner, firstWord));
+	if (!firstWord) {
+		this.addLink(new FirstWordLink(this.owner));
+	} else {
+		this.addLink(new WordLink(this.owner, firstWord));
+	}
 }
 
 Chain.prototype.addLink = function (link) {
@@ -26,6 +31,9 @@ Chain.prototype.getLastLink = function () {
 };
 
 Chain.prototype.getLength = function () {
+	if (this.links[0] && this.links[0].type === 'first-word') {
+		return this.links.length - 1;
+	}
 	return this.links.length;
 };
 
@@ -40,13 +48,19 @@ Chain.prototype.playerHasLink = function (player) {
 };
 
 Chain.prototype.sendLastLinkToThen = function (player, finalCount, next) {
+	var count = this.getLength();
+	if (this.links[0] && this.links[0].type === 'first-word') {
+		count++;
+	} else {
+		finalCount--;
+	}
 	//sends the link, then runs the second function
 	//  when the 'finishedLink' event is received
 	player.sendThen('nextLink', {
 		link: this.getLastLink(),
 		chainId: this.id,
-		count: this.getLength(),
-		finalCount: finalCount - 1,
+		count: count,
+		finalCount: finalCount,
 		timeLimit: this.timeLimit
 	}, 'finishedLink', next);
 };

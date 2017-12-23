@@ -464,6 +464,7 @@ Lobby.prototype.show = function (data) {
 				'exFatal': false
 			});
 			swal(data.error, '', 'error');
+			Screen.waitingForResponse = false;
 			return;
 		}
 	} else {

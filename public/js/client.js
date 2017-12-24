@@ -1257,7 +1257,19 @@ function getDrawingCanvas() {
 //  Main
 //
 
-var socket = io();
+var socket = io({
+	transports: ['websocket']
+});
+
+// on reconnection, reset the transports option, as the Websocket
+// connection may have failed (caused by proxy, firewall, browser, ...)
+socket.on('reconnect_attempt', function () {
+	socket.io.opts.transports = ['polling', 'websocket'];
+	ga('send', 'exception', {
+		'exDescription': 'Revert back to polling',
+		'exFatal': false
+	});
+});
 
 //try to join the dev game
 var relativeUrl = window.location.pathname + window.location.search;

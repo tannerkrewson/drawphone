@@ -11,3 +11,13 @@
 
 # About
 Drawphone was inspired by [Spyfall](https://github.com/evanbrumley/spyfall) and [Telestrations](http://telestrations.com/).
+
+# Development
+#### Instructions
+1. Clone the repo to get started
+2. Run `npm install` and `npm start` to launch the server
+3. Go to `localhost:3000` in your browser
+
+#### Tips
+* To change the default port, set the `PORT` environment variable
+* If you set the `NODE_ENV` environment variable to `development`, you can use the link `localhost:3000/dev` to automatically join game `ffff`. This is helpful for speeding up debugging.

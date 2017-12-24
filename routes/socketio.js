@@ -35,6 +35,8 @@ module.exports = function (app) {
 		});
 
 		socket.on('tryReplacePlayer', function (data) {
+			if (!thisGame || !thisGame.currentRound) return;
+
 			var thisRound = thisGame.currentRound;
 			var toReplaceId = data.playerToReplace.id;
 			if (thisUser && thisRound.canBeReplaced(toReplaceId)) {

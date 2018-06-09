@@ -19,15 +19,9 @@ input[type="text"] {
 
 .container {
   position: relative;
-  width: 80%;
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 0;
-}
-
-.main-content {
-  margin: 15% auto 0 auto;
   max-width: 500px;
+  margin: 0 auto;
+  padding: 28px;
 }
 
 .btn-toolbar{

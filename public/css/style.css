@@ -69,3 +69,8 @@ input[type="text"] {
 .alert {
     text-align: left;
 }
+
+.ad-panel {
+  display: inline-block;
+  margin-top: 1em;
+}

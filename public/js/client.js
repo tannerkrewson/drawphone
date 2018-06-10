@@ -673,6 +673,8 @@ Game.prototype.newLink = function (res) {
 
 	if (lastLinkType === DRAWING) {
 		//show the previous drawing
+		console.log(lastLink.data);
+		
 		$('#game-word-drawingtoname').attr('src', lastLink.data);
 
 		Screen.prototype.setTitle.call(this, 'What is this a drawing of?');
@@ -718,31 +720,23 @@ Game.prototype.checkIfDone = function (newLinkType) {
 	this.hideBoth();
 
 	var newLink;
-	var self = this;
 	if (newLinkType === DRAWING) {
 		if (this.canvas.isBlank) {
 			showElement('#game-drawing');
 			showElement('#game-buttons');
 			swal('Your picture is blank!', 'Please draw a picture, then try again.', 'info');
 		} else {
-			self.uploadCanvas(function (url) {
-				//ran if upload was successful
-				self.canvas.remove();
-				newLink = url;
-				self.sendLink(newLinkType, newLink);
-			}, function (e) {
-				//ran if upload was unsuccessful
-				//reshow the canvas and allow the user to try again
-				self.showDrawing(true);
-				swal('Upload failed, try again.', e, 'error');
-				Screen.prototype.setTitle.call(self, 'Upload failed, try again.');
-			});
+			// convert canvas to an SVG string, encode it in base64, and send it as a dataurl
+			newLink = 'data:image/svg+xml;base64,' + btoa(this.canvas.toSVG());
+
+			this.canvas.remove();
+			this.sendLink(newLinkType, newLink);
 		}
 	} else if (newLinkType === WORD) {
 		newLink = $('#game-word-in').val().trim();
 		//check if it is blank
 		if (newLink === '') {
-			self.showWord();
+			this.showWord();
 			swal('Your guess is blank!', 'Please enter a guess, then try again.', 'info');
 		} else {
 			//clear the input

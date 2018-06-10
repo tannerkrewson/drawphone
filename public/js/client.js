@@ -64,6 +64,28 @@ function startTimer(duration, onTick) {
 	return setInterval(tick, 1000);
 }
 
+// https://www.w3schools.com/js/js_cookies.asp
+function setCookie(cname, cvalue, exdays) {
+    var d = new Date();
+    d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+    var expires = "expires="+d.toUTCString();
+    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+}
+
+function getCookie(cname) {
+    var name = cname + "=";
+    var ca = document.cookie.split(';');
+    for(var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}
 
 //
 //  Objects
@@ -76,9 +98,12 @@ function Drawphone() {
 	this.mainMenu = new MainMenu(function () {
 		//ran when Join Game button is pressed
 		self.joinMenu.show();
+		$('#joininname').val(getCookie("name"));
+		$('#joinincode').val(getCookie("code"));
 	}, function () {
 		//ran when New Game button is pressed
 		self.newMenu.show();
+		$('#newinname').val(getCookie("name"));
 	});
 
 	this.joinMenu = new JoinMenu(function () {
@@ -259,6 +284,10 @@ JoinMenu.prototype.initialize = function () {
 			var code = $('#joinincode').val();
 			var name = $('#joininname').val();
 
+			setCookie("code", code, 365);
+			setCookie("name", name, 365);
+			$('#newinname').val(name);
+
 			socket.emit('joinGame', {
 				code: code,
 				name: name
@@ -302,6 +331,10 @@ NewMenu.prototype.initialize = function () {
 		if (!Screen.waitingForResponse) {
 			Screen.waitingForResponse = true;
 			var name = $('#newinname').val();
+
+			setCookie("name", name, 365);
+			$('#joininname').val(name);
+
 			socket.emit('newGame', {
 				name: name
 			});

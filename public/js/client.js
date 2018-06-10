@@ -41,13 +41,6 @@ function showElement(jq) {
 	$(jq).removeClass(HIDDEN);
 }
 
-function getDataUrlAsync(canvas, next) {
-	setTimeout(function () {
-		var dataUrl = canvas.toDataURL();
-		next(dataUrl);
-	}, 10);
-}
-
 // http://stackoverflow.com/questions/20618355/the-simplest-possible-javascript-countdown-timer
 function startTimer(duration, onTick) {
 	var timer = duration,

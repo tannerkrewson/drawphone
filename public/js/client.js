@@ -274,7 +274,6 @@ JoinMenu.prototype.initialize = function () {
 	this.backButton.click(this.onBack);
 	this.goButton.click(function () {
 		if (!Screen.waitingForResponse) {
-			console.log('join');
 			Screen.waitingForResponse = true;
 			var code = $('#joinincode').val();
 			var name = $('#joininname').val();
@@ -673,8 +672,6 @@ Game.prototype.newLink = function (res) {
 
 	if (lastLinkType === DRAWING) {
 		//show the previous drawing
-		console.log(lastLink.data);
-		
 		$('#game-word-drawingtoname').attr('src', lastLink.data);
 
 		Screen.prototype.setTitle.call(this, 'What is this a drawing of?');

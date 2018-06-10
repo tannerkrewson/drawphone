@@ -12,17 +12,21 @@ block content
   p#subtitle Telephone with pictures
   hr
   div#mainmenu
+    .alert.alert-success.alert-dismissible(role='alert')
+      button.close(type='button', data-dismiss='alert', aria-label='Close')
+          span(aria-hidden='true') ×
+      | As of today, Drawphone players have submitted over 
+      b 100,000 
+      | drawings and guesses! Thanks for playing and sharing Drawphone with your 
+      | friends and family!&nbsp;
+      span.glyphicon.glyphicon-heart(aria-hidden='true')
     .alert.alert-info.alert-dismissible(role='alert')
-        button.close(type='button', data-dismiss='alert', aria-label='Close')
-            span(aria-hidden='true') ×
-        b New update!
-        |  As suggested, I have added three new features:
-        ul
-          li A game option which allows players to write what they want to be drawn as the first step
-          li The ability undo and redo parts of your drawing
-          li A Christmas-themed word pack
-        |  Hope you like it! Thank you so much for playing, everyone! 
-        span.glyphicon.glyphicon-heart(aria-hidden='true')
+      button.close(type='button', data-dismiss='alert', aria-label='Close')
+          span(aria-hidden='true') ×
+      b New update! 
+      | You may have noticed that drawing uploads have been slow, and sometimes fail. 
+      | This has been fixed! Drawing file sizes have been reduced ~80%, and drawings 
+      | are now uploaded directly to the Drawphone server.
     .btn-toolbar
       button#joinbtn.btn.btn-default.btn-lg(type='button') Join Game
       button#newbtn.btn.btn-default.btn-lg(type='button') New Game
@@ -32,6 +36,7 @@ block content
       button#howbtn.btn.btn-default(type='button') How to Play
       button#ssbtn.btn.btn-default(type='button') Screenshots
       button#mgbtn.btn.btn-default(type='button') Games Like Drawphone
+      a.btn.btn-default(type='button', role='button', href='https://www.reddit.com/r/boardgames/comments/7lhj20/a_year_ago_i_was_wondering_why_there_were_no/', target='_blank') Original Reddit Post
   div.row
     div.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2
       div#joinmenu.hidden
@@ -83,6 +88,13 @@ block content
     .btn-toolbar
       button#lobby-leave.btn.btn-default.btn-lg(type='button') Leave Game
       button#lobby-start.btn.btn-default.btn-lg.disabled.hidden(type='button') Start Game
+    br
+    div.panel.panel-default.ad-panel
+      div.panel-body
+        p Thanks for playing Drawphone!
+        p If you're having fun, try out my other game:
+        a.btn.btn-default(type='button', role='button', href='http://spyout.tannerkrewson.com/') Play Spyout
+
   div#game.hidden
     div#game-drawing.hidden
       h4#game-timer

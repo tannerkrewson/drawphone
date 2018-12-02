@@ -68,8 +68,8 @@ class Round {
 		let currentChainId = 0;
 		for(let player of this.players) {
 			//give each player a chain of their own
-			const wordToDraw = words.getRandomWord(self.wordPackName);
-			const thisChain = new Chain(wordToDraw, player, currentChainId++, self.timeLimit);
+			const wordToDraw = words.getRandomWord(this.wordPackName);
+			const thisChain = new Chain(wordToDraw, player, currentChainId++, this.timeLimit);
 			this.chains.push(thisChain);
 
 			//sends the link, then runs the function when the player sends it back

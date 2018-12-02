@@ -2,12 +2,13 @@
 // Drawphone DrawingLink
 //
 
-var Link = require('./link');
+const Link = require('./link');
 
-function DrawingLink(player, drawing) {
-	Link.call(this, player, drawing);
-	this.type = 'drawing';
+class DrawingLink extends Link {
+	constructor(player, drawing) {
+		super(player, drawing);
+		this.type = 'drawing';
+	}
 }
-DrawingLink.prototype = Object.create(Link.prototype);
 
 module.exports = DrawingLink;

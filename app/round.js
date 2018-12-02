@@ -2,12 +2,11 @@
 // Drawphone Round
 //
 
-const shuffle = require('knuth-shuffle').knuthShuffle;
+const {knuthShuffle: shuffle} = require('knuth-shuffle');
 const stripTags = require('striptags');
 
 const Chain = require('./chain');
-const DrawingLink = require('./link/drawinglink');
-const WordLink = require('./link/wordlink');
+const { DrawingLink, WordLink } = require('./link');
 
 const WordPacks = require('./words');
 const words = new WordPacks();

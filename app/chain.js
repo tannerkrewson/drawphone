@@ -2,8 +2,7 @@
 // Drawphone Chain
 //
 
-const WordLink = require('./link/wordlink');
-const FirstWordLink = require('./link/firstwordlink');
+const { WordLink, FirstWordLink } = require('./link');
 
 // A chain is the 'chain' of drawings and words.
 // A link is the individual drawing or word in the chain.

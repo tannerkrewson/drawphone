@@ -1,17 +1,17 @@
-module.exports = function (app) {
+module.exports = app => {
 
-	var dp = app.drawphone;
-	var stripTags = require('striptags');
+	const dp = app.drawphone;
+	const stripTags = require('striptags');
 
-	app.io.on('connection', function (socket) {
+	app.io.on('connection', socket => {
 
-		var thisGame;
-		var thisUser;
+		let thisGame;
+		let thisUser;
 
 		socket.on('joinGame', onJoinGame);
 
-		socket.on('newGame', function (data) {
-			var theName = stripTags(data.name);
+		socket.on('newGame', data => {
+			const theName = stripTags(data.name);
 			if (theName.length > 2 && theName.length <= 16) {
 				thisGame = dp.newGame();
 				thisUser = thisGame.addPlayer(theName, socket);
@@ -28,17 +28,17 @@ module.exports = function (app) {
 			}
 		});
 
-		socket.on('tryStartGame', function (data) {
+		socket.on('tryStartGame', data => {
 			if (data.timeLimit !== false && thisUser.isAdmin) {
 				thisGame.startNewRound(data.timeLimit, data.wordPackName);
 			}
 		});
 
-		socket.on('tryReplacePlayer', function (data) {
+		socket.on('tryReplacePlayer', data => {
 			if (!thisGame || !thisGame.currentRound) return;
 
-			var thisRound = thisGame.currentRound;
-			var toReplaceId = data.playerToReplace.id;
+			const thisRound = thisGame.currentRound;
+			const toReplaceId = data.playerToReplace.id;
 			if (thisUser && thisRound.canBeReplaced(toReplaceId)) {
 				thisUser = thisRound.replacePlayer(toReplaceId, thisUser);
 				thisGame.initPlayer(thisUser);
@@ -55,8 +55,8 @@ module.exports = function (app) {
 		});
 
 		socket.on('kickPlayer', function(data) {
-			var idToKick = data.playerToKick.id;
-			var playerToKick = thisGame.getPlayer(idToKick);
+			const idToKick = data.playerToKick.id;
+			const playerToKick = thisGame.getPlayer(idToKick);
 			if (thisUser.isAdmin && playerToKick) {
 				//this will simulate the 'disconnect' event, and run all of the
 				//	methods that were tied into that in the initPlayer function
@@ -66,7 +66,7 @@ module.exports = function (app) {
 
 		function onJoinGame(data) {
 			thisGame = dp.findGame(data.code);
-			var theName = stripTags(data.name);
+			const theName = stripTags(data.name);
 			if (!thisGame) {
 				socket.emit('joinGameRes', {
 					success: false,

@@ -1,18 +1,18 @@
-var express = require('express');
-var socketio = require('socket.io');
-var path = require('path');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-var minify = require('express-minify');
+const express = require('express');
+const socketio = require('socket.io');
+const path = require('path');
+const logger = require('morgan');
+const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
+const minify = require('express-minify');
 
-var app = express();
-var io = socketio();
+const app = express();
+const io = socketio();
 app.io = io;
 
-var devModeEnabled = (app.get('env') === 'development');
+const devModeEnabled = (app.get('env') === 'development');
 
-var Drawphone = require('./app/drawphone');
+const Drawphone = require('./app/drawphone');
 app.drawphone = new Drawphone(devModeEnabled);
 
 require('./routes')(app);
@@ -35,8 +35,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
-	var err = new Error('Not Found');
+app.use((req, res, next) => {
+	const err = new Error('Not Found');
 	err.status = 404;
 	next(err);
 });
@@ -46,7 +46,7 @@ app.use(function(req, res, next) {
 // development error handler
 // will print stacktrace
 if (devModeEnabled) {
-	app.use(function(err, req, res, next) {
+	app.use((err, req, res, next) => {
 		res.status(err.status || 500);
 		res.render('error', {
 			message: err.message,
@@ -59,7 +59,7 @@ if (devModeEnabled) {
 
 // production error handler
 // error handler
-app.use(function(err, req, res, next) {
+app.use((err, req, res, next) => {
 	res.status(err.status || 500);
 	res.render('error', {
 		message: err.message,

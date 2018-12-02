@@ -124,14 +124,14 @@ class Game {
 	}
 
 	sendToAll(event, data) {
-		this.players.forEach(player => {
+		for(let player of this.players) {
 			player.socket.emit(event, {
 				success: true,
 				gameCode: this.code,
 				player: player.getJson(),
 				data
 			});
-		});
+		}
 	}
 
 	startNewRound(timeLimit, wordPackName) {

@@ -70,5 +70,4 @@ class Chain {
 	}
 }
 
-
 module.exports = Chain;

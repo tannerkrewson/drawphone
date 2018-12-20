@@ -3,6 +3,6 @@ node_js:
 - '10'
 before_install:
 - openssl aes-256-cbc -K $encrypted_1a200b90ddab_key -iv $encrypted_1a200b90ddab_iv
-  -in deploy.key.enc -out deploy.key -d -md md5
+  -in .travis/deploy.key.enc -out .travis/deploy.key -d -md md5
 after_success:
 - "./deploy.sh"

@@ -56,3 +56,7 @@ typings/
 
 # dotenv environment variables file
 .env
+
+# Credentials
+.travis/*.key
+.travis/*.key.pub

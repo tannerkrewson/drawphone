@@ -2,8 +2,8 @@
 // Drawphone Game
 //
 
-var Round = require('./round');
-var Player = require('./player');
+var Round = require("./round");
+var Player = require("./player");
 
 function Game(code, onEmpty) {
 	this.code = code;
@@ -17,11 +17,11 @@ function Game(code, onEmpty) {
 	this.currentRoundNum = 1;
 }
 
-Game.prototype.newPlayer = function (name, socket) {
+Game.prototype.newPlayer = function(name, socket) {
 	return new Player(name, socket, this.getNextId());
 };
 
-Game.prototype.addPlayer = function (name, socket) {
+Game.prototype.addPlayer = function(name, socket) {
 	var newPlayer = this.newPlayer(name, socket);
 	this.initPlayer(newPlayer);
 	this.players.push(newPlayer);
@@ -29,7 +29,7 @@ Game.prototype.addPlayer = function (name, socket) {
 	return newPlayer;
 };
 
-Game.prototype.initPlayer = function (newPlayer) {
+Game.prototype.initPlayer = function(newPlayer) {
 	//if this is the first user, make them admin
 	if (this.players.length === 0) {
 		this.admin = newPlayer;
@@ -38,7 +38,7 @@ Game.prototype.initPlayer = function (newPlayer) {
 
 	//when this player disconnects, remove them from this game
 	var self = this;
-	newPlayer.socket.on('disconnect', function () {
+	newPlayer.socket.on("disconnect", function() {
 		newPlayer.isConnected = false;
 		if (self.inProgress) {
 			self.currentRound.findReplacementFor(newPlayer);
@@ -49,16 +49,16 @@ Game.prototype.initPlayer = function (newPlayer) {
 		self.sendUpdatedPlayersList();
 	});
 
-	newPlayer.socket.on('viewPreviousResults', function () {
+	newPlayer.socket.on("viewPreviousResults", function() {
 		if (self.currentRound && self.currentRound.canViewLastRoundResults) {
-			newPlayer.send('viewResults', {
+			newPlayer.send("viewResults", {
 				chains: self.currentRound.getAllChains()
 			});
 		}
 	});
 };
 
-Game.prototype.onPlayerDisconnect = function (oldPlayer) {
+Game.prototype.onPlayerDisconnect = function(oldPlayer) {
 	//if the player was admin
 	if (oldPlayer.id === this.admin.id) {
 		//find the first connected player to be admin
@@ -84,7 +84,7 @@ Game.prototype.onPlayerDisconnect = function (oldPlayer) {
 	}
 };
 
-Game.prototype.removePlayer = function (id) {
+Game.prototype.removePlayer = function(id) {
 	var player = this.getPlayer(id);
 
 	var index = this.players.indexOf(player);
@@ -98,7 +98,7 @@ Game.prototype.removePlayer = function (id) {
 	}
 };
 
-Game.prototype.getPlayer = function (id) {
+Game.prototype.getPlayer = function(id) {
 	for (var i = 0; i < this.players.length; i++) {
 		if (this.players[i].id === id) {
 			return this.players[i];
@@ -107,17 +107,17 @@ Game.prototype.getPlayer = function (id) {
 	return false;
 };
 
-Game.prototype.getNextId = function () {
+Game.prototype.getNextId = function() {
 	return this.currentId++;
 };
 
-Game.prototype.getNextRoundNum = function () {
+Game.prototype.getNextRoundNum = function() {
 	return this.currentRoundNum++;
 };
 
-Game.prototype.getJsonGame = function () {
+Game.prototype.getJsonGame = function() {
 	var players = [];
-	this.players.forEach(function (player) {
+	this.players.forEach(function(player) {
 		players.push(player.getJson());
 	});
 
@@ -125,21 +125,25 @@ Game.prototype.getJsonGame = function () {
 		code: this.code,
 		players,
 		inProgress: this.inProgress,
-		canViewLastRoundResults: (this.currentRound !== undefined) && this.currentRound.canViewLastRoundResults
+		canViewLastRoundResults:
+			this.currentRound !== undefined &&
+			this.currentRound.canViewLastRoundResults
 	};
 	return jsonGame;
 };
 
-Game.prototype.sendUpdatedPlayersList = function () {
-	this.sendToAll('updatePlayerList', {
+Game.prototype.sendUpdatedPlayersList = function() {
+	this.sendToAll("updatePlayerList", {
 		players: this.getJsonGame().players,
-		canViewLastRoundResults: (this.currentRound !== undefined) && this.currentRound.canViewLastRoundResults
+		canViewLastRoundResults:
+			this.currentRound !== undefined &&
+			this.currentRound.canViewLastRoundResults
 	});
 };
 
-Game.prototype.sendToAll = function (event, data) {
+Game.prototype.sendToAll = function(event, data) {
 	var self = this;
-	this.players.forEach(function (player) {
+	this.players.forEach(function(player) {
 		player.socket.emit(event, {
 			success: true,
 			gameCode: self.code,
@@ -149,15 +153,21 @@ Game.prototype.sendToAll = function (event, data) {
 	});
 };
 
-Game.prototype.startNewRound = function (timeLimit, wordPackName) {
+Game.prototype.startNewRound = function(timeLimit, wordPackName) {
 	this.inProgress = true;
 
 	var self = this;
-	this.currentRound = new Round(this.getNextRoundNum(), this.players, timeLimit, wordPackName, function () {
-		//ran when results are sent
-		self.inProgress = false;
-		self.sendUpdatedPlayersList(); //this makes sure the View Last Round Results button shows up
-	});
+	this.currentRound = new Round(
+		this.getNextRoundNum(),
+		this.players,
+		timeLimit,
+		wordPackName,
+		function() {
+			//ran when results are sent
+			self.inProgress = false;
+			self.sendUpdatedPlayersList(); //this makes sure the View Last Round Results button shows up
+		}
+	);
 
 	this.currentRound.start();
 };

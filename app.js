@@ -1,42 +1,44 @@
-var express = require('express');
-var socketio = require('socket.io');
-var path = require('path');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-var minify = require('express-minify');
+var express = require("express");
+var socketio = require("socket.io");
+var path = require("path");
+var logger = require("morgan");
+var cookieParser = require("cookie-parser");
+var bodyParser = require("body-parser");
+var minify = require("express-minify");
 
 var app = express();
 var io = socketio();
 app.io = io;
 
-var devModeEnabled = (app.get('env') === 'development');
+var devModeEnabled = app.get("env") === "development";
 
-var Drawphone = require('./app/drawphone');
+var Drawphone = require("./app/drawphone");
 app.drawphone = new Drawphone(devModeEnabled);
 
-require('./routes')(app);
+require("./routes")(app);
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'pug');
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "pug");
 
 if (devModeEnabled) {
-	app.use(logger('dev'));
+	app.use(logger("dev"));
 } else {
 	app.use(minify());
 }
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({
-	extended: false
-}));
+app.use(
+	bodyParser.urlencoded({
+		extended: false
+	})
+);
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, "public")));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-	var err = new Error('Not Found');
+	var err = new Error("Not Found");
 	err.status = 404;
 	next(err);
 });
@@ -48,7 +50,7 @@ app.use(function(req, res, next) {
 if (devModeEnabled) {
 	app.use(function(err, req, res, next) {
 		res.status(err.status || 500);
-		res.render('error', {
+		res.render("error", {
 			message: err.message,
 			error: err,
 			stack: err.stack
@@ -61,7 +63,7 @@ if (devModeEnabled) {
 // error handler
 app.use(function(err, req, res, next) {
 	res.status(err.status || 500);
-	res.render('error', {
+	res.render("error", {
 		message: err.message,
 		error: err
 	});

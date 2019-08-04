@@ -1,71 +1,70 @@
 body {
-  font-family: 'Slabo 27px', serif;
+	font-family: "Slabo 27px", serif;
 }
 
 a {
-  color: #00B7FF;
+	color: #00b7ff;
 }
 
 hr {
-  -moz-box-sizing: content-box;
-  box-sizing: content-box;
-  height: 0;
+	-moz-box-sizing: content-box;
+	box-sizing: content-box;
+	height: 0;
 }
 
 input[type="text"] {
-    box-sizing: border-box;
-    height: 48px;
+	box-sizing: border-box;
+	height: 48px;
 }
 
 .container {
-  position: relative;
-  max-width: 500px;
-  margin: 0 auto;
-  padding: 16px;
+	position: relative;
+	max-width: 500px;
+	margin: 0 auto;
+	padding: 16px;
 }
 
-.btn-toolbar{
-  text-align: center;
-  display: inline-block;
-}​
-
-.form-group {
-  text-align:center;
+.btn-toolbar {
+	text-align: center;
+	display: inline-block;
+}
+​ .form-group {
+	text-align: center;
 }
 
 .drawing {
-  outline: 1px solid LightGrey;
-  width: 100%;
+	outline: 1px solid LightGrey;
+	width: 100%;
 }
 
 .gamecode {
-  font-family: monospace;
-  box-shadow: 0 0 10pt 1pt LightGrey;
-  padding: 5px;
+	font-family: monospace;
+	box-shadow: 0 0 10pt 1pt LightGrey;
+	padding: 5px;
 }
 
 .gamecode-entry {
-    font-family: monospace;
+	font-family: monospace;
 }
 
 .user {
-  border: 1px solid LightGrey;
-  padding: 8px;
+	border: 1px solid LightGrey;
+	padding: 8px;
 }
 
 .user-container {
-  padding: 3px;
+	padding: 3px;
 }
 
 .disconnected {
-  background-color: LightGrey;
+	background-color: LightGrey;
 }
 
 .drawphone-info {
-  text-align:left;
-  font-size: 125%;
+	text-align: left;
+	font-size: 125%;
 }
 
 .alert {
-    text-align: left;
+	text-align: left;
 }

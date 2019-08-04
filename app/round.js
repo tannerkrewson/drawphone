@@ -2,14 +2,14 @@
 // Drawphone Round
 //
 
-var shuffle = require('knuth-shuffle').knuthShuffle;
-var stripTags = require('striptags');
+var shuffle = require("knuth-shuffle").knuthShuffle;
+var stripTags = require("striptags");
 
-var Chain = require('./chain');
-var DrawingLink = require('./link/drawinglink');
-var WordLink = require('./link/wordlink');
+var Chain = require("./chain");
+var DrawingLink = require("./link/drawinglink");
+var WordLink = require("./link/wordlink");
 
-var WordPacks = require('./words');
+var WordPacks = require("./words");
 var words = new WordPacks();
 words.loadAll();
 
@@ -34,8 +34,7 @@ function Round(number, players, timeLimit, wordPackName, onResults) {
 	this.finalNumOfLinks;
 }
 
-Round.prototype.start = function () {
-
+Round.prototype.start = function() {
 	this.finalNumOfLinks = this.players.length;
 
 	//each player will have to complete one link for how many players there are
@@ -63,57 +62,69 @@ Round.prototype.start = function () {
 	}
 };
 
-Round.prototype.sendNewChains = function () {
+Round.prototype.sendNewChains = function() {
 	var currentChainId = 0;
 	var self = this;
-	this.players.forEach(function (player) {
+	this.players.forEach(function(player) {
 		//give each player a chain of their own
 		var wordToDraw = words.getRandomWord(self.wordPackName);
-		var thisChain = new Chain(wordToDraw, player, currentChainId++, self.timeLimit);
+		var thisChain = new Chain(
+			wordToDraw,
+			player,
+			currentChainId++,
+			self.timeLimit
+		);
 		self.chains.push(thisChain);
 
 		//sends the link, then runs the function when the player sends it back
 		//  when the 'finishedLink' event is received
-		thisChain.sendLastLinkToThen(player, self.finalNumOfLinks, function (data) {
+		thisChain.sendLastLinkToThen(player, self.finalNumOfLinks, function(
+			data
+		) {
 			self.receiveLink(player, data.link, thisChain.id);
 		});
-
 	});
 };
 
-Round.prototype.sendWordFirstChains = function () {
+Round.prototype.sendWordFirstChains = function() {
 	var currentChainId = 0;
 	var self = this;
-	this.players.forEach(function (player) {
+	this.players.forEach(function(player) {
 		//give each player a chain of their own
-		var thisChain = new Chain(false, player, currentChainId++, self.timeLimit);
+		var thisChain = new Chain(
+			false,
+			player,
+			currentChainId++,
+			self.timeLimit
+		);
 		self.chains.push(thisChain);
 
 		//sends the link, then runs the function when the player sends it back
 		//  when the 'finishedLink' event is received
-		thisChain.sendLastLinkToThen(player, self.finalNumOfLinks, function (data) {
+		thisChain.sendLastLinkToThen(player, self.finalNumOfLinks, function(
+			data
+		) {
 			self.receiveLink(player, data.link, thisChain.id);
 		});
-
 	});
 };
 
-Round.prototype.receiveLink = function (player, receivedLink, chainId) {
+Round.prototype.receiveLink = function(player, receivedLink, chainId) {
 	var chain = this.getChain(chainId);
 
-	if (receivedLink.type === 'drawing') {
+	if (receivedLink.type === "drawing") {
 		chain.addLink(new DrawingLink(player, receivedLink.data));
-	} else if (receivedLink.type === 'word') {
+	} else if (receivedLink.type === "word") {
 		chain.addLink(new WordLink(player, stripTags(receivedLink.data)));
 	} else {
-		console.log('receivedLink.type is ' + receivedLink.type);
+		console.log("receivedLink.type is " + receivedLink.type);
 	}
 
 	this.updateWaitingList();
 	this.nextLinkIfEveryoneIsDone();
 };
 
-Round.prototype.nextLinkIfEveryoneIsDone = function () {
+Round.prototype.nextLinkIfEveryoneIsDone = function() {
 	var listNotFinished = this.getListOfNotFinishedPlayers();
 	var allFinished = listNotFinished.length === 0;
 	var noneDisconnected = this.disconnectedPlayers.length === 0;
@@ -128,7 +139,7 @@ Round.prototype.nextLinkIfEveryoneIsDone = function () {
 	}
 };
 
-Round.prototype.startNextLink = function () {
+Round.prototype.startNextLink = function() {
 	this.shouldHaveThisManyLinks++;
 
 	//rotate the chains in place
@@ -146,16 +157,17 @@ Round.prototype.startNextLink = function () {
 
 		//sends the link, then runs the function when the player sends it back
 		//  when the 'finishedLink' event is received
-		(function (chain, player) {
-			chain.sendLastLinkToThen(player, self.finalNumOfLinks, function (data) {
+		(function(chain, player) {
+			chain.sendLastLinkToThen(player, self.finalNumOfLinks, function(
+				data
+			) {
 				self.receiveLink(player, data.link, chain.id);
 			});
 		})(thisChain, thisPlayer);
-
 	}
 };
 
-Round.prototype.getChain = function (id) {
+Round.prototype.getChain = function(id) {
 	for (var i = 0; i < this.chains.length; i++) {
 		if (this.chains[i].id === id) {
 			return this.chains[i];
@@ -164,7 +176,7 @@ Round.prototype.getChain = function (id) {
 	return false;
 };
 
-Round.prototype.getChainByOwnerId = function (ownerId) {
+Round.prototype.getChainByOwnerId = function(ownerId) {
 	for (var i = 0; i < this.chains.length; i++) {
 		if (this.chains[i].owner.id === ownerId) {
 			return this.chains[i];
@@ -173,7 +185,7 @@ Round.prototype.getChainByOwnerId = function (ownerId) {
 	return false;
 };
 
-Round.prototype.viewResults = function () {
+Round.prototype.viewResults = function() {
 	var chains = this.getAllChains();
 
 	//starts as false, and will be true every round after first round
@@ -181,24 +193,23 @@ Round.prototype.viewResults = function () {
 
 	this.onResults();
 
-	this.players.forEach(function (player) {
-		player.send('viewResults', {
+	this.players.forEach(function(player) {
+		player.send("viewResults", {
 			chains
 		});
-
 	});
 };
 
-Round.prototype.findReplacementFor = function (player) {
+Round.prototype.findReplacementFor = function(player) {
 	this.disconnectedPlayers.push(player.getJson());
 	this.updateWaitingList();
 };
 
-Round.prototype.getPlayersThatNeedToBeReplaced = function () {
+Round.prototype.getPlayersThatNeedToBeReplaced = function() {
 	return this.disconnectedPlayers;
 };
 
-Round.prototype.canBeReplaced = function (playerToReplaceId) {
+Round.prototype.canBeReplaced = function(playerToReplaceId) {
 	for (var i = 0; i < this.disconnectedPlayers.length; i++) {
 		if (this.disconnectedPlayers[i].id === playerToReplaceId) {
 			return true;
@@ -207,14 +218,16 @@ Round.prototype.canBeReplaced = function (playerToReplaceId) {
 	return false;
 };
 
-Round.prototype.replacePlayer = function (playerToReplaceId, newPlayer) {
+Round.prototype.replacePlayer = function(playerToReplaceId, newPlayer) {
 	for (var i = 0; i < this.disconnectedPlayers.length; i++) {
 		if (this.disconnectedPlayers[i].id === playerToReplaceId) {
 			//give 'em the id of the old player
 			newPlayer.id = this.disconnectedPlayers[i].id;
 
 			//replace 'em
-			var playerToReplaceIndex = this.getPlayerIndexById(playerToReplaceId);
+			var playerToReplaceIndex = this.getPlayerIndexById(
+				playerToReplaceId
+			);
 			this.players[playerToReplaceIndex] = newPlayer;
 
 			//delete 'em from disconnectedPlayers
@@ -222,37 +235,47 @@ Round.prototype.replacePlayer = function (playerToReplaceId, newPlayer) {
 
 			//check if the disconnectedPlayer (dp) had submitted their link
 			var dpChain = this.getChainByLastSentPlayerId(newPlayer.id);
-			var dpDidFinishTheirLink = dpChain.getLength() === this.shouldHaveThisManyLinks;
+			var dpDidFinishTheirLink =
+				dpChain.getLength() === this.shouldHaveThisManyLinks;
 			if (dpDidFinishTheirLink) {
 				//send this player to the waiting for players page
-				newPlayer.socket.emit('showWaitingList', {});
+				newPlayer.socket.emit("showWaitingList", {});
 			} else {
 				//send them the link they need to finish
 				var self = this;
-				dpChain.sendLastLinkToThen(newPlayer, this.finalNumOfLinks, function (data) {
-					self.receiveLink(newPlayer, data.link, dpChain.id);
-				});
+				dpChain.sendLastLinkToThen(
+					newPlayer,
+					this.finalNumOfLinks,
+					function(data) {
+						self.receiveLink(newPlayer, data.link, dpChain.id);
+					}
+				);
 			}
 			return this.players[playerToReplaceIndex];
 		}
 	}
 };
 
-Round.prototype.updateWaitingList = function () {
-	this.sendToAll('updateWaitingList', {
+Round.prototype.updateWaitingList = function() {
+	this.sendToAll("updateWaitingList", {
 		notFinished: this.getListOfNotFinishedPlayers(),
 		disconnected: this.disconnectedPlayers
 	});
 };
 
-Round.prototype.getListOfNotFinishedPlayers = function () {
+Round.prototype.getListOfNotFinishedPlayers = function() {
 	var playerList = [];
 
 	//check to make sure every chain is the same length
 	for (var i = 0; i < this.chains.length; i++) {
 		var thisChain = this.chains[i];
-		var isLastPlayerSentToConnected = this.getPlayer(thisChain.lastPlayerSentTo.id).isConnected;
-		if (thisChain.getLength() !== this.shouldHaveThisManyLinks && isLastPlayerSentToConnected) {
+		var isLastPlayerSentToConnected = this.getPlayer(
+			thisChain.lastPlayerSentTo.id
+		).isConnected;
+		if (
+			thisChain.getLength() !== this.shouldHaveThisManyLinks &&
+			isLastPlayerSentToConnected
+		) {
 			playerList.push(thisChain.lastPlayerSentTo);
 		}
 	}
@@ -260,7 +283,7 @@ Round.prototype.getListOfNotFinishedPlayers = function () {
 	return playerList;
 };
 
-Round.prototype.getPlayer = function (id) {
+Round.prototype.getPlayer = function(id) {
 	for (var i = 0; i < this.players.length; i++) {
 		if (this.players[i].id === id) {
 			return this.players[i];
@@ -269,7 +292,7 @@ Round.prototype.getPlayer = function (id) {
 	return false;
 };
 
-Round.prototype.getPlayerIndexById = function (id) {
+Round.prototype.getPlayerIndexById = function(id) {
 	for (var i = 0; i < this.players.length; i++) {
 		if (this.players[i].id === id) {
 			return i;
@@ -278,7 +301,7 @@ Round.prototype.getPlayerIndexById = function (id) {
 	return false;
 };
 
-Round.prototype.getChainByLastSentPlayerId = function (id) {
+Round.prototype.getChainByLastSentPlayerId = function(id) {
 	for (var i = 0; i < this.chains.length; i++) {
 		if (this.chains[i].lastPlayerSentTo.id === id) {
 			return this.chains[i];
@@ -287,15 +310,15 @@ Round.prototype.getChainByLastSentPlayerId = function (id) {
 	return false;
 };
 
-Round.prototype.sendToAll = function (event, data) {
-	this.players.forEach(function (player) {
+Round.prototype.sendToAll = function(event, data) {
+	this.players.forEach(function(player) {
 		player.send(event, data);
 	});
 };
 
-Round.prototype.getAllChains = function () {
+Round.prototype.getAllChains = function() {
 	var newChains = [];
-	this.chains.forEach(function (chain) {
+	this.chains.forEach(function(chain) {
 		newChains.push(chain.getJson());
 	});
 	return newChains;

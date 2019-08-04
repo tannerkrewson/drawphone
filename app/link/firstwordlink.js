@@ -2,11 +2,11 @@
 // Drawphone FirstWordLink
 //
 
-var Link = require('./link');
+var Link = require("./link");
 
 function FirstWordLink(player) {
 	Link.call(this, player, false);
-	this.type = 'first-word';
+	this.type = "first-word";
 }
 FirstWordLink.prototype = Object.create(Link.prototype);
 

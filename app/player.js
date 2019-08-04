@@ -10,7 +10,7 @@ function Player(name, socket, id) {
 	this.isConnected = true;
 }
 
-Player.prototype.getJson = function () {
+Player.prototype.getJson = function() {
 	return {
 		name: this.name,
 		id: this.id,
@@ -19,19 +19,19 @@ Player.prototype.getJson = function () {
 	};
 };
 
-Player.prototype.send = function (event, data) {
+Player.prototype.send = function(event, data) {
 	this.socket.emit(event, {
 		you: this.getJson(),
 		data
 	});
 };
 
-Player.prototype.sendThen = function (event, data, onEvent, next) {
+Player.prototype.sendThen = function(event, data, onEvent, next) {
 	this.send(event, data);
 	this.socket.once(onEvent, next);
 };
 
-Player.prototype.makeAdmin = function () {
+Player.prototype.makeAdmin = function() {
 	this.isAdmin = true;
 };
 

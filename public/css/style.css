@@ -69,8 +69,3 @@ input[type="text"] {
 .alert {
     text-align: left;
 }
-
-.spyout-panel {
-  display: inline-block;
-  margin-top: 1em;
-}

@@ -4,6 +4,7 @@
 
 var fs = require("fs");
 var path = require("path");
+var shuffle = require("knuth-shuffle").knuthShuffle;
 
 function WordPacks() {
 	this.wordPacks = [];
@@ -78,10 +79,15 @@ WordPacks.getAllPackNames = function() {
 function WordPack(name, words) {
 	this.name = name;
 	this.words = words;
+	this.i = this.words.length;
 }
 
 WordPack.prototype.getRandomWord = function() {
-	return this.words[Math.floor(Math.random() * this.words.length)];
+	if (this.i === this.words.length) {
+		shuffle(this.words);
+		this.i = 0;
+	}
+	return this.words[this.i++];
 };
 
 module.exports = WordPacks;

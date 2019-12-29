@@ -27,6 +27,8 @@ module.exports = function(app) {
 		});
 
 		socket.on("tryStartGame", function(data) {
+			if (!thisUser || !thisGame) return;
+
 			if (data.timeLimit !== false && thisUser.isAdmin) {
 				thisGame.startNewRound(data.timeLimit, data.wordPackName);
 			}

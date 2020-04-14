@@ -68,3 +68,7 @@ input[type="text"] {
 .alert {
 	text-align: left;
 }
+
+.input-container {
+	text-align: left;
+}

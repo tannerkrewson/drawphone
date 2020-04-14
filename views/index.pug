@@ -35,18 +35,23 @@ block content
       div#joinmenu.hidden
         h4 Join a game
         form
-          .form-group
-            input#joinincode.form-control(type='text', placeholder='Enter the game code', autocomplete='off')
-          .form-group
-            input#joininname.form-control(type='text', placeholder='Enter your name', maxlength=16)
+          .input-container
+            label Game Code:
+            .form-group
+              input#joinincode.form-control(type='text', placeholder='abcd', autocomplete='off')
+            label Name:
+            .form-group
+              input#joininname.form-control(type='text', placeholder='Use your real name!', maxlength=16)
           .btn-toolbar
             button#joinmenu-back.btn.btn-default.btn-lg(type='button') Back
             button#joinmenu-go.btn.btn-default.btn-lg(type='submit') Join
       div#newmenu.hidden
         h4 Start a game
         form
-          .form-group
-            input#newinname.form-control(type='text', placeholder='Enter your name', maxlength=16)
+          .input-container
+            label Name:
+            .form-group
+              input#newinname.form-control(type='text', placeholder='Use your real name!', maxlength=16)
           .btn-toolbar 
             button#newmenu-back.btn.btn-default.btn-lg(type='button') Back
             button#newmenu-go.btn.btn-default.btn-lg(type='submit') Start

@@ -67,11 +67,13 @@ block content
           label
             input#lobby-settings-wordfirst(type='checkbox')
             | Players write first word (not recommended for first time)
+        label Word pack:
         select.form-control#lobby-settings-wordpack
           option(disabled='', selected='') Select a word pack...
           for item in wordpacks
             option #{item}
         br
+        label Time limit:
         select.form-control#lobby-settings-timelimit
           option(disabled='', selected='') Select a drawing time limit...
           option No time limit (recommended)

@@ -18,8 +18,9 @@ Drawphone was inspired by [Spyfall](https://github.com/evanbrumley/spyfall) and 
 #### Instructions
 
 1. Clone the repo to get started
-2. Run `npm install` and `npm start` to launch the server
-3. Go to `localhost:3000` in your browser
+2. Fork and create any pull requests against the `dev` branch
+3. Run `npm install`, then `npm start` to launch the server
+4. Go to `localhost:3000` in your browser
 
 #### Tips
 

@@ -18,3 +18,4 @@ jobs:
                   PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
                   HOST: 134.209.222.77
                   PROJECT: drawphone
+                  BRANCH: prod

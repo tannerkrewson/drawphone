@@ -1,0 +1,9 @@
+extends layout
+
+block content
+  form(action='/lock' method='post' target='_blank')
+    label(for='password') Password:
+    input#password(type='text' name='password')
+    br
+    br
+    input(type='submit' value='Lock New Games and Rounds')

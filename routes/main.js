@@ -36,6 +36,23 @@ module.exports = function(app) {
 		});
 	});
 
+	app.get("/admin", function(req, res) {
+		res.render("admin");
+	});
+
+	app.post("/lock", function(req, res) {
+		if (!process.env.ADMIN_PASSWORD) {
+			res.status(501).end();
+		}
+
+		if (req.body.password === process.env.ADMIN_PASSWORD) {
+			dp.lock();
+			res.status(200).end();
+		} else {
+			res.status(401).end();
+		}
+	});
+
 	if (app.get("env") === "development") {
 		app.get("/dev", function(req, res) {
 			res.render("index", {

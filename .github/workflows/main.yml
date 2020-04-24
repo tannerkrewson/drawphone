@@ -10,7 +10,28 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
+            - uses: CamiloGarciaLaRotta/watermelon-http-client@v1
+              id: request
+              with:
+                  url: "https://drawphone.tannerkrewson.com/lock"
+                  method: post
+                  headers: '{"Content-Type": "application/json" }'
+                  data: '{ "password": "${{ secrets.ADMIN_PASSWORD }}" }'
+
+            - name: Print the response code of the lock
+              run: echo ${{ steps.request.outputs.status }}
+              shell: bash
+
+            - name: Wait 15 minutes for in-progress games to finish up (wait 14m + 1m for deploy)
+              uses: jakejarvis/wait-action@v0.1.0
+              with:
+                  time: "14m"
+
             - uses: actions/checkout@v2
+              with:
+                  ref: "prod"
+                  fetch-depth: "0"
+
             - name: Dokku deploy
               uses: vitalyliber/dokku-github-action@v4.0
               env:

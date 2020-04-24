@@ -6,6 +6,8 @@ var Game = require("./game");
 
 function Drawphone(devModeEnabled) {
 	this.games = [];
+	this.locked = false;
+	this.minutesUntilRestart;
 
 	//add the dev game
 	if (devModeEnabled) {
@@ -14,6 +16,8 @@ function Drawphone(devModeEnabled) {
 }
 
 Drawphone.prototype.newGame = function(forceCode) {
+	if (this.locked) return false;
+
 	var newCode;
 	if (forceCode) {
 		newCode = forceCode;
@@ -64,6 +68,19 @@ Drawphone.prototype.removeGame = function(code) {
 		this.games.splice(index, 1);
 		console.log(code + " removed");
 	}
+};
+
+Drawphone.prototype.lock = function() {
+	this.locked = true;
+
+	this.minutesUntilRestart = 16;
+
+	const interval = setInterval(() => {
+		this.minutesUntilRestart--;
+		if (this.minutesUntilRestart <= 0) {
+			clearInterval(interval);
+		}
+	}, 1000 * 60); // every minute
 };
 
 module.exports = Drawphone;

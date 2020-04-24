@@ -455,7 +455,17 @@ Lobby.prototype.show = function(data) {
 				exDescription: data.error,
 				exFatal: false
 			});
-			swal(data.error, "", "error");
+
+			if (data.content) {
+				swal({
+					title: data.error,
+					type: "error",
+					text: data.content,
+					html: true
+				});
+			} else {
+				swal(data.error, "", "error");
+			}
 			Screen.waitingForResponse = false;
 			return;
 		}

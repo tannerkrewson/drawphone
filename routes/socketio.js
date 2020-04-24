@@ -9,6 +9,11 @@ module.exports = function(app) {
 		socket.on("joinGame", onJoinGame);
 
 		socket.on("newGame", function(data) {
+			if (dp.locked) {
+				sendLockedError(socket, dp.minutesUntilRestart);
+				return;
+			}
+
 			var theName = stripTags(data.name);
 			if (theName.length > 2 && theName.length <= 16) {
 				thisGame = dp.newGame();
@@ -28,6 +33,11 @@ module.exports = function(app) {
 
 		socket.on("tryStartGame", function(data) {
 			if (!thisUser || !thisGame) return;
+
+			if (dp.locked) {
+				sendLockedError(socket, dp.minutesUntilRestart);
+				return;
+			}
 
 			if (data.timeLimit !== false && thisUser.isAdmin) {
 				thisGame.startNewRound(data.timeLimit, data.wordPackName);
@@ -102,4 +112,23 @@ module.exports = function(app) {
 			}
 		}
 	});
+};
+
+const sendLockedError = (socket, minutesUntilRestart) => {
+	socket.emit("joinGameRes", {
+		success: false,
+		error: "Oopsie woopsie",
+		content:
+			"The Drawphone server is pending an update, and will be restarted " +
+			getTimeLeft(minutesUntilRestart) +
+			'. Try again then! <div style="font-size: .75em;margin-top:.8em">' +
+			"If you're the techy type, check the update status " +
+			'<a href="https://github.com/tannerkrewson/drawphone/actions" ' +
+			'target="_blank" rel="noopener noreferrer">here</a>.</div>'
+	});
+};
+
+const getTimeLeft = minutes => {
+	if (minutes <= 0) return "momentarily";
+	return "in " + minutes + " minute" + (parseInt(minutes) !== 1 ? "s" : "");
 };

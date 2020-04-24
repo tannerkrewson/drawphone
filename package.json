@@ -5,6 +5,7 @@
 	"main": "app.js",
 	"scripts": {
 		"start": "node ./bin/www",
+		"dev": "nodemon --exec npm start",
 		"test": "echo \"Error: no test specified\" && exit 0"
 	},
 	"repository": {
@@ -31,6 +32,7 @@
 	},
 	"devDependencies": {
 		"husky": "^3.0.2",
+		"nodemon": "^2.0.3",
 		"prettier": "^1.18.2",
 		"pretty-quick": "^1.11.1"
 	},

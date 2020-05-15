@@ -1,10 +1,14 @@
 module.exports = function(app) {
 	var dp = app.drawphone;
-	var packNames = require("../app/words").getAllPackNames();
+	var allPackNames = require("../app/words").getAllPackNames();
+	var safePackNames = require("../app/words").getAllPackNames(true);
 
 	app.get("/", function(req, res) {
+		const isSafeForWorkURL = req.headers.host.startsWith("dpk");
+		const wordpacks = isSafeForWorkURL ? safePackNames : allPackNames;
+
 		res.render("index", {
-			wordpacks: packNames
+			wordpacks
 		});
 	});
 
@@ -56,7 +60,7 @@ module.exports = function(app) {
 	if (app.get("env") === "development") {
 		app.get("/dev", function(req, res) {
 			res.render("index", {
-				wordpacks: packNames
+				wordpacks: allPackNames
 			});
 		});
 	}

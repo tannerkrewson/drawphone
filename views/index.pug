@@ -13,14 +13,6 @@ block content
   hr
   div#mainmenu
     
-    .alert.alert-success(role='alert', style="text-align:center;")
-      b(style="font-size:1.2em;") 🌟 Spyfall is back! 🌟
-      p(style="font-size:.9em;margin-top:1em;")
-        i spyfall.crabhat.com 
-        | &nbsp;is now 
-      a(href="https://spyfall.tannerkrewson.com/", style="font-size:1.2em;", target='_blank') spyfall.tannerkrewson.com
-      br
-      div(style="font-size:.9em;margin-top:1em;") 🕵️🕵️🕵️
     .btn-toolbar
       button#joinbtn.btn.btn-default.btn-lg(type='button') Join Game
       button#newbtn.btn.btn-default.btn-lg(type='button') New Game
@@ -32,6 +24,8 @@ block content
       button#mgbtn.btn.btn-default(type='button') Games Like Drawphone
       a.btn.btn-default(type='button', role='button', href='https://docs.google.com/forms/d/e/1FAIpQLSe0lIL4ZYxyKDNHqv25VkLqOg7tk2VhOcOA-yDAuYxKFx6kyw/viewform', target='_blank') Submit Feedback
       a.btn.btn-default(type='button', role='button', href='https://www.reddit.com/r/boardgames/comments/7lhj20/a_year_ago_i_was_wondering_why_there_were_no/', target='_blank') Original Reddit Post
+      br
+      include buymebutton.pug
   div.row
     div.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2
       div#joinmenu.hidden
@@ -91,6 +85,17 @@ block content
       button#lobby-leave.btn.btn-default.btn-lg(type='button') Leave Game
       button#lobby-start.btn.btn-default.btn-lg.disabled.hidden(type='button') Start Game
     br
+    br
+    div.panel.panel-default.thanks-panel
+      div.panel-body
+        div Thanks for playing Drawphone!
+        p If you had fun, try out my other game:
+        a.btn.btn-default(type='button', role='button', href='https://spyfall.tannerkrewson.com/', style='font-size:1.1em;') Play Spyfall
+        br
+        br
+        div or, if you're feeling hungry:
+        include buymebutton.pug
+
 
   div#game.hidden
     div#game-drawing.hidden

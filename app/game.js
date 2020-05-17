@@ -15,6 +15,7 @@ function Game(code, onEmpty) {
 
 	this.currentId = 1;
 	this.currentRoundNum = 1;
+	this.timeOfLastAction = new Date();
 }
 
 Game.prototype.newPlayer = function(name, socket) {
@@ -166,6 +167,7 @@ Game.prototype.startNewRound = function(timeLimit, wordPackName) {
 			//ran when results are sent
 			self.inProgress = false;
 			self.sendUpdatedPlayersList(); //this makes sure the View Last Round Results button shows up
+			self.timeOfLastAction = new Date();
 		}
 	);
 

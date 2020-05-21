@@ -259,6 +259,7 @@ JoinMenu.prototype.initialize = function() {
 			var code = $("#joinincode").val();
 			var name = $("#joininname").val();
 
+			socket.open();
 			socket.emit("joinGame", {
 				code: code,
 				name: name
@@ -307,6 +308,8 @@ NewMenu.prototype.initialize = function() {
 		if (!Screen.waitingForResponse) {
 			Screen.waitingForResponse = true;
 			var name = $("#newinname").val();
+
+			socket.open();
 			socket.emit("newGame", {
 				name: name
 			});
@@ -1223,12 +1226,13 @@ function getDrawingCanvas() {
 //  Main
 //
 
-var socket = io();
+var socket = io({ autoConnect: false });
 
 //try to join the dev game
 var relativeUrl = window.location.pathname + window.location.search;
 
 if (relativeUrl === "/dev") {
+	socket.open();
 	socket.emit("joinGame", {
 		code: "ffff",
 		name: Math.random()

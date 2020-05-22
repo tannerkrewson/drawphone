@@ -8,18 +8,22 @@ block content
   div
     span.glyphicon.glyphicon-pencil(aria-hidden='true',style="padding-right:2px;")
     span.glyphicon.glyphicon-earphone(aria-hidden='true',style="padding-left:2px;")
-  h1 Your Previous Results
-  p View the results saved on this device
-  hr
-  #archive.btn-group-vertical(role='group', aria-label='...')
+  #archive
+    h1 Your Previous Results
+    p View the results saved on this device
+    hr
+    #archive-content.btn-group-vertical(role="group" aria-label="...")
+    br
   #result.hidden
-    div#result-content
-    br
-    h4 View more results:
-    #result-others.btn-group-vertical(role='group', aria-label='...')
-    br
-    br
-    .btn-toolbar#result-buttons
-      button#result-done.btn.btn-default.btn-lg(type='button') Done
+      h1#title Loading archive...
+      p#subtitle This may take a second
+      hr
+      div#result-content
+      br
+      #result-others.btn-group-vertical(role='group', aria-label='...')
+      br
+      br
+      .btn-toolbar#result-buttons
+        button#result-done.btn.btn-default.btn-lg(type='button') Done
   br
-  a.btn.btn-default.btn-lg(type='button', href="/") Back to Drawphone
+  a.btn.btn-default.btn-lg(type='button', href="/") Exit Archive

@@ -79,6 +79,10 @@ input[type="text"] {
 	font-size: 0.9em;
 }
 
+.prevresbtn {
+	white-space: normal;
+}
+
 /* buy me a taco button */
 .bmc-button .taco {
 	margin-bottom: 1px !important;

@@ -204,6 +204,7 @@ function MainMenu(onJoin, onNew) {
 	this.id = "#mainmenu";
 	this.joinButton = $("#joinbtn");
 	this.newButton = $("#newbtn");
+	this.archiveButton = $("#archivebtn");
 	this.howButton = $("#howbtn");
 	this.ssButton = $("#ssbtn");
 	this.mgButton = $("#mgbtn");
@@ -218,6 +219,9 @@ MainMenu.prototype.initialize = function() {
 
 	this.joinButton.click(this.onJoin);
 	this.newButton.click(this.onNew);
+	this.archiveButton.click(function() {
+		window.location.href = "/archive";
+	});
 	this.howButton.click(function() {
 		window.location.href = "/how-to-play";
 	});
@@ -843,7 +847,7 @@ Results.prototype.initialize = function() {
 	});
 };
 
-Results.prototype.show = function(res) {
+Results.prototype.show = function(res, isArchivePage) {
 	var chains = res.data.chains;
 	var ourChain;
 	for (var i = 0; i < chains.length; i++) {
@@ -863,7 +867,9 @@ Results.prototype.show = function(res) {
 
 	Screen.prototype.show.call(this);
 
-	addResultsToStorage(chains);
+	if (!isArchivePage) {
+		addResultsToStorage(chains);
+	}
 };
 
 Results.prototype.render = function(chainToShow, allChains) {
@@ -936,6 +942,10 @@ Results.prototype.displayOtherChainButtons = function(
 ) {
 	var others = $("#result-others");
 	others.empty();
+
+	if (chainsToList.length > 1) {
+		others.append("<h4>View more results:</h4>");
+	}
 
 	var self = this;
 	for (var i = 0; i < chainsToList.length; i++) {
@@ -1273,49 +1283,76 @@ if (relativeUrl === "/archive") {
 
 function renderArchive() {
 	var archive = $("#archive");
+	var archiveContent = $("#archive-content");
+	var result = $("#result");
 	if (!localStorage) {
-		archive.text("This browser does not support local storage.");
+		archiveContent.text("This browser does not support local storage.");
 		return;
 	}
 
-	var resultsList = getResultsListFromStorage();
+	var resultsList = getResultsListFromStorage().reverse();
 
 	if (resultsList.length === 0) {
-		archive.text("No results found on this device. Play a game first!");
+		archiveContent.text(
+			"No results found on this device. Play a game first!"
+		);
 		return;
 	}
 
-	var dateOptions = {
-		weekday: "long",
-		year: "numeric",
-		month: "long",
-		day: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-		second: "2-digit",
-		hour12: false
-	};
-
+	var lastDate;
 	for (var i = 0; i < resultsList.length; i++) {
 		var results = resultsList[i];
-		var formattedDate = new Date(results.date).toLocaleTimeString(
-			"en-us",
-			dateOptions
-		);
 
-		var button = $('<button type="button">' + formattedDate + "</button>");
-		button.addClass("btn btn-default btn-lg");
-
-		button.click(function() {
-			drawphone.results.show({ data: { chains: results.chains } });
-
-			//jump to top of the page
-			window.scrollTo(0, 0);
-
-			ga("send", "event", "Archive", "display another chain");
+		var theDate = new Date(results.date).toLocaleDateString("en-us", {
+			weekday: "long",
+			year: "numeric",
+			month: "long",
+			day: "numeric"
 		});
-		archive.append(button);
+
+		if (theDate !== lastDate) {
+			if (i > 0) archiveContent.append("<br>");
+			archiveContent.append(theDate);
+
+			lastDate = theDate;
+		}
+
+		var button = $(
+			'<button type="button">' +
+				getQuickInfoStringOfResults(results) +
+				"</button>"
+		);
+		button.addClass("btn btn-default prevresbtn");
+
+		(function(chains) {
+			button.click(function() {
+				drawphone.results.show(
+					{
+						data: { chains },
+						you: { id: "this id doesn't exist" }
+					},
+					true
+				);
+
+				result.show();
+				archive.hide();
+
+				//jump to top of the page
+				window.scrollTo(0, 0);
+
+				ga("send", "event", "Archive", "display another chain");
+			});
+		})(results.chains);
+		archiveContent.append(button);
 	}
+
+	drawphone.results.onDoneViewingResults = function() {
+		archive.show();
+		result.hide();
+
+		//jump to top of the page
+		window.scrollTo(0, 0);
+	};
 }
 
 function addResultsToStorage(chains) {
@@ -1339,4 +1376,29 @@ function getResultsListFromStorage() {
 
 function saveResultsListToStorage(resultsList) {
 	localStorage.setItem("resultsList", JSON.stringify(resultsList));
+}
+
+function getQuickInfoStringOfResults(results) {
+	var result = "";
+	result += new Date(results.date).toLocaleTimeString("en-us", {
+		hour: "2-digit",
+		minute: "2-digit",
+		hour12: true
+	});
+	result += ": ";
+
+	var firstChainLinks = results.chains[0].links;
+	result += firstChainLinks[0].data;
+	result += " to ";
+	result += firstChainLinks[firstChainLinks.length - 1].data;
+
+	if (results.chains.length === 1) return result;
+
+	result += ", ";
+	var secondChainLinks = results.chains[1].links;
+	result += secondChainLinks[0].data;
+	result += " to ";
+	result += secondChainLinks[secondChainLinks.length - 1].data;
+	result += ", etc.";
+	return result;
 }

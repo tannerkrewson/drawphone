@@ -349,22 +349,23 @@ Lobby.prototype.initialize = function() {
 		location.reload();
 	});
 	this.startButton.click(function() {
-		if (!Screen.waitingForResponse && self.checkIfReadyToStart()) {
-			Screen.waitingForResponse = true;
-			socket.emit("tryStartGame", {
-				timeLimit: self.selectedTimeLimit,
-				wordPackName: self.wordPack
-			});
-			ga("send", "event", "Game", "start");
-			ga("send", "event", "Game", "time limit", self.selectedTimeLimit);
-			ga("send", "event", "Game", "word pack", self.wordPack);
-			ga(
-				"send",
-				"event",
-				"Game",
-				"number of players",
-				self.userList.numberOfPlayers
+		var ready = !Screen.waitingForResponse && self.checkIfReadyToStart();
+		console.log(self.userList);
+		if (self.userList.numberOfPlayers === 1 && ready) {
+			swal(
+				{
+					title: "Demo mode",
+					text:
+						"Would you like to play Drawphone with just yourself to see how it works?",
+					type: "info",
+					showCancelButton: true
+				},
+				function() {
+					self.start.bind(self)();
+				}
 			);
+		} else if (ready) {
+			self.start.bind(self)();
 		} else {
 			swal(
 				"Not ready to start",
@@ -529,7 +530,8 @@ Lobby.prototype.checkIfReadyToStart = function() {
 	if (
 		this.selectedTimeLimit !== false &&
 		(this.wordPack !== false || this.wordFirstCheckbox.is(":checked")) &&
-		this.userList.numberOfPlayers >= 4
+		(this.userList.numberOfPlayers >= 4 ||
+			this.userList.numberOfPlayers === 1)
 	) {
 		//un-grey-out start button
 		this.startButton.removeClass("disabled");
@@ -538,6 +540,24 @@ Lobby.prototype.checkIfReadyToStart = function() {
 		this.startButton.addClass("disabled");
 		return false;
 	}
+};
+
+Lobby.prototype.start = function() {
+	Screen.waitingForResponse = true;
+	socket.emit("tryStartGame", {
+		timeLimit: this.selectedTimeLimit,
+		wordPackName: this.wordPack
+	});
+	ga("send", "event", "Game", "start");
+	ga("send", "event", "Game", "time limit", this.selectedTimeLimit);
+	ga("send", "event", "Game", "word pack", this.wordPack);
+	ga(
+		"send",
+		"event",
+		"Game",
+		"number of players",
+		this.userList.numberOfPlayers
+	);
 };
 
 Game.prototype = Object.create(Screen.prototype);

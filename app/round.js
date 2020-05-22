@@ -37,6 +37,11 @@ function Round(number, players, timeLimit, wordPackName, onResults) {
 Round.prototype.start = function() {
 	this.finalNumOfLinks = this.players.length;
 
+	// demo mode
+	if (this.players.length === 1) {
+		this.finalNumOfLinks = 6;
+	}
+
 	//each player will have to complete one link for how many players there are
 	//  the final number of links each chain should have at the end of this
 	//  round is number of players + 1, because each chain has an extra link

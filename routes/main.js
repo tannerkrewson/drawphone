@@ -26,6 +26,10 @@ module.exports = function(app) {
 		res.render("moregames");
 	});
 
+	app.get("/archive", function(req, res) {
+		res.render("archive");
+	});
+
 	app.get("/stats", function(req, res) {
 		var games = [];
 		for (var game of dp.games) {

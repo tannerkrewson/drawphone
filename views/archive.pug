@@ -1,0 +1,25 @@
+extends layout
+
+block js
+  // Drawphone JS
+  script(src='js/client.js')
+
+block content
+  div
+    span.glyphicon.glyphicon-pencil(aria-hidden='true',style="padding-right:2px;")
+    span.glyphicon.glyphicon-earphone(aria-hidden='true',style="padding-left:2px;")
+  h1 Your Previous Results
+  p View the results saved on this device
+  hr
+  #archive.btn-group-vertical(role='group', aria-label='...')
+  #result.hidden
+    div#result-content
+    br
+    h4 View more results:
+    #result-others.btn-group-vertical(role='group', aria-label='...')
+    br
+    br
+    .btn-toolbar#result-buttons
+      button#result-done.btn.btn-default.btn-lg(type='button') Done
+  br
+  a.btn.btn-default.btn-lg(type='button', href="/") Back to Drawphone

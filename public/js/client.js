@@ -233,12 +233,6 @@ MainMenu.prototype.initialize = function() {
 	});
 };
 
-Lobby.prototype.show = function() {
-	socket.off("disconnect");
-
-	Lobby.prototype.show.call(this);
-};
-
 JoinMenu.prototype = Object.create(Screen.prototype);
 
 function JoinMenu(onBack) {
@@ -433,6 +427,7 @@ Lobby.prototype.initialize = function() {
 };
 
 Lobby.prototype.show = function(data) {
+	socket.off("disconnect");
 	socket.on("disconnect", function() {
 		swal("Connection lost!", "Reloading...", "error");
 		ga("send", "exception", {
@@ -847,6 +842,8 @@ Results.prototype.initialize = function() {
 };
 
 Results.prototype.show = function(res, isArchivePage) {
+	socket.off("disconnect");
+
 	var chains = res.data.chains;
 	var ourChain;
 	for (var i = 0; i < chains.length; i++) {

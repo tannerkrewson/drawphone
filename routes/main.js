@@ -4,8 +4,6 @@ module.exports = function(app) {
 	var safePackNames = require("../app/words").getAllPackNames(true);
 
 	app.get("/", function(req, res) {
-		console.log(req.headers.host);
-
 		const isSafeForWorkURL = req.headers.host.startsWith("dpk");
 		const wordpacks = isSafeForWorkURL ? safePackNames : allPackNames;
 

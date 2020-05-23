@@ -354,7 +354,6 @@ Lobby.prototype.initialize = function() {
 	});
 	this.startButton.click(function() {
 		var ready = !Screen.waitingForResponse && self.checkIfReadyToStart();
-		console.log(self.userList);
 		if (self.userList.numberOfPlayers === 1 && ready) {
 			swal(
 				{
@@ -1281,7 +1280,7 @@ if (relativeUrl === "/archive") {
 	renderArchive();
 }
 
-function renderArchive() {
+async function renderArchive() {
 	var archive = $("#archive");
 	var archiveContent = $("#archive-content");
 	var result = $("#result");
@@ -1290,7 +1289,7 @@ function renderArchive() {
 		return;
 	}
 
-	var resultsList = getResultsListFromStorage().reverse();
+	var resultsList = (await getResultsListFromStorage()).reverse();
 
 	if (resultsList.length === 0) {
 		archiveContent.text(
@@ -1356,26 +1355,21 @@ function renderArchive() {
 }
 
 function addResultsToStorage(chains) {
-	var resultsList = getResultsListFromStorage();
-	resultsList.push({
-		date: new Date(),
-		chains
-	});
-	saveResultsListToStorage(resultsList);
+	var db = initArchiveDb();
+	db.archive.add({ date: new Date(), chains });
 }
 
 function getResultsListFromStorage() {
-	if (!localStorage) return [];
-
-	var resultsListString = localStorage.getItem("resultsList");
-
-	if (!resultsListString) return [];
-
-	return JSON.parse(resultsListString);
+	var db = initArchiveDb();
+	return db.archive.toArray();
 }
 
-function saveResultsListToStorage(resultsList) {
-	localStorage.setItem("resultsList", JSON.stringify(resultsList));
+function initArchiveDb() {
+	var db = new Dexie("DrawphoneDatabase");
+	db.version(1).stores({
+		archive: "++id,date,chains"
+	});
+	return db;
 }
 
 function getQuickInfoStringOfResults(results) {

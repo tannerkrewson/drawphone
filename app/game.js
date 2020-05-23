@@ -53,7 +53,8 @@ Game.prototype.initPlayer = function(newPlayer) {
 	newPlayer.socket.on("viewPreviousResults", function() {
 		if (self.currentRound && self.currentRound.canViewLastRoundResults) {
 			newPlayer.send("viewResults", {
-				chains: self.currentRound.getAllChains()
+				chains: self.currentRound.getAllChains(),
+				isViewPreviousResults: true
 			});
 		}
 	});

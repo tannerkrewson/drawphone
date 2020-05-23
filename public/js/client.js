@@ -863,7 +863,7 @@ Results.prototype.show = function(res, isArchivePage) {
 
 	Screen.prototype.show.call(this);
 
-	if (!isArchivePage) {
+	if (!isArchivePage && !res.data.isViewPreviousResults) {
 		addResultsToStorage(chains);
 	}
 };

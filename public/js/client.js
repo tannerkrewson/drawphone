@@ -33,6 +33,8 @@ function hideAll() {
 	$("#result").addClass(HIDDEN);
 	$("#waiting").addClass(HIDDEN);
 	$("#replace").addClass(HIDDEN);
+	$("#previous-player-container").addClass(HIDDEN);
+	$("#previous-player-arrow").addClass(HIDDEN);
 }
 
 function showElement(jq) {
@@ -325,6 +327,7 @@ function Lobby() {
 	this.startButton = $("#lobby-start");
 	this.gameSettings = $("#lobby-settings");
 	this.wordFirstCheckbox = $("#lobby-settings-wordfirst");
+	this.hideNeighbors = $("#lobby-settings-hideNeighbors");
 	this.timeLimitDropdown = $("#lobby-settings-timelimit");
 	this.wordPackDropdown = $("#lobby-settings-wordpack");
 	this.viewPreviousResultsButton = $("#lobby-prevres");
@@ -335,6 +338,11 @@ function Lobby() {
 	this.wordPack = false;
 
 	this.userList = new UserList($("#lobby-players"));
+
+	this.neighboringPlayers = $("#neighboring-players-container");
+	this.leftPlayer = $("#previous-player");
+	this.youPlayer = $("#you-player");
+	this.rightPlayer = $("#next-player");
 }
 
 Lobby.prototype.initialize = function() {
@@ -379,6 +387,14 @@ Lobby.prototype.initialize = function() {
 			self.wordPackDropdown.prop("disabled", true);
 		} else {
 			self.wordPackDropdown.prop("disabled", false);
+		}
+		self.checkIfReadyToStart();
+	});
+	this.hideNeighbors.on("change", function() {
+		if (self.hideNeighbors.is(":checked")) {
+			self.neighboringPlayers.addClass(HIDDEN);
+		} else {
+			self.neighboringPlayers.removeClass(HIDDEN);
 		}
 		self.checkIfReadyToStart();
 	});
@@ -515,6 +531,22 @@ Lobby.prototype.update = function(res) {
 		} else {
 			this.viewPreviousResultsButton.addClass(HIDDEN);
 		}
+
+		// show neighboring players
+		var playerIdx;
+		var numPlayers = res.data.players.length;
+		for (playerIdx = 0; playerIdx < numPlayers; playerIdx++) {
+			if (res.data.players[playerIdx].id === res.player.id) {
+				break;
+			}
+		}
+		this.leftPlayer.text(
+			res.data.players[(playerIdx + 1) % numPlayers].name
+		);
+		this.youPlayer.text(res.player.name);
+		this.rightPlayer.text(
+			res.data.players[(playerIdx - 1 + numPlayers) % numPlayers].name
+		);
 	} else {
 		ga("send", "exception", {
 			exDescription: res.error,
@@ -738,6 +770,11 @@ Game.prototype.newLink = function(res) {
 		this,
 		this.subtitle + " &nbsp; - &nbsp; " + count + "/" + finalCount
 	);
+
+	if (count > 1) {
+		showElement("#previous-player-container");
+		showElement("#previous-player-arrow");
+	}
 
 	//this will be ran when the done button is clicked, or
 	//  the enter key is pressed in the word input

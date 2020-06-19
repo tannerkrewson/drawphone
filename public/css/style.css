@@ -83,6 +83,22 @@ input[type="text"] {
 	white-space: normal;
 }
 
+.neighboring-players-container {
+	display: flex;
+	margin-bottom: 1em;
+}
+
+.player-name {
+	flex-grow: 3;
+	align-self: flex-end;
+}
+
+.next-player-arrow {
+	flex-grow: 2;
+	align-self: flex-end;
+	transform: scale(2, 1);
+}
+
 /* buy me a taco button */
 .bmc-button .taco {
 	margin-bottom: 1px !important;

@@ -5,7 +5,10 @@
 
 /* global $, swal, fabric, io, ga */
 
-import "./main.css";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-sweetalert/dist/sweetalert.css";
+import "typeface-slabo-27px";
+import "./styles.css";
 
 //prevent page from refreshing when Join game buttons are pressed
 $(function() {

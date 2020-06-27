@@ -13,6 +13,10 @@ module.exports = (_, { mode }) => ({
 			{
 				test: /\.css$/,
 				use: [MiniCssExtractPlugin.loader, "css-loader"]
+			},
+			{
+				test: /\.woff($|\?)|\.woff2($|\?)|\.ttf($|\?)|\.eot($|\?)|\.svg($|\?)/,
+				loader: "url-loader"
 			}
 		]
 	}

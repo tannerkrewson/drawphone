@@ -7,11 +7,13 @@ var FirstWordLink = require("./link/firstwordlink");
 
 // A chain is the 'chain' of drawings and words.
 // A link is the individual drawing or word in the chain.
-function Chain(firstWord, owner, id, timeLimit) {
+function Chain(firstWord, owner, id, timeLimit, showNeighbors, playerList) {
 	this.owner = owner;
 	this.links = [];
 	this.id = id;
 	this.timeLimit = timeLimit;
+	this.showNeighbors = showNeighbors;
+	this.playerList = playerList;
 
 	this.lastPlayerSentTo = owner.getJson();
 
@@ -63,7 +65,10 @@ Chain.prototype.sendLastLinkToThen = function(player, finalCount, next) {
 			chainId: this.id,
 			count: count,
 			finalCount: finalCount,
-			timeLimit: this.timeLimit
+			timeLimit: this.timeLimit,
+			showNeighbors: this.showNeighbors,
+			players: this.showNeighbors ? this.playerList : null,
+			thisPlayer: player.getJson()
 		},
 		"finishedLink",
 		next

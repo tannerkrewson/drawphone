@@ -79,8 +79,8 @@ block content
             | Players write first word (not recommended for first time)
         .checkbox
           label
-            input#lobby-settings-hideNeighbors(type='checkbox')
-            | Hide identity of players you are passing to and from
+            input#lobby-settings-showNeighbors(type='checkbox')
+            | Show identity of players you are passing to and from
         label Word pack:
         select.form-control#lobby-settings-wordpack
           option(disabled='', selected='') Select a word pack...
@@ -120,8 +120,8 @@ block content
         div#previous-player
       span#previous-player-arrow.next-player-arrow.glyphicon.glyphicon-arrow-right(aria-hidden='true')
       div#you-player.player-name
-      span.next-player-arrow.glyphicon.glyphicon-arrow-right(aria-hidden='true')
-      div.player-name
+      span#next-player-arrow.next-player-arrow.glyphicon.glyphicon-arrow-right(aria-hidden='true')
+      div#next-player-container.player-name
         div Sending to
         div#next-player
     div#game-drawing.hidden

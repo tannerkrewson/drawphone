@@ -327,7 +327,7 @@ function Lobby() {
 	this.startButton = $("#lobby-start");
 	this.gameSettings = $("#lobby-settings");
 	this.wordFirstCheckbox = $("#lobby-settings-wordfirst");
-	this.hideNeighbors = $("#lobby-settings-hideNeighbors");
+	this.showNeighborsCheckbox = $("#lobby-settings-showNeighbors");
 	this.timeLimitDropdown = $("#lobby-settings-timelimit");
 	this.wordPackDropdown = $("#lobby-settings-wordpack");
 	this.viewPreviousResultsButton = $("#lobby-prevres");
@@ -336,13 +336,9 @@ function Lobby() {
 	//this is what the admin selects from the dropdowns
 	this.selectedTimeLimit = false;
 	this.wordPack = false;
+	this.showNeighbors = false;
 
 	this.userList = new UserList($("#lobby-players"));
-
-	this.neighboringPlayers = $("#neighboring-players-container");
-	this.leftPlayer = $("#previous-player");
-	this.youPlayer = $("#you-player");
-	this.rightPlayer = $("#next-player");
 }
 
 Lobby.prototype.initialize = function() {
@@ -390,13 +386,11 @@ Lobby.prototype.initialize = function() {
 		}
 		self.checkIfReadyToStart();
 	});
-	this.hideNeighbors.on("change", function() {
-		if (self.hideNeighbors.is(":checked")) {
-			self.neighboringPlayers.addClass(HIDDEN);
-		} else {
-			self.neighboringPlayers.removeClass(HIDDEN);
-		}
+	this.showNeighborsCheckbox.on("change", function() {
+		self.showNeighbors = !!self.showNeighborsCheckbox.is(":checked");
+
 		self.checkIfReadyToStart();
+		ga("send", "event", "Lobby", "show neighbors", self.showNeighbors);
 	});
 	this.timeLimitDropdown.on("change", function() {
 		switch (self.timeLimitDropdown[0].value) {
@@ -435,6 +429,7 @@ Lobby.prototype.initialize = function() {
 	});
 
 	this.wordFirstCheckbox.prop("checked", false);
+	this.showNeighborsCheckbox.prop("checked", false);
 	this.timeLimitDropdown.prop("selectedIndex", 0);
 	this.wordPackDropdown.prop("selectedIndex", 0);
 	this.wordPackDropdown.prop("disabled", false);
@@ -531,22 +526,6 @@ Lobby.prototype.update = function(res) {
 		} else {
 			this.viewPreviousResultsButton.addClass(HIDDEN);
 		}
-
-		// show neighboring players
-		var playerIdx;
-		var numPlayers = res.data.players.length;
-		for (playerIdx = 0; playerIdx < numPlayers; playerIdx++) {
-			if (res.data.players[playerIdx].id === res.player.id) {
-				break;
-			}
-		}
-		this.leftPlayer.text(
-			res.data.players[(playerIdx + 1) % numPlayers].name
-		);
-		this.youPlayer.text(res.player.name);
-		this.rightPlayer.text(
-			res.data.players[(playerIdx - 1 + numPlayers) % numPlayers].name
-		);
 	} else {
 		ga("send", "exception", {
 			exDescription: res.error,
@@ -576,7 +555,8 @@ Lobby.prototype.start = function() {
 	Screen.waitingForResponse = true;
 	socket.emit("tryStartGame", {
 		timeLimit: this.selectedTimeLimit,
-		wordPackName: this.wordPack
+		wordPackName: this.wordPack,
+		showNeighbors: this.showNeighbors
 	});
 	ga("send", "event", "Game", "start");
 	ga("send", "event", "Game", "time limit", this.selectedTimeLimit);
@@ -600,6 +580,11 @@ function Game(onWait) {
 
 	this.wordInput = $("#game-word-in");
 	this.timerDisplay = $("#game-timer");
+
+	this.neighboringPlayers = $("#neighboring-players-container");
+	this.leftPlayer = $("#previous-player");
+	this.youPlayer = $("#you-player");
+	this.rightPlayer = $("#next-player");
 
 	this.canvas;
 
@@ -736,6 +721,11 @@ Game.prototype.newLink = function(res) {
 	var lastLinkType = lastLink.type;
 	var count = res.data.count;
 	var finalCount = res.data.finalCount;
+
+	var showNeighbors = res.data.showNeighbors;
+	var playerList = res.data.players;
+	var thisPlayer = res.data.thisPlayer;
+
 	var newLinkType =
 		lastLinkType === DRAWING || lastLinkType === FIRST_WORD
 			? WORD
@@ -771,10 +761,13 @@ Game.prototype.newLink = function(res) {
 		this.subtitle + " &nbsp; - &nbsp; " + count + "/" + finalCount
 	);
 
-	if (count > 1) {
-		showElement("#previous-player-container");
-		showElement("#previous-player-arrow");
-	}
+	this.showNeighbors(
+		showNeighbors,
+		playerList,
+		thisPlayer,
+		count,
+		finalCount
+	);
 
 	//this will be ran when the done button is clicked, or
 	//  the enter key is pressed in the word input
@@ -858,6 +851,46 @@ Game.prototype.resizeCanvas = function() {
 Game.prototype.setTimer = function() {
 	if (this.timeLimit && !this.timeLimit === 0) {
 		window.setTimeout();
+	}
+};
+
+Game.prototype.showNeighbors = function(
+	showNeighbors,
+	playerList,
+	thisPlayer,
+	count,
+	finalCount
+) {
+	if (!showNeighbors) {
+		this.neighboringPlayers.addClass(HIDDEN);
+		return;
+	}
+
+	this.neighboringPlayers.removeClass(HIDDEN);
+
+	var playerIdx;
+	var numPlayers = playerList.length;
+	for (playerIdx = 0; playerIdx < numPlayers; playerIdx++) {
+		if (playerList[playerIdx].id === thisPlayer.id) {
+			break;
+		}
+	}
+	this.leftPlayer.text(playerList[(playerIdx + 1) % numPlayers].name);
+	this.youPlayer.text(thisPlayer.name);
+	this.rightPlayer.text(
+		playerList[(playerIdx - 1 + numPlayers) % numPlayers].name
+	);
+
+	if (count > 1) {
+		showElement("#previous-player-container");
+		showElement("#previous-player-arrow");
+	}
+
+	console.log(count, finalCount);
+
+	if (count === finalCount) {
+		$("#next-player-container").addClass(HIDDEN);
+		$("#next-player-arrow").addClass(HIDDEN);
 	}
 };
 

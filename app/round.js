@@ -13,11 +13,19 @@ var WordPacks = require("./words");
 var words = new WordPacks();
 words.loadAll();
 
-function Round(number, players, timeLimit, wordPackName, onResults) {
+function Round(
+	number,
+	players,
+	timeLimit,
+	wordPackName,
+	showNeighbors,
+	onResults
+) {
 	this.number = number;
 	this.players = players;
 	this.timeLimit = timeLimit;
 	this.wordPackName = wordPackName;
+	this.showNeighbors = showNeighbors;
 	this.onResults = onResults;
 	this.chains = [];
 	this.disconnectedPlayers = [];
@@ -70,6 +78,11 @@ Round.prototype.start = function() {
 Round.prototype.sendNewChains = function() {
 	var currentChainId = 0;
 	var self = this;
+
+	var jsonPlayers = this.showNeighbors
+		? this.players.map(player => player.getJson())
+		: null;
+
 	this.players.forEach(function(player) {
 		//give each player a chain of their own
 		var wordToDraw = words.getRandomWord(self.wordPackName);
@@ -77,7 +90,9 @@ Round.prototype.sendNewChains = function() {
 			wordToDraw,
 			player,
 			currentChainId++,
-			self.timeLimit
+			self.timeLimit,
+			self.showNeighbors,
+			jsonPlayers
 		);
 		self.chains.push(thisChain);
 

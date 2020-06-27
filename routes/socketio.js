@@ -40,7 +40,11 @@ module.exports = function(app) {
 			}
 
 			if (data.timeLimit !== false && thisUser.isAdmin) {
-				thisGame.startNewRound(data.timeLimit, data.wordPackName);
+				thisGame.startNewRound(
+					data.timeLimit,
+					data.wordPackName,
+					data.showNeighbors
+				);
 			}
 		});
 

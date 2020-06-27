@@ -409,6 +409,9 @@ Lobby.prototype.initialize = function() {
 			case "30 seconds":
 				self.selectedTimeLimit = 30;
 				break;
+			case "45 seconds":
+				self.selectedTimeLimit = 45;
+				break;
 			case "1 minute":
 				self.selectedTimeLimit = 60;
 				break;

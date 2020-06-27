@@ -11,7 +11,7 @@
 
 # About
 
-Drawphone was inspired by [Spyfall](https://github.com/evanbrumley/spyfall) and [Telestrations](http://telestrations.com/).
+Drawphone was inspired by [Spyfall](https://github.com/tannerkrewson/spyfall) and [Telestrations](http://telestrations.com/).
 
 # Development
 

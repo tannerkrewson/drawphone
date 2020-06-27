@@ -5,7 +5,7 @@
 
 /* global $, swal, fabric, io, ga */
 
-import "./style.css";
+import "./main.css";
 
 //prevent page from refreshing when Join game buttons are pressed
 $(function() {

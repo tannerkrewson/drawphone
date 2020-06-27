@@ -4,7 +4,6 @@ var path = require("path");
 var logger = require("morgan");
 var cookieParser = require("cookie-parser");
 var bodyParser = require("body-parser");
-var minify = require("express-minify");
 
 var app = express();
 var io = socketio();
@@ -21,8 +20,6 @@ app.set("view engine", "pug");
 
 if (devModeEnabled) {
 	app.use(logger("dev"));
-} else {
-	app.use(minify());
 }
 
 app.use(bodyParser.json());

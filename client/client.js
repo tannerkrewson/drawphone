@@ -10,6 +10,13 @@ import "bootstrap-sweetalert/dist/sweetalert.css";
 import "typeface-slabo-27px";
 import "./styles.css";
 
+import "bootstrap";
+import io from "socket.io-client";
+import { fabric } from "fabric";
+import "blueimp-canvas-to-blob";
+import swal from "bootstrap-sweetalert";
+import Dexie from "dexie";
+
 //prevent page from refreshing when Join game buttons are pressed
 $(function() {
 	$("form").submit(function() {

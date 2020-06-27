@@ -2,11 +2,14 @@
 	"name": "drawphone",
 	"version": "1.0.0",
 	"description": "Telephone with pictures",
-	"main": "app.js",
+	"private": true,
 	"scripts": {
-		"start": "node ./bin/www",
-		"dev": "nodemon --exec npm start",
-		"test": "echo \"Error: no test specified\" && exit 0"
+		"start": "run-s build:prod start:prod",
+		"dev": "run-p start:dev build:dev",
+		"start:dev": "nodemon --exec npm run start:prod --ignore public/",
+		"build:dev": "webpack --mode development --watch",
+		"start:prod": "node ./server/bin/www",
+		"build:prod": "webpack --mode production"
 	},
 	"repository": {
 		"type": "git",
@@ -31,10 +34,15 @@
 		"striptags": "^3.1.1"
 	},
 	"devDependencies": {
+		"css-loader": "^3.6.0",
 		"husky": "^3.0.2",
 		"nodemon": "^2.0.3",
+		"npm-run-all": "^4.1.5",
 		"prettier": "^1.18.2",
-		"pretty-quick": "^1.11.1"
+		"pretty-quick": "^1.11.1",
+		"style-loader": "^1.2.1",
+		"webpack": "^4.43.0",
+		"webpack-cli": "^3.3.12"
 	},
 	"husky": {
 		"hooks": {

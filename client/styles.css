@@ -24,6 +24,22 @@ input[type="text"] {
 	padding: 16px;
 }
 
+.btn-default {
+	color: #333;
+	background-color: #fff;
+	border-color: #ccc;
+}
+
+.btn-default:hover {
+	color: #333;
+	background-color: #e6e6e6;
+	border-color: #adadad;
+}
+
+#lobby-settings {
+	font-size: 0.9em;
+}
+
 .btn-toolbar {
 	text-align: center;
 	display: inline-block;
@@ -54,6 +70,7 @@ input[type="text"] {
 
 .user-container {
 	padding: 3px;
+	width: 50%;
 }
 
 .disconnected {
@@ -71,6 +88,9 @@ input[type="text"] {
 
 .input-container {
 	text-align: left;
+	max-width: 16em;
+	align-self: center;
+	margin: 0 auto;
 }
 
 .thanks-panel {

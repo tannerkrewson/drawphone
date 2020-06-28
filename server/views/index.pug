@@ -8,7 +8,7 @@ block content
   div
     span.glyphicon.glyphicon-pencil(aria-hidden='true',style="padding-right:2px;")
     span.glyphicon.glyphicon-earphone(aria-hidden='true',style="padding-left:2px;")
-  h1#title Drawphone
+  h2#title Drawphone
   p#subtitle Telephone with pictures
   hr
   div#mainmenu
@@ -17,11 +17,11 @@ block content
       a(href='https://dpk.tannerkrewson.com/', style="font-weight:bold;font-family:monospace;text-align:center;") dpk.tannerkrewson.com
       p It is the exact same game, except 18+ word packs are hidden.
     .btn-toolbar
-      button#joinbtn.btn.btn-default.btn-lg(type='button') Join Game
+      button#joinbtn.btn.btn-default.btn-lg.mr-2(type='button') Join Game
       button#newbtn.btn.btn-default.btn-lg(type='button') New Game
     br
     .btn-toolbar
-      button#archivebtn.btn.btn-default(type='button') View Previous Results
+      button#archivebtn.btn.btn-default.mt-2(type='button') View Previous Results
     br
     br
     .btn-group-vertical(role="group" aria-label="...")
@@ -30,10 +30,11 @@ block content
       button#mgbtn.btn.btn-default(type='button') Games Like Drawphone
       a.btn.btn-default(type='button', role='button', href='https://docs.google.com/forms/d/e/1FAIpQLSe0lIL4ZYxyKDNHqv25VkLqOg7tk2VhOcOA-yDAuYxKFx6kyw/viewform', target='_blank') Submit Feedback
       a.btn.btn-default(type='button', role='button', href='https://www.reddit.com/r/boardgames/comments/7lhj20/a_year_ago_i_was_wondering_why_there_were_no/', target='_blank') Original Reddit Post
-      br
-      include buymebutton.pug
-  div.row
-    div.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2
+    br
+    br
+    include buymebutton.pug
+  div.row.justify-content-center
+    div.col
       div#joinmenu.hidden
         h4 Join a game
         form
@@ -45,7 +46,7 @@ block content
             .form-group
               input#joininname.form-control(type='text', placeholder='Use your real name!', maxlength=16)
           .btn-toolbar
-            button#joinmenu-back.btn.btn-default.btn-lg(type='button') Back
+            button#joinmenu-back.btn.btn-default.btn-lg.mr-2(type='button') Back
             button#joinmenu-go.btn.btn-default.btn-lg(type='submit') Join
       div#newmenu.hidden
         h4 Start a game
@@ -55,26 +56,27 @@ block content
             .form-group
               input#newinname.form-control(type='text', placeholder='Use your real name!', maxlength=16)
           .btn-toolbar 
-            button#newmenu-back.btn.btn-default.btn-lg(type='button') Back
+            button#newmenu-back.btn.btn-default.btn-lg.mr-2(type='button') Back
             button#newmenu-go.btn.btn-default.btn-lg(type='submit') Start
   div#lobby.hidden
-    div.row
+    div.row.justify-content-center
       div.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2
         h4 Players:
         ul#lobby-players.list-unstyled.row
       br
       button#lobby-prevres.btn.btn-default(type='button').hidden View Last Round's Results
       br
+    div.row.justify-content-center
       div#lobby-settings.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2.hidden
         h4 Game Settings:
-        .checkbox
+        .form-check
           label
             input#lobby-settings-wordfirst(type='checkbox')
-            | Players write first word (not recommended for first time)
-        .checkbox
+            | &nbsp;&nbsp;Players write first word (not recommended for first time)
+        .form-check
           label
             input#lobby-settings-showNeighbors(type='checkbox')
-            | Show identity of players you are passing to and from
+            | &nbsp;&nbsp;Show identity of players you are passing to and from
         label Word pack:
         select.form-control#lobby-settings-wordpack
           option(disabled='', selected='') Select a word pack...
@@ -93,7 +95,7 @@ block content
           option 1 minute
     br
     .btn-toolbar
-      button#lobby-leave.btn.btn-default.btn-lg(type='button') Leave Game
+      button#lobby-leave.btn.btn-default.btn-lg.mr-2(type='button') Leave Game
       button#lobby-start.btn.btn-default.btn-lg.disabled.hidden(type='button') Start Game
     br
     br
@@ -129,8 +131,8 @@ block content
       input#game-word-in.form-control(type='text', placeholder='Enter your title here')
     br
     .btn-toolbar#game-buttons.hidden
-      button#game-drawing-undo.btn.btn-default.btn-lg.disabled(type='button') Undo
-      button#game-drawing-redo.btn.btn-default.btn-lg.disabled(type='button') Redo
+      button#game-drawing-undo.btn.btn-default.btn-lg.disabled.mr-2(type='button') Undo
+      button#game-drawing-redo.btn.btn-default.btn-lg.disabled.mr-2(type='button') Redo
       button#game-send.btn.btn-default.btn-lg(type='button') Done
   div#result.hidden
     div#result-content

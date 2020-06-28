@@ -27,7 +27,7 @@ $(function() {
 //
 //  Constants
 //
-const HIDDEN = "hidden";
+const HIDDEN = "d-none";
 const DRAWING = "drawing";
 const WORD = "word";
 const FIRST_WORD = "first-word";
@@ -973,31 +973,31 @@ Results.prototype.displayChain = function(chain) {
 		var link = chain.links[i];
 		if (i === 0 && link.type === WORD) {
 			results.append(
-				"<h3>The first word:</h3><h1>" + link.data + "</h1>"
+				"<h4>The first word:</h4><h2>" + link.data + "</h2>"
 			);
 		} else if (i === 1 && chain.links[0].type === FIRST_WORD) {
 			results.append(
-				"<h3>" +
+				"<h4>" +
 					link.player.name +
-					" wanted someone to draw:</h3><h1>" +
+					" wanted someone to draw:</h4><h2>" +
 					link.data +
-					"</h1>"
+					"</h2>"
 			);
 		} else if (link.type === DRAWING) {
 			results.append(
-				"<h3>" +
+				"<h4>" +
 					link.player.name +
-					' drew:</h3><img class="drawing" src="' +
+					' drew:</h4><img class="drawing" src="' +
 					link.data +
 					'"></img>'
 			);
 		} else if (link.type === WORD) {
 			results.append(
-				"<h3>" +
+				"<h4>" +
 					link.player.name +
-					" thought that was:</h3><h1>" +
+					" thought that was:</h4><h2>" +
 					link.data +
-					"</h1>"
+					"</h2>"
 			);
 		}
 	}

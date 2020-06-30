@@ -74,7 +74,8 @@ WordPacks.prototype.getRandomWord = function(packName) {
 WordPacks.getAllPackNames = function(excludeNSFW) {
 	var names = [];
 	PACK_NAMES.forEach(function(packName) {
-		if (!excludeNSFW || !packName.includes("18+")) {
+		// + for 18+ or 13+
+		if (!excludeNSFW || !packName.includes("+")) {
 			names.push(packName);
 		}
 	});

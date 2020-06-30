@@ -8,6 +8,7 @@ const PACK_NAMES = [
 	"Pictionary (recommended)",
 	"Telestrations",
 	"Cards Against Humanity (18+)",
+	"Cards Against Humanity Family Edition (13+)",
 	"Animals",
 	"Adjectives",
 	"Verbs"

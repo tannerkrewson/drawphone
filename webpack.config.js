@@ -24,6 +24,13 @@ module.exports = (_, { mode }) => ({
 			{
 				test: /\.woff($|\?)|\.woff2($|\?)|\.ttf($|\?)|\.eot($|\?)|\.svg($|\?)/,
 				loader: "url-loader"
+			},
+			{
+				test: /\.svg$/,
+				loader: "file-loader",
+				options: {
+					name: "[name].[ext]"
+				}
 			}
 		]
 	}

@@ -27,6 +27,10 @@ $(function() {
 	});
 });
 
+if (!location.hostname.startsWith("dpk")) {
+	$(".hide-on-dpk").show();
+}
+
 //
 //  Constants
 //

@@ -35,7 +35,7 @@ block content
     include buymebutton.pug
   div.row.justify-content-center
     div.col
-      div#joinmenu.hidden
+      div#joinmenu.d-none
         h5 Join a game
         form
           .input-container
@@ -48,7 +48,7 @@ block content
           .btn-toolbar
             button#joinmenu-back.btn.btn-default.btn-lg.mr-2(type='button') Back
             button#joinmenu-go.btn.btn-default.btn-lg(type='submit') Join
-      div#newmenu.hidden
+      div#newmenu.d-none
         h5 Start a game
         form
           .input-container
@@ -58,16 +58,16 @@ block content
           .btn-toolbar 
             button#newmenu-back.btn.btn-default.btn-lg.mr-2(type='button') Back
             button#newmenu-go.btn.btn-default.btn-lg(type='submit') Start
-  div#lobby.hidden
+  div#lobby.d-none
     div.row.justify-content-center.mb-2
       div.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2
         h5 Players:
         ul#lobby-players.list-unstyled.row
       br
-      button#lobby-prevres.btn.btn-default.mt-2(type='button').hidden View Last Round's Results
+      button#lobby-prevres.btn.btn-default.mt-2(type='button').d-none View Last Round's Results
       br
     p.row.justify-content-center.mb-2
-      div#lobby-settings.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2.hidden
+      div#lobby-settings.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2.d-none
         h5 Game Settings:
         .checkboxes.mb-3
           .custom-control.custom-switch
@@ -94,7 +94,7 @@ block content
     br
     .btn-toolbar
       button#lobby-leave.btn.btn-default.btn-lg.mr-2(type='button') Leave Game
-      button#lobby-start.btn.btn-default.btn-lg.disabled.hidden(type='button') Start Game
+      button#lobby-start.btn.btn-default.btn-lg.disabled.d-none(type='button') Start Game
     br
     br
     div.card.thanks-panel
@@ -108,9 +108,9 @@ block content
         include buymebutton.pug
 
 
-  div#game.hidden
+  div#game.d-none
     div#neighboring-players-container.neighboring-players-container
-      div#previous-player-container.player-name.hidden
+      div#previous-player-container.player-name.d-none
         div Receiving from
         div#previous-player
       span#previous-player-arrow.next-player-arrow.glyphicon.glyphicon-arrow-right(aria-hidden='true')
@@ -119,20 +119,20 @@ block content
       div#next-player-container.player-name
         div Sending to
         div#next-player
-    div#game-drawing.hidden
+    div#game-drawing.d-none
       h5#game-timer
       canvas#game-drawing-canvas.drawing(width='600', height='600')
-    div#game-word.hidden
+    div#game-word.d-none
       img#game-word-drawingtoname.drawing
       br
       br
       input#game-word-in.form-control(type='text', placeholder='Enter your title here')
     br
-    .btn-toolbar#game-buttons.hidden
+    .btn-toolbar#game-buttons.d-none
       button#game-drawing-undo.btn.btn-default.btn-lg.disabled.mr-2(type='button') Undo
       button#game-drawing-redo.btn.btn-default.btn-lg.disabled.mr-2(type='button') Redo
       button#game-send.btn.btn-default.btn-lg(type='button') Done
-  div#result.hidden
+  div#result.d-none
     div#result-content
     br
     #result-others.btn-group-vertical(role='group', aria-label='...')
@@ -140,24 +140,24 @@ block content
     br
     .btn-toolbar#result-buttons
       button#result-done.btn.btn-default.btn-lg(type='button') Done
-  div#waiting.hidden
+  div#waiting.d-none
     div.row
       div.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2
         h5 Still waiting for:
         ul#waiting-players.list-unstyled.row
-        div#waiting-adminmsg.hidden
+        div#waiting-adminmsg.d-none
           br
           h5 A note to the admin:
           p If someone has left the game and their box is still white, tap 
             | their box to put them up for replacement. Anyone will be able to 
             | rejoin in their place.
-        div#waiting-disconnectedmsg.hidden
+        div#waiting-disconnectedmsg.d-none
           br
           h5 Someone left!
           p It looks like someone has disconnected. They are marked by a grey 
             | box above. The game will continue when someone joins this game to 
             | take their place.
-  div#replace.hidden
+  div#replace.d-none
     div#replace-choices
     br
     .btn-toolbar#replace-buttons

@@ -756,7 +756,12 @@ Game.prototype.newLink = function(res) {
 		//show the word creator
 		this.showWord();
 	} else if (lastLinkType === WORD) {
-		Screen.prototype.setTitle.call(this, "Please draw: " + lastLink.data);
+		Screen.prototype.setTitle.call(
+			this,
+			'<span class="avoidwrap">Please draw:&nbsp;</span><span class="avoidwrap">' +
+				lastLink.data +
+				"</span>"
+		);
 
 		//show drawing creator
 		this.showDrawing();
@@ -973,21 +978,23 @@ Results.prototype.displayChain = function(chain) {
 		var link = chain.links[i];
 		if (i === 0 && link.type === WORD) {
 			results.append(
-				"<h4>The first word:</h4><h2>" + link.data + "</h2>"
+				'<h4>The first word:</h4><h1 class="mb-4">' +
+					link.data +
+					"</h1>"
 			);
 		} else if (i === 1 && chain.links[0].type === FIRST_WORD) {
 			results.append(
 				"<h4>" +
 					link.player.name +
-					" wanted someone to draw:</h4><h2>" +
+					' wanted someone to draw:</h4><h1 class="mb-4">' +
 					link.data +
-					"</h2>"
+					"</h1>"
 			);
 		} else if (link.type === DRAWING) {
 			results.append(
 				"<h4>" +
 					link.player.name +
-					' drew:</h4><img class="drawing" src="' +
+					' drew:</h4><img class="drawing mb-4" src="' +
 					link.data +
 					'"></img>'
 			);
@@ -995,9 +1002,9 @@ Results.prototype.displayChain = function(chain) {
 			results.append(
 				"<h4>" +
 					link.player.name +
-					" thought that was:</h4><h2>" +
+					' thought that was:</h4><h1 class="mb-4">' +
 					link.data +
-					"</h2>"
+					"</h1>"
 			);
 		}
 	}
@@ -1006,13 +1013,13 @@ Results.prototype.displayChain = function(chain) {
 	wentFromBox += '<br><div class="well">';
 	var firstIndex = chain.links[0].type === FIRST_WORD ? 1 : 0;
 	wentFromBox +=
-		"<h4>You started with:</h4><h2>" +
+		"<h4>You started with:</h4><h1>" +
 		chain.links[firstIndex].data +
-		"</h2><br>";
+		"</h1><br>";
 	wentFromBox +=
-		"<h4>and ended up with:</h4><h2>" +
+		"<h4>and ended up with:</h4><h1>" +
 		chain.links[chain.links.length - 1].data +
-		"</h2>";
+		"</h1>";
 	wentFromBox += "</div>";
 	results.append(wentFromBox);
 };

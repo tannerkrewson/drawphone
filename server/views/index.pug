@@ -8,14 +8,14 @@ block content
   div
     span.glyphicon.glyphicon-pencil(aria-hidden='true',style="padding-right:2px;")
     span.glyphicon.glyphicon-earphone(aria-hidden='true',style="padding-left:2px;")
-  h2#title Drawphone
+  h1#title Drawphone
   p#subtitle Telephone with pictures
   hr
   div#mainmenu
     .alert.alert-success(role='success', style="text-align:center;")
-      p If you are playing Drawphone with kids, try using:
-      a(href='https://dpk.tannerkrewson.com/', style="font-weight:bold;font-family:monospace;text-align:center;") dpk.tannerkrewson.com
-      p It is the exact same game, except 18+ word packs are hidden.
+      div If you are playing Drawphone with kids, try using:
+      a(href='https://dpk.tannerkrewson.com/', style="font-weight:bold;font-family:monospace;font-size:1.2em") dpk.tannerkrewson.com
+      div It is the exact same game, except 18+ word packs are hidden.
     .btn-toolbar
       button#joinbtn.btn.btn-default.btn-lg.mr-2(type='button') Join Game
       button#newbtn.btn.btn-default.btn-lg(type='button') New Game
@@ -36,7 +36,7 @@ block content
   div.row.justify-content-center
     div.col
       div#joinmenu.hidden
-        h4 Join a game
+        h5 Join a game
         form
           .input-container
             label Game Code:
@@ -49,7 +49,7 @@ block content
             button#joinmenu-back.btn.btn-default.btn-lg.mr-2(type='button') Back
             button#joinmenu-go.btn.btn-default.btn-lg(type='submit') Join
       div#newmenu.hidden
-        h4 Start a game
+        h5 Start a game
         form
           .input-container
             label Name:
@@ -59,30 +59,28 @@ block content
             button#newmenu-back.btn.btn-default.btn-lg.mr-2(type='button') Back
             button#newmenu-go.btn.btn-default.btn-lg(type='submit') Start
   div#lobby.hidden
-    div.row.justify-content-center
+    div.row.justify-content-center.mb-2
       div.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2
-        h4 Players:
+        h5 Players:
         ul#lobby-players.list-unstyled.row
       br
-      button#lobby-prevres.btn.btn-default(type='button').hidden View Last Round's Results
+      button#lobby-prevres.btn.btn-default.mt-2(type='button').hidden View Last Round's Results
       br
-    div.row.justify-content-center
+    p.row.justify-content-center.mb-2
       div#lobby-settings.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2.hidden
-        h4 Game Settings:
-        .form-check
-          label
-            input#lobby-settings-wordfirst(type='checkbox')
-            | &nbsp;&nbsp;Players write first word (not recommended for first time)
-        .form-check
-          label
-            input#lobby-settings-showNeighbors(type='checkbox')
-            | &nbsp;&nbsp;Show identity of players you are passing to and from
+        h5 Game Settings:
+        .checkboxes.mb-3
+          .custom-control.custom-switch
+            input#lobby-settings-wordfirst.custom-control-input(type='checkbox')
+            label.custom-control-label(for='lobby-settings-wordfirst') Players write first word (not recommended for first time)
+          .custom-control.custom-switch
+            input#lobby-settings-showNeighbors.custom-control-input(type='checkbox')
+            label.custom-control-label(for='lobby-settings-showNeighbors') Show identity of players you are passing to and from
         label Word pack:
-        select.form-control#lobby-settings-wordpack
+        select.form-control#lobby-settings-wordpack.mb-2
           option(disabled='', selected='') Select a word pack...
           for item in wordpacks
             option #{item}
-        br
         label Time limit:
         select.form-control#lobby-settings-timelimit
           option(disabled='', selected='') Select a drawing time limit...
@@ -99,8 +97,8 @@ block content
       button#lobby-start.btn.btn-default.btn-lg.disabled.hidden(type='button') Start Game
     br
     br
-    div.panel.panel-default.thanks-panel
-      div.panel-body
+    div.card.thanks-panel
+      div.card-body
         div Thanks for playing Drawphone!
         p If you had fun, try out my other game:
         a.btn.btn-default(type='button', role='button', href='https://spyfall.tannerkrewson.com/', style='font-size:1.1em;') Play Spyfall
@@ -122,7 +120,7 @@ block content
         div Sending to
         div#next-player
     div#game-drawing.hidden
-      h4#game-timer
+      h5#game-timer
       canvas#game-drawing-canvas.drawing(width='600', height='600')
     div#game-word.hidden
       img#game-word-drawingtoname.drawing
@@ -145,17 +143,17 @@ block content
   div#waiting.hidden
     div.row
       div.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2
-        h4 Still waiting for:
+        h5 Still waiting for:
         ul#waiting-players.list-unstyled.row
         div#waiting-adminmsg.hidden
           br
-          h4 A note to the admin:
+          h5 A note to the admin:
           p If someone has left the game and their box is still white, tap 
             | their box to put them up for replacement. Anyone will be able to 
             | rejoin in their place.
         div#waiting-disconnectedmsg.hidden
           br
-          h4 Someone left!
+          h5 Someone left!
           p It looks like someone has disconnected. They are marked by a grey 
             | box above. The game will continue when someone joins this game to 
             | take their place.

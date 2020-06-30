@@ -7,7 +7,7 @@
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-sweetalert/dist/sweetalert.css";
-import "typeface-slabo-27px";
+import "typeface-pangolin";
 import "@fortawesome/fontawesome-free/svgs/solid/pencil-alt.svg";
 import "@fortawesome/fontawesome-free/svgs/solid/phone-alt.svg";
 import "@fortawesome/fontawesome-free/svgs/solid/arrow-right.svg";

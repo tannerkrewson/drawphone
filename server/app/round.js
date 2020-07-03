@@ -87,7 +87,7 @@ Round.prototype.sendNewChains = function() {
 		: null;
 
 	this.players.forEach(function(player) {
-		if (player.isAi) player.setAIGuessQueue(this.aiGuessQueue);
+		if (player.isAi) player.setAIGuessQueue(self.aiGuessQueue);
 
 		//give each player a chain of their own
 		var wordToDraw = words.getRandomWord(self.wordPackName);
@@ -157,6 +157,8 @@ Round.prototype.nextLinkIfEveryoneIsDone = function() {
 	var noneDisconnected = this.disconnectedPlayers.length === 0;
 
 	if (allFinished && noneDisconnected) {
+		this.aiGuessQueue.reset();
+
 		//check if that was the last link
 		if (this.shouldHaveThisManyLinks === this.finalNumOfLinks) {
 			this.viewResults();

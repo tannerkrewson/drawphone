@@ -43,12 +43,15 @@ class PlayerAI extends Player {
 				.json()
 				.then(({ hits }) => {
 					if (hits.length === 0) {
-						link.data = "https://picsum.photos/500";
+						throw Error;
 					} else {
 						link.data = hits[0].webformatURL;
 					}
-					this.#lastCallback({ link });
-				});
+				})
+				.catch(() => {
+					link.data = "https://picsum.photos/500";
+				})
+				.then(() => this.#lastCallback({ link }));
 		} else if (linkType === "drawing") {
 			link.type = "word";
 			this.aiGuessQueue.addWork({

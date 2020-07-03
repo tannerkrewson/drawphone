@@ -32,7 +32,11 @@ class AIGuessQueue {
 			"makeAIGuess",
 			drawingToGuess,
 			"AIGuessResult",
-			next
+			res => {
+				next(res);
+
+				this.playerAvailableForWork(nextPlayer);
+			}
 		);
 
 		// TODO handle work never comes back

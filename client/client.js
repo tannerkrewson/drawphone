@@ -913,8 +913,6 @@ Game.prototype.showNeighbors = function(
 		showElement("#previous-player-arrow");
 	}
 
-	console.log(count, finalCount);
-
 	if (count === finalCount) {
 		$("#next-player-container").addClass(HIDDEN);
 		$("#next-player-arrow").addClass(HIDDEN);
@@ -1492,3 +1490,16 @@ function getQuickInfoStringOfResults(results) {
 	result += ", etc.";
 	return result;
 }
+
+socket.on("makeAIGuess", ({ data: drawingToGuess }) => {
+	setTimeout(
+		() =>
+			socket.emit("AIGuessResult", {
+				link: {
+					type: "word",
+					data: "it's a girl!"
+				}
+			}),
+		3000
+	);
+});

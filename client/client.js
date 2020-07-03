@@ -20,6 +20,11 @@ import "blueimp-canvas-to-blob";
 import swal from "bootstrap-sweetalert";
 import Dexie from "dexie";
 
+import "@tensorflow/tfjs-core";
+import "@tensorflow/tfjs-converter";
+import "@tensorflow/tfjs-backend-webgl";
+const mobilenet = require("@tensorflow-models/mobilenet");
+
 //prevent page from refreshing when Join game buttons are pressed
 $(function() {
 	$("form").submit(function() {
@@ -1492,14 +1497,27 @@ function getQuickInfoStringOfResults(results) {
 }
 
 socket.on("makeAIGuess", ({ data: drawingToGuess }) => {
-	setTimeout(
-		() =>
+	console.log("make ai guess");
+
+	const image = new Image();
+	image.src = drawingToGuess;
+	image.crossOrigin = "anonymous";
+
+	// Load the model.
+	mobilenet.load().then(model => {
+		// Classify the image.
+		model.classify(image).then(predictions => {
+			console.log(predictions);
+
+			const [firstPrediction] = predictions;
+			const { className, probability } = firstPrediction;
+
 			socket.emit("AIGuessResult", {
 				link: {
 					type: "word",
-					data: "it's a girl!"
+					data: className
 				}
-			}),
-		3000
-	);
+			});
+		});
+	});
 });

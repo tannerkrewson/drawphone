@@ -28,6 +28,8 @@ class AIGuessQueue {
 		const nextPlayer = this.workerQueue.shift();
 		const { drawingToGuess, next } = this.workQueue.shift();
 
+		console.log("sending work to", nextPlayer.name);
+
 		nextPlayer.sendThen(
 			"makeAIGuess",
 			drawingToGuess,

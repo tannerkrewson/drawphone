@@ -42,14 +42,11 @@ class PlayerAI extends Player {
 			})
 				.json()
 				.then(({ hits }) => {
-					if (hits.length === 0) {
-						throw Error;
-					} else {
-						link.data = hits[0].webformatURL;
-					}
+					link.data = hits[0].webformatURL;
 				})
 				.catch(() => {
-					link.data = "https://picsum.photos/500";
+					link.data =
+						"https://cdnimg.webstaurantstore.com/images/products/large/54304/973800.jpg";
 				})
 				.then(() => this.#lastCallback({ link }));
 		} else if (linkType === "drawing") {

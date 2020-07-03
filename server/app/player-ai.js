@@ -4,6 +4,7 @@ var Player = require("./player");
 
 class PlayerAI extends Player {
 	#lastCallback;
+	isAi = true;
 
 	constructor(name, socket, id) {
 		super(name, {}, id);
@@ -50,11 +51,16 @@ class PlayerAI extends Player {
 				});
 		} else if (linkType === "drawing") {
 			link.type = "word";
-			link.data = "randomword";
+			this.aiGuessQueue.addWork({
+				drawingToGuess: linkContent,
+				next: this.#lastCallback
+			});
 		}
 	}
 
-	static wordToDrawing() {}
+	setAIGuessQueue(aiGuessQueue) {
+		this.aiGuessQueue = aiGuessQueue;
+	}
 }
 
 module.exports = PlayerAI;

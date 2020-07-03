@@ -4,6 +4,7 @@
 
 var Round = require("./round");
 var Player = require("./player");
+var PlayerAI = require("./player-ai");
 
 function Game(code, onEmpty) {
 	this.code = code;
@@ -16,6 +17,20 @@ function Game(code, onEmpty) {
 	this.currentId = 1;
 	this.currentRoundNum = 1;
 	this.timeOfLastAction = new Date();
+
+	// TODO
+	setTimeout(() => {
+		this.players.push(
+			new PlayerAI("AI Garry", undefined, this.getNextId())
+		);
+		this.players.push(
+			new PlayerAI("AI Larry", undefined, this.getNextId())
+		);
+		this.players.push(
+			new PlayerAI("AI Jerry", undefined, this.getNextId())
+		);
+		this.sendUpdatedPlayersList();
+	}, 2000);
 }
 
 Game.prototype.newPlayer = function(name, socket) {

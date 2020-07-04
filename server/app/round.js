@@ -41,7 +41,9 @@ function Round(
 	}
 
 	this.finalNumOfLinks;
-	this.aiGuessQueue = new AIGuessQueue();
+	this.aiGuessQueue = new AIGuessQueue(() =>
+		words.getRandomWord(this.wordPackName)
+	);
 }
 
 Round.prototype.start = function() {

@@ -1507,43 +1507,39 @@ function getQuickInfoStringOfResults(results) {
 }
 
 socket.on("makeAIGuess", ({ data: drawingToGuess }) => {
-	try {
-		console.log("make ai guess on", drawingToGuess);
+	console.log("make ai guess on", drawingToGuess);
 
-		const image = new Image();
+	const image = new Image();
 
-		image.onload = () =>
-			mobilenet
-				.load()
-				.then(model =>
-					model.classify(image).then(predictions => {
-						console.log(predictions);
+	image.onload = () =>
+		mobilenet
+			.load()
+			.then(model =>
+				model.classify(image).then(predictions => {
+					console.log(predictions);
 
-						const [firstPrediction] = predictions;
-						const { className, probability } = firstPrediction;
+					const [firstPrediction] = predictions;
+					const { className, probability } = firstPrediction;
 
-						socket.emit("AIGuessResult", {
-							success: true,
-							link: {
-								type: "word",
-								data: className.split(",")[0]
-							}
-						});
-					})
-				)
-				.catch(e => {
-					console.error(e);
 					socket.emit("AIGuessResult", {
-						success: false
+						success: true,
+						link: {
+							type: "word",
+							data: className.split(",")[0]
+						}
 					});
-				});
-
-		image.crossOrigin = "anonymous";
-		image.src = drawingToGuess;
-	} catch (e) {
-		console.error(e);
-		socket.emit("AIGuessResult", {
-			success: false
-		});
-	}
+				})
+			)
+			.catch(onMakeAIGuessError);
+	image.onabort = onMakeAIGuessError;
+	image.onerror = onMakeAIGuessError;
+	image.crossorigin = "anonymous";
+	image.src = drawingToGuess;
 });
+
+function onMakeAIGuessError(e) {
+	console.error(e);
+	socket.emit("AIGuessResult", {
+		success: false
+	});
+}

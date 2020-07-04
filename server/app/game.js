@@ -29,6 +29,33 @@ function Game(code, onEmpty) {
 		this.players.push(
 			new PlayerAI("AI Jerry", undefined, this.getNextId())
 		);
+		this.players.push(
+			new PlayerAI("AI Garry 2", undefined, this.getNextId())
+		);
+		this.players.push(
+			new PlayerAI("AI Larry 2", undefined, this.getNextId())
+		);
+		this.players.push(
+			new PlayerAI("AI Jerry 2", undefined, this.getNextId())
+		);
+		this.players.push(
+			new PlayerAI("AI Garry 3", undefined, this.getNextId())
+		);
+		this.players.push(
+			new PlayerAI("AI Larry 3", undefined, this.getNextId())
+		);
+		this.players.push(
+			new PlayerAI("AI Jerry 3", undefined, this.getNextId())
+		);
+		this.players.push(
+			new PlayerAI("AI Garry 4", undefined, this.getNextId())
+		);
+		this.players.push(
+			new PlayerAI("AI Larry 4", undefined, this.getNextId())
+		);
+		this.players.push(
+			new PlayerAI("AI Jerry 4", undefined, this.getNextId())
+		);
 		this.sendUpdatedPlayersList();
 	}, 2000);
 }

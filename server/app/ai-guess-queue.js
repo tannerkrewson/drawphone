@@ -1,5 +1,8 @@
+const PlayerAI = require("./player-ai");
+
 class AIGuessQueue {
-	constructor() {
+	constructor(getRandomWord) {
+		this.getRandomWord = getRandomWord;
 		this.reset();
 	}
 
@@ -25,21 +28,35 @@ class AIGuessQueue {
 	}
 
 	giveNextWorkerNextWork() {
-		const nextPlayer = this.workerQueue.shift();
-		const { drawingToGuess, next } = this.workQueue.shift();
+		const { drawingToGuess, next, attempts = 0 } = this.workQueue.shift();
 
-		console.log("sending work to", nextPlayer.name);
+		if (attempts < 3) {
+			const nextPlayer = this.workerQueue.shift();
+			console.log("sending work to", nextPlayer.name);
 
-		nextPlayer.sendThen(
-			"makeAIGuess",
-			drawingToGuess,
-			"AIGuessResult",
-			res => {
-				next(res);
+			nextPlayer.sendThen(
+				"makeAIGuess",
+				drawingToGuess,
+				"AIGuessResult",
+				res => {
+					if (res.success) {
+						next(res);
+					} else {
+						this.addWork({
+							drawingToGuess,
+							next,
+							attempts: attempts + 1
+						});
+					}
 
-				this.playerAvailableForWork(nextPlayer);
-			}
-		);
+					this.playerAvailableForWork(nextPlayer);
+				}
+			);
+		} else {
+			next({
+				link: { type: "word", data: this.getRandomWord() }
+			});
+		}
 
 		// TODO handle work never comes back
 	}

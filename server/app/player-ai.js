@@ -38,7 +38,7 @@ class PlayerAI extends Player {
 		if (linkType === "word") {
 			const image =
 				(await PlayerAI.findImageOnShutterstock(linkContent)) ||
-				//(await PlayerAI.findImageOn123RF(linkContent)) ||
+				(await PlayerAI.findImageOn123RF(linkContent)) ||
 				(await PlayerAI.getRandomImage()) ||
 				"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Error.svg/497px-Error.svg.png";
 

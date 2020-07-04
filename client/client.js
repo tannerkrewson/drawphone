@@ -1507,27 +1507,43 @@ function getQuickInfoStringOfResults(results) {
 }
 
 socket.on("makeAIGuess", ({ data: drawingToGuess }) => {
-	console.log("make ai guess");
+	try {
+		console.log("make ai guess on", drawingToGuess);
 
-	const image = new Image();
-	image.src = drawingToGuess;
-	image.crossOrigin = "anonymous";
+		const image = new Image();
 
-	// Load the model.
-	mobilenet.load().then(model => {
-		// Classify the image.
-		model.classify(image).then(predictions => {
-			console.log(predictions);
+		image.onload = () =>
+			mobilenet
+				.load()
+				.then(model =>
+					model.classify(image).then(predictions => {
+						console.log(predictions);
 
-			const [firstPrediction] = predictions;
-			const { className, probability } = firstPrediction;
+						const [firstPrediction] = predictions;
+						const { className, probability } = firstPrediction;
 
-			socket.emit("AIGuessResult", {
-				link: {
-					type: "word",
-					data: className.split(",")[0]
-				}
-			});
+						socket.emit("AIGuessResult", {
+							success: true,
+							link: {
+								type: "word",
+								data: className.split(",")[0]
+							}
+						});
+					})
+				)
+				.catch(e => {
+					console.error(e);
+					socket.emit("AIGuessResult", {
+						success: false
+					});
+				});
+
+		image.crossOrigin = "anonymous";
+		image.src = drawingToGuess;
+	} catch (e) {
+		console.error(e);
+		socket.emit("AIGuessResult", {
+			success: false
 		});
-	});
+	}
 });

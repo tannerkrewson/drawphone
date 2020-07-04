@@ -361,6 +361,8 @@ function Lobby() {
 	this.showNeighborsCheckbox = $("#lobby-settings-showNeighbors");
 	this.timeLimitDropdown = $("#lobby-settings-timelimit");
 	this.wordPackDropdown = $("#lobby-settings-wordpack");
+	this.addBotButton = $("#lobby-settings-addbot");
+	this.removeBotButton = $("#lobby-settings-removebot");
 	this.viewPreviousResultsButton = $("#lobby-prevres");
 	this.gameCode = "";
 
@@ -467,6 +469,9 @@ Lobby.prototype.initialize = function() {
 	this.timeLimitDropdown.prop("selectedIndex", 0);
 	this.wordPackDropdown.prop("selectedIndex", 0);
 	this.wordPackDropdown.prop("disabled", false);
+
+	this.addBotButton.click(() => socket.emit("addBotPlayer"));
+	this.removeBotButton.click(() => socket.emit("removeBotPlayer"));
 
 	ga("send", "event", "Lobby", "created");
 };
@@ -1227,6 +1232,7 @@ function getDrawingCanvas() {
 	var thisCanvas = new fabric.Canvas("game-drawing-canvas");
 	thisCanvas.isDrawingMode = true;
 	thisCanvas.isBlank = true;
+	thisCanvas.freeDrawingBrush.width = 4;
 
 	var state = {
 		canvasState: [],
@@ -1517,10 +1523,10 @@ function classify(image) {
 	const isDoodle = image.src.startsWith("data");
 	const model = isDoodle ? "DoodleNet" : "MobileNet";
 
+	console.log("running", model);
+
 	const classifier = ml5.imageClassifier(model, () =>
 		classifier.classify(image, 1, (err, results) => {
-			console.log(results);
-
 			if (err) {
 				onMakeAIGuessError(err);
 				return;

@@ -80,6 +80,22 @@ module.exports = function(app) {
 			}
 		});
 
+		socket.on("addBotPlayer", function() {
+			if (!thisGame || !thisUser) return;
+
+			if (thisUser.isAdmin) {
+				thisGame.addBotPlayer();
+			}
+		});
+
+		socket.on("removeBotPlayer", function() {
+			if (!thisGame || !thisUser) return;
+
+			if (thisUser.isAdmin) {
+				thisGame.removeBotPlayer();
+			}
+		});
+
 		function onJoinGame(data) {
 			thisGame = dp.findGame(data.code);
 			var theName = stripTags(data.name);

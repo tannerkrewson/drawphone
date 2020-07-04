@@ -57,8 +57,6 @@ class AIGuessQueue {
 				link: { type: "word", data: this.getRandomWord() }
 			});
 		}
-
-		// TODO handle work never comes back
 	}
 
 	reset() {

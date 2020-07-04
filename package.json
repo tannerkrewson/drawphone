@@ -23,10 +23,6 @@
 	"homepage": "https://github.com/tannerkrewson/drawphone#readme",
 	"dependencies": {
 		"@fortawesome/fontawesome-free": "^5.13.1",
-		"@tensorflow-models/mobilenet": "^2.0.4",
-		"@tensorflow/tfjs-backend-webgl": "^2.0.1",
-		"@tensorflow/tfjs-converter": "^2.0.1",
-		"@tensorflow/tfjs-core": "^2.0.1",
 		"assets-webpack-plugin": "^5.0.2",
 		"blueimp-canvas-to-blob": "^3.27.0",
 		"body-parser": "^1.19.0",
@@ -43,6 +39,7 @@
 		"jquery": "^3.5.1",
 		"knuth-shuffle": "^1.0.8",
 		"mini-css-extract-plugin": "^0.9.0",
+		"ml5": "^0.5.0",
 		"morgan": "^1.9.1",
 		"npm-run-all": "^4.1.5",
 		"popper.js": "^1.16.1",

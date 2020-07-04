@@ -20,10 +20,7 @@ import "blueimp-canvas-to-blob";
 import swal from "bootstrap-sweetalert";
 import Dexie from "dexie";
 
-import "@tensorflow/tfjs-core";
-import "@tensorflow/tfjs-converter";
-import "@tensorflow/tfjs-backend-webgl";
-const mobilenet = require("@tensorflow-models/mobilenet");
+import ml5 from "ml5";
 
 //prevent page from refreshing when Join game buttons are pressed
 $(function() {
@@ -1507,35 +1504,41 @@ function getQuickInfoStringOfResults(results) {
 }
 
 socket.on("makeAIGuess", ({ data: drawingToGuess }) => {
-	console.log("make ai guess on", drawingToGuess);
-
 	const image = new Image();
 
-	image.onload = () =>
-		mobilenet
-			.load()
-			.then(model =>
-				model.classify(image).then(predictions => {
-					console.log(predictions);
-
-					const [firstPrediction] = predictions;
-					const { className, probability } = firstPrediction;
-
-					socket.emit("AIGuessResult", {
-						success: true,
-						link: {
-							type: "word",
-							data: className.split(",")[0]
-						}
-					});
-				})
-			)
-			.catch(onMakeAIGuessError);
+	image.onload = () => classify(image);
 	image.onabort = onMakeAIGuessError;
 	image.onerror = onMakeAIGuessError;
-	image.crossorigin = "anonymous";
+	image.crossOrigin = "anonymous";
 	image.src = drawingToGuess;
 });
+
+function classify(image) {
+	const isDoodle = image.src.startsWith("data");
+	const model = isDoodle ? "DoodleNet" : "MobileNet";
+
+	const classifier = ml5.imageClassifier(model, () =>
+		classifier.classify(image, 1, (err, results) => {
+			console.log(results);
+
+			if (err) {
+				onMakeAIGuessError(err);
+				return;
+			}
+
+			const [firstPrediction] = results;
+			const { label, confidence } = firstPrediction;
+
+			socket.emit("AIGuessResult", {
+				success: true,
+				link: {
+					type: "word",
+					data: label.split(",")[0]
+				}
+			});
+		})
+	);
+}
 
 function onMakeAIGuessError(e) {
 	console.error(e);

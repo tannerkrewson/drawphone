@@ -59,6 +59,7 @@ function hideAll() {
 	$("#replace").addClass(HIDDEN);
 	$("#previous-player-container").addClass(HIDDEN);
 	$("#previous-player-arrow").addClass(HIDDEN);
+	$("#loading").addClass(HIDDEN);
 }
 
 function showElement(jq) {
@@ -179,6 +180,7 @@ function Screen() {
 	this.id = "";
 	this.title = "Loading Drawphone...";
 	this.subtitle = "Just a moment!";
+	this.isLoading = true;
 
 	this.defaultTitle = "Drawphone";
 	this.defaultSubtitle = "Telephone with pictures";
@@ -214,7 +216,15 @@ Screen.prototype.setDefaultTitles = function() {
 	this.setSubtitle(this.defaultSubtitle);
 };
 
-Screen.waitingForResponse = false;
+Screen.prototype.waitingForResponse = function(isLoading) {
+	this.isLoading = isLoading;
+	hideAll();
+	if (isLoading) {
+		showElement("#loading");
+	} else {
+		showElement(this.id);
+	}
+};
 
 Screen.gameCode = "";
 
@@ -278,8 +288,8 @@ JoinMenu.prototype.initialize = function() {
 
 	this.backButton.click(this.onBack);
 	this.goButton.click(function() {
-		if (!Screen.waitingForResponse) {
-			Screen.waitingForResponse = true;
+		if (!this.isLoading) {
+			Screen.prototype.waitingForResponse.call(this, true);
 			var code = $("#joinincode").val();
 			var name = $("#joininname").val();
 
@@ -329,8 +339,8 @@ NewMenu.prototype.initialize = function() {
 
 	this.backButton.click(this.onBack);
 	this.goButton.click(function() {
-		if (!Screen.waitingForResponse) {
-			Screen.waitingForResponse = true;
+		if (!this.isLoading) {
+			Screen.prototype.waitingForResponse.call(this, true);
 			var name = $("#newinname").val();
 
 			socket.open();
@@ -375,7 +385,7 @@ Lobby.prototype.initialize = function() {
 		location.reload();
 	});
 	this.startButton.click(function() {
-		var ready = !Screen.waitingForResponse && self.checkIfReadyToStart();
+		var ready = !this.isLoading && self.checkIfReadyToStart();
 		if (self.userList.numberOfPlayers === 1 && ready) {
 			swal(
 				{
@@ -506,7 +516,7 @@ Lobby.prototype.show = function(data) {
 			} else {
 				swal(data.error, "", "error");
 			}
-			Screen.waitingForResponse = false;
+			Screen.prototype.waitingForResponse.call(this, false);
 			return;
 		}
 	} else {
@@ -525,7 +535,7 @@ Lobby.prototype.show = function(data) {
 		//grey-out start button
 		this.startButton.addClass("disabled");
 	}
-	Screen.waitingForResponse = false;
+	Screen.prototype.waitingForResponse.call(this, false);
 
 	Screen.prototype.show.call(this);
 };
@@ -579,7 +589,7 @@ Lobby.prototype.checkIfReadyToStart = function() {
 };
 
 Lobby.prototype.start = function() {
-	Screen.waitingForResponse = true;
+	Screen.prototype.waitingForResponse.call(this, true);
 	socket.emit("tryStartGame", {
 		timeLimit: this.selectedTimeLimit,
 		wordPackName: this.wordPack,
@@ -806,7 +816,7 @@ Game.prototype.newLink = function(res) {
 	this.onDone = function() {
 		this.checkIfDone(newLinkType);
 	};
-	Screen.waitingForResponse = false;
+	Screen.prototype.waitingForResponse.call(this, false);
 };
 
 Game.prototype.checkIfDone = function(newLinkType) {

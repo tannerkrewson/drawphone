@@ -17,19 +17,31 @@ module.exports = function(app) {
 	});
 
 	app.get("/how-to-play", function(req, res) {
-		res.render("howtoplay");
+		res.render("howtoplay", {
+			js: webpackAssets.main.js,
+			css: webpackAssets.main.css
+		});
 	});
 
 	app.get("/screenshots", function(req, res) {
-		res.render("screenshots");
+		res.render("screenshots", {
+			js: webpackAssets.main.js,
+			css: webpackAssets.main.css
+		});
 	});
 
 	app.get("/more-games", function(req, res) {
-		res.render("moregames");
+		res.render("moregames", {
+			js: webpackAssets.main.js,
+			css: webpackAssets.main.css
+		});
 	});
 
 	app.get("/archive", function(req, res) {
-		res.render("archive");
+		res.render("archive", {
+			js: webpackAssets.main.js,
+			css: webpackAssets.main.css
+		});
 	});
 
 	app.get("/stats", function(req, res) {
@@ -69,7 +81,9 @@ module.exports = function(app) {
 	if (app.get("env") === "development") {
 		app.get("/dev", function(req, res) {
 			res.render("index", {
-				wordpacks: allPackNames
+				wordpacks: allPackNames,
+				js: webpackAssets.main.js,
+				css: webpackAssets.main.css
 			});
 		});
 	}

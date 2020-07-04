@@ -1,3 +1,5 @@
+const webpackAssets = require("../../webpack-assets.json");
+
 module.exports = function(app) {
 	var dp = app.drawphone;
 	var allPackNames = require("../app/words").getAllPackNames();
@@ -8,7 +10,9 @@ module.exports = function(app) {
 		const wordpacks = isSafeForWorkURL ? safePackNames : allPackNames;
 
 		res.render("index", {
-			wordpacks
+			wordpacks,
+			js: webpackAssets.main.js,
+			css: webpackAssets.main.css
 		});
 	});
 

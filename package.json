@@ -27,6 +27,7 @@
 		"@tensorflow/tfjs-backend-webgl": "^2.0.1",
 		"@tensorflow/tfjs-converter": "^2.0.1",
 		"@tensorflow/tfjs-core": "^2.0.1",
+		"assets-webpack-plugin": "^5.0.2",
 		"blueimp-canvas-to-blob": "^3.27.0",
 		"body-parser": "^1.19.0",
 		"bootstrap": "^4.5.0",

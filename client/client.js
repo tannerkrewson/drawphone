@@ -1515,7 +1515,7 @@ socket.on("makeAIGuess", ({ data: drawingToGuess }) => {
 			socket.emit("AIGuessResult", {
 				link: {
 					type: "word",
-					data: className
+					data: className.split(",")[0]
 				}
 			});
 		});

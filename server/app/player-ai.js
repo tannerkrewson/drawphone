@@ -14,7 +14,8 @@ class PlayerAI extends Player {
 
 		this.socket = {
 			once: this.once.bind(this),
-			emit: this.emit.bind(this)
+			emit: this.emit.bind(this),
+			disconnect: () => {}
 		};
 	}
 

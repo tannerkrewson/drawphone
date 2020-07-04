@@ -1,4 +1,5 @@
 const got = require("got");
+const crypto = require("crypto");
 
 // for shutterstock
 const [username, password] = process.env.SHUTTERSTOCK_API_TOKEN.split(":");
@@ -88,10 +89,9 @@ class PlayerAI extends Player {
 			.catch(() => false);
 
 	static getRandomImage = () =>
-		got("https://loremflickr.com/json/500/500/all")
-			.json()
-			.then(({ file }) => file)
-			.catch(() => false);
+		"https://picsum.photos/seed/" +
+		crypto.randomBytes(20).toString("hex") +
+		"/500/500";
 }
 
 module.exports = PlayerAI;

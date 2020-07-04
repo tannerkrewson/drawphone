@@ -61,14 +61,15 @@ class PlayerAI extends Player {
 			username,
 			password,
 			searchParams: {
-				query: word
+				query: word,
+				view: "minimal",
+				page: 1,
+				per_page: 1,
+				safe: false
 			}
 		})
 			.json()
-			.then(res => {
-				console.log(res);
-				return res.data[0].assets.preview.url;
-			})
+			.then(res => res.data[0].assets.preview.url)
 			.catch(() => false);
 
 	static findImageOn123RF = async word =>

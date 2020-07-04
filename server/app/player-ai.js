@@ -1,5 +1,8 @@
 const got = require("got");
 
+// for shutterstock
+const [username, password] = process.env.SHUTTERSTOCK_API_TOKEN.split(":");
+
 var Player = require("./player");
 
 class PlayerAI extends Player {
@@ -21,7 +24,7 @@ class PlayerAI extends Player {
 		}
 	}
 
-	emit(event, data) {
+	async emit(event, data) {
 		if (event !== "nextLink") return;
 
 		const {
@@ -33,22 +36,13 @@ class PlayerAI extends Player {
 		let link = { player: this.getJson() };
 
 		if (linkType === "word") {
-			link.type = "drawing";
-			got("https://pixabay.com/api/", {
-				searchParams: {
-					key: "XXX",
-					q: linkContent
-				}
-			})
-				.json()
-				.then(({ hits }) => {
-					link.data = hits[0].webformatURL;
-				})
-				.catch(() => {
-					link.data =
-						"https://cdnimg.webstaurantstore.com/images/products/large/54304/973800.jpg";
-				})
-				.then(() => this.#lastCallback({ link }));
+			const image =
+				(await PlayerAI.findImageOnShutterstock(linkContent)) ||
+				//(await PlayerAI.findImageOn123RF(linkContent)) ||
+				(await PlayerAI.getRandomImage()) ||
+				"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Error.svg/497px-Error.svg.png";
+
+			this.#lastCallback({ link: { data: image, type: "drawing" } });
 		} else if (linkType === "drawing") {
 			link.type = "word";
 			this.aiGuessQueue.addWork({
@@ -61,6 +55,41 @@ class PlayerAI extends Player {
 	setAIGuessQueue(aiGuessQueue) {
 		this.aiGuessQueue = aiGuessQueue;
 	}
+
+	static findImageOnShutterstock = async word =>
+		got("https://api.shutterstock.com/v2/images/search", {
+			username,
+			password,
+			searchParams: {
+				query: word
+			}
+		})
+			.json()
+			.then(res => {
+				console.log(res);
+				return res.data[0].assets.preview.url;
+			})
+			.catch(() => false);
+
+	static findImageOn123RF = async word =>
+		got("https://www.123rfapis.com/", {
+			searchParams: {
+				method: "search",
+				keyword: word,
+				itemsperpage: 1,
+				page: 1,
+				source: "123rf"
+			}
+		})
+			.json()
+			.then(res => res[0].images["123RF"].image[0].link_image)
+			.catch(() => false);
+
+	static getRandomImage = () =>
+		got("https://loremflickr.com/json/500/500/all")
+			.json()
+			.then(({ file }) => file)
+			.catch(() => false);
 }
 
 module.exports = PlayerAI;

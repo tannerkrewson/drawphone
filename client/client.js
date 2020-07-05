@@ -470,7 +470,14 @@ Lobby.prototype.initialize = function() {
 	this.wordPackDropdown.prop("selectedIndex", 0);
 	this.wordPackDropdown.prop("disabled", false);
 
-	this.addBotButton.click(() => socket.emit("addBotPlayer"));
+	this.addBotButton.click(() => {
+		swal(
+			"Bad bot",
+			'Warning! The bots are a little janky. They think every drawing is "camouflage". But, they are real bots that make their best guesses based on the Mobilenet and Doodlenet machine learning models. 🤖',
+			"warning"
+		);
+		socket.emit("addBotPlayer");
+	});
 	this.removeBotButton.click(() => socket.emit("removeBotPlayer"));
 
 	ga("send", "event", "Lobby", "created");

@@ -48,12 +48,16 @@ module.exports = function(app) {
 		var games = [];
 		for (var game of dp.games) {
 			var strippedGame = {
-				numberOfPlayers: game.players.length,
+				players: {
+					real: game.players.length - game.botCount,
+					bot: game.botCount,
+					total: game.players.length
+				},
 				inProgress: game.inProgress,
 				roundsPlayed: game.currentRoundNum - 1,
 				lastAction: timeSince(game.timeOfLastAction)
 			};
-			games.push(strippedGame);
+			games.unshift(strippedGame);
 		}
 		res.json({
 			numberOfConnectedUsers: app.io.engine.clientsCount,

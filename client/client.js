@@ -600,11 +600,13 @@ Lobby.prototype.start = function() {
 	ga("send", "event", "Game", "start");
 	ga("send", "event", "Game", "time limit", this.selectedTimeLimit);
 	ga("send", "event", "Game", "word pack", this.wordPack);
+	ga("send", "event", "Game", "number of players", this.userList.realPlayers);
+	ga("send", "event", "Game", "number of bots", this.userList.botPlayers);
 	ga(
 		"send",
 		"event",
 		"Game",
-		"number of players",
+		"number of total players",
 		this.userList.numberOfPlayers
 	);
 };
@@ -1187,6 +1189,8 @@ Replace.prototype.sendChoice = function(playerToReplace) {
 function UserList(ul) {
 	this.ul = ul;
 	this.numberOfPlayers = 0;
+	this.realPlayers = 0;
+	this.botPlayers = 0;
 }
 
 UserList.prototype.update = function(newList, disconnectedList, onPress) {
@@ -1206,8 +1210,13 @@ UserList.prototype.update = function(newList, disconnectedList, onPress) {
 
 UserList.prototype.draw = function(list, makeBoxDark, onPress) {
 	this.numberOfPlayers = 0;
+	this.realPlayers = 0;
+	this.botPlayers = 0;
+
 	for (var i = 0; i < list.length; i++) {
 		this.numberOfPlayers++;
+		list[i].isAi ? this.botPlayers++ : this.realPlayers++;
+
 		var listBox = $("<span></span>");
 		var listItem = $("<li>" + list[i].name + "</li>").appendTo(listBox);
 		listItem.addClass("user");

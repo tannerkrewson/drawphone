@@ -15,7 +15,8 @@ Player.prototype.getJson = function() {
 		name: this.name,
 		id: this.id,
 		isAdmin: this.isAdmin,
-		isConnected: this.isConnected
+		isConnected: this.isConnected,
+		isAi: !!this.isAi
 	};
 };
 

@@ -1066,30 +1066,34 @@ Results.prototype.displayOtherChainButtons = function(
 		others.append("<h4>View more results:</h4>");
 	}
 
+	// alphabetize
+	chainsToList.sort((a, b) => a.owner.name.localeCompare(b.owner.name));
+
 	var self = this;
 	for (var i = 0; i < chainsToList.length; i++) {
 		var chain = chainsToList[i];
 
-		//only make a button for the chain if it is not the one we are now displaying
-		if (chain.id !== chainToIgnore.id) {
-			var button = $(
-				'<button type="button">' +
-					chain.owner.name +
-					"'s results</button>"
-			);
-			button.addClass("btn btn-default btn-lg");
-			(function(thisChain, chainList) {
-				button.click(function() {
-					self.render(thisChain, chainList);
+		const disabled = chain.id === chainToIgnore.id ? "disabled" : "";
 
-					//jump to top of the page
-					window.scrollTo(0, 0);
+		var button = $(
+			'<button type="button"' +
+				disabled +
+				">" +
+				chain.owner.name +
+				"'s results</button>"
+		);
+		button.addClass("btn btn-default btn-lg");
+		(function(thisChain, chainList) {
+			button.click(function() {
+				self.render(thisChain, chainList);
 
-					ga("send", "event", "Results", "display another chain");
-				});
-			})(chain, chainsToList);
-			others.append(button);
-		}
+				//jump to top of the page
+				window.scrollTo(0, 0);
+
+				ga("send", "event", "Results", "display another chain");
+			});
+		})(chain, chainsToList);
+		others.append(button);
 	}
 };
 

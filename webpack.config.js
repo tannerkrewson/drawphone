@@ -1,19 +1,23 @@
 const webpack = require("webpack");
 const path = require("path");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const AssetsPlugin = require("assets-webpack-plugin");
+
+const OUTPUT_DIR = path.resolve(__dirname, "server/public");
 
 module.exports = (_, { mode }) => ({
 	entry: "./client/client.js",
 	output: {
-		filename: "client.js",
-		path: path.resolve(__dirname, "server/public")
+		filename: "[name].[hash].js",
+		path: OUTPUT_DIR
 	},
 	plugins: [
-		new MiniCssExtractPlugin(),
+		new MiniCssExtractPlugin({ filename: "[name].[hash].css" }),
 		new webpack.ProvidePlugin({
 			$: "jquery",
 			jQuery: "jquery"
-		})
+		}),
+		new AssetsPlugin()
 	],
 	module: {
 		rules: [

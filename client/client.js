@@ -20,6 +20,8 @@ import "blueimp-canvas-to-blob";
 import swal from "bootstrap-sweetalert";
 import Dexie from "dexie";
 
+import ml5 from "ml5";
+
 //prevent page from refreshing when Join game buttons are pressed
 $(function() {
 	$("form").submit(function() {
@@ -54,6 +56,7 @@ function hideAll() {
 	$("#replace").addClass(HIDDEN);
 	$("#previous-player-container").addClass(HIDDEN);
 	$("#previous-player-arrow").addClass(HIDDEN);
+	$("#loading").addClass(HIDDEN);
 }
 
 function showElement(jq) {
@@ -174,6 +177,7 @@ function Screen() {
 	this.id = "";
 	this.title = "Loading Drawphone...";
 	this.subtitle = "Just a moment!";
+	this.isLoading = true;
 
 	this.defaultTitle = "Drawphone";
 	this.defaultSubtitle = "Telephone with pictures";
@@ -209,7 +213,15 @@ Screen.prototype.setDefaultTitles = function() {
 	this.setSubtitle(this.defaultSubtitle);
 };
 
-Screen.waitingForResponse = false;
+Screen.prototype.waitingForResponse = function(isLoading) {
+	this.isLoading = isLoading;
+	hideAll();
+	if (isLoading) {
+		showElement("#loading");
+	} else {
+		showElement(this.id);
+	}
+};
 
 Screen.gameCode = "";
 
@@ -273,8 +285,8 @@ JoinMenu.prototype.initialize = function() {
 
 	this.backButton.click(this.onBack);
 	this.goButton.click(function() {
-		if (!Screen.waitingForResponse) {
-			Screen.waitingForResponse = true;
+		if (!this.isLoading) {
+			Screen.prototype.waitingForResponse.call(this, true);
 			var code = $("#joinincode").val();
 			var name = $("#joininname").val();
 
@@ -324,8 +336,8 @@ NewMenu.prototype.initialize = function() {
 
 	this.backButton.click(this.onBack);
 	this.goButton.click(function() {
-		if (!Screen.waitingForResponse) {
-			Screen.waitingForResponse = true;
+		if (!this.isLoading) {
+			Screen.prototype.waitingForResponse.call(this, true);
 			var name = $("#newinname").val();
 
 			socket.open();
@@ -349,6 +361,8 @@ function Lobby() {
 	this.showNeighborsCheckbox = $("#lobby-settings-showNeighbors");
 	this.timeLimitDropdown = $("#lobby-settings-timelimit");
 	this.wordPackDropdown = $("#lobby-settings-wordpack");
+	this.addBotButton = $("#lobby-settings-addbot");
+	this.removeBotButton = $("#lobby-settings-removebot");
 	this.viewPreviousResultsButton = $("#lobby-prevres");
 	this.gameCode = "";
 
@@ -370,7 +384,7 @@ Lobby.prototype.initialize = function() {
 		location.reload();
 	});
 	this.startButton.click(function() {
-		var ready = !Screen.waitingForResponse && self.checkIfReadyToStart();
+		var ready = !this.isLoading && self.checkIfReadyToStart();
 		if (self.userList.numberOfPlayers === 1 && ready) {
 			swal(
 				{
@@ -456,6 +470,16 @@ Lobby.prototype.initialize = function() {
 	this.wordPackDropdown.prop("selectedIndex", 0);
 	this.wordPackDropdown.prop("disabled", false);
 
+	this.addBotButton.click(() => {
+		swal(
+			"Bad bot",
+			'Warning! The bots are a little janky. They think every drawing is "camouflage". But, they are real bots that make their best guesses based on the Mobilenet and Doodlenet machine learning models. 🤖',
+			"warning"
+		);
+		socket.emit("addBotPlayer");
+	});
+	this.removeBotButton.click(() => socket.emit("removeBotPlayer"));
+
 	ga("send", "event", "Lobby", "created");
 };
 
@@ -501,7 +525,7 @@ Lobby.prototype.show = function(data) {
 			} else {
 				swal(data.error, "", "error");
 			}
-			Screen.waitingForResponse = false;
+			Screen.prototype.waitingForResponse.call(this, false);
 			return;
 		}
 	} else {
@@ -520,7 +544,7 @@ Lobby.prototype.show = function(data) {
 		//grey-out start button
 		this.startButton.addClass("disabled");
 	}
-	Screen.waitingForResponse = false;
+	Screen.prototype.waitingForResponse.call(this, false);
 
 	Screen.prototype.show.call(this);
 };
@@ -574,7 +598,7 @@ Lobby.prototype.checkIfReadyToStart = function() {
 };
 
 Lobby.prototype.start = function() {
-	Screen.waitingForResponse = true;
+	Screen.prototype.waitingForResponse.call(this, true);
 	socket.emit("tryStartGame", {
 		timeLimit: this.selectedTimeLimit,
 		wordPackName: this.wordPack,
@@ -583,11 +607,13 @@ Lobby.prototype.start = function() {
 	ga("send", "event", "Game", "start");
 	ga("send", "event", "Game", "time limit", this.selectedTimeLimit);
 	ga("send", "event", "Game", "word pack", this.wordPack);
+	ga("send", "event", "Game", "number of players", this.userList.realPlayers);
+	ga("send", "event", "Game", "number of bots", this.userList.botPlayers);
 	ga(
 		"send",
 		"event",
 		"Game",
-		"number of players",
+		"number of total players",
 		this.userList.numberOfPlayers
 	);
 };
@@ -801,7 +827,7 @@ Game.prototype.newLink = function(res) {
 	this.onDone = function() {
 		this.checkIfDone(newLinkType);
 	};
-	Screen.waitingForResponse = false;
+	Screen.prototype.waitingForResponse.call(this, false);
 };
 
 Game.prototype.checkIfDone = function(newLinkType) {
@@ -912,8 +938,6 @@ Game.prototype.showNeighbors = function(
 		showElement("#previous-player-container");
 		showElement("#previous-player-arrow");
 	}
-
-	console.log(count, finalCount);
 
 	if (count === finalCount) {
 		$("#next-player-container").addClass(HIDDEN);
@@ -1042,30 +1066,34 @@ Results.prototype.displayOtherChainButtons = function(
 		others.append("<h4>View more results:</h4>");
 	}
 
+	// alphabetize
+	chainsToList.sort((a, b) => a.owner.name.localeCompare(b.owner.name));
+
 	var self = this;
 	for (var i = 0; i < chainsToList.length; i++) {
 		var chain = chainsToList[i];
 
-		//only make a button for the chain if it is not the one we are now displaying
-		if (chain.id !== chainToIgnore.id) {
-			var button = $(
-				'<button type="button">' +
-					chain.owner.name +
-					"'s results</button>"
-			);
-			button.addClass("btn btn-default btn-lg");
-			(function(thisChain, chainList) {
-				button.click(function() {
-					self.render(thisChain, chainList);
+		const disabled = chain.id === chainToIgnore.id ? "disabled" : "";
 
-					//jump to top of the page
-					window.scrollTo(0, 0);
+		var button = $(
+			'<button type="button"' +
+				disabled +
+				">" +
+				chain.owner.name +
+				"'s results</button>"
+		);
+		button.addClass("btn btn-default btn-lg");
+		(function(thisChain, chainList) {
+			button.click(function() {
+				self.render(thisChain, chainList);
 
-					ga("send", "event", "Results", "display another chain");
-				});
-			})(chain, chainsToList);
-			others.append(button);
-		}
+				//jump to top of the page
+				window.scrollTo(0, 0);
+
+				ga("send", "event", "Results", "display another chain");
+			});
+		})(chain, chainsToList);
+		others.append(button);
 	}
 };
 
@@ -1172,6 +1200,8 @@ Replace.prototype.sendChoice = function(playerToReplace) {
 function UserList(ul) {
 	this.ul = ul;
 	this.numberOfPlayers = 0;
+	this.realPlayers = 0;
+	this.botPlayers = 0;
 }
 
 UserList.prototype.update = function(newList, disconnectedList, onPress) {
@@ -1191,8 +1221,13 @@ UserList.prototype.update = function(newList, disconnectedList, onPress) {
 
 UserList.prototype.draw = function(list, makeBoxDark, onPress) {
 	this.numberOfPlayers = 0;
+	this.realPlayers = 0;
+	this.botPlayers = 0;
+
 	for (var i = 0; i < list.length; i++) {
 		this.numberOfPlayers++;
+		list[i].isAi ? this.botPlayers++ : this.realPlayers++;
+
 		var listBox = $("<span></span>");
 		var listItem = $("<li>" + list[i].name + "</li>").appendTo(listBox);
 		listItem.addClass("user");
@@ -1217,6 +1252,7 @@ function getDrawingCanvas() {
 	var thisCanvas = new fabric.Canvas("game-drawing-canvas");
 	thisCanvas.isDrawingMode = true;
 	thisCanvas.isBlank = true;
+	thisCanvas.freeDrawingBrush.width = 4;
 
 	var state = {
 		canvasState: [],
@@ -1491,4 +1527,48 @@ function getQuickInfoStringOfResults(results) {
 	result += secondChainLinks[secondChainLinks.length - 1].data;
 	result += ", etc.";
 	return result;
+}
+
+socket.on("makeAIGuess", ({ data: drawingToGuess }) => {
+	const image = new Image();
+
+	image.onload = () => classify(image);
+	image.onabort = onMakeAIGuessError;
+	image.onerror = onMakeAIGuessError;
+	image.crossOrigin = "anonymous";
+	image.src = drawingToGuess;
+});
+
+function classify(image) {
+	const isDoodle = image.src.startsWith("data");
+	const model = isDoodle ? "DoodleNet" : "MobileNet";
+
+	console.log("running", model);
+
+	const classifier = ml5.imageClassifier(model, () =>
+		classifier.classify(image, 1, (err, results) => {
+			if (err) {
+				onMakeAIGuessError(err);
+				return;
+			}
+
+			const [firstPrediction] = results;
+			const { label, confidence } = firstPrediction;
+
+			socket.emit("AIGuessResult", {
+				success: true,
+				link: {
+					type: "word",
+					data: label.split(",")[0]
+				}
+			});
+		})
+	);
+}
+
+function onMakeAIGuessError(e) {
+	console.error(e);
+	socket.emit("AIGuessResult", {
+		success: false
+	});
 }

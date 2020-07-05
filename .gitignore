@@ -1,4 +1,5 @@
 server/public/
+webpack-assets.json
 
 # Logs
 logs

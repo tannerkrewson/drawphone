@@ -1,3 +1,5 @@
+const webpackAssets = require("../../webpack-assets.json");
+
 module.exports = function(app) {
 	var dp = app.drawphone;
 	var allPackNames = require("../app/words").getAllPackNames();
@@ -8,36 +10,54 @@ module.exports = function(app) {
 		const wordpacks = isSafeForWorkURL ? safePackNames : allPackNames;
 
 		res.render("index", {
-			wordpacks
+			wordpacks,
+			js: webpackAssets.main.js,
+			css: webpackAssets.main.css
 		});
 	});
 
 	app.get("/how-to-play", function(req, res) {
-		res.render("howtoplay");
+		res.render("howtoplay", {
+			js: webpackAssets.main.js,
+			css: webpackAssets.main.css
+		});
 	});
 
 	app.get("/screenshots", function(req, res) {
-		res.render("screenshots");
+		res.render("screenshots", {
+			js: webpackAssets.main.js,
+			css: webpackAssets.main.css
+		});
 	});
 
 	app.get("/more-games", function(req, res) {
-		res.render("moregames");
+		res.render("moregames", {
+			js: webpackAssets.main.js,
+			css: webpackAssets.main.css
+		});
 	});
 
 	app.get("/archive", function(req, res) {
-		res.render("archive");
+		res.render("archive", {
+			js: webpackAssets.main.js,
+			css: webpackAssets.main.css
+		});
 	});
 
 	app.get("/stats", function(req, res) {
 		var games = [];
 		for (var game of dp.games) {
 			var strippedGame = {
-				numberOfPlayers: game.players.length,
+				players: {
+					real: game.players.length - game.botCount,
+					bot: game.botCount,
+					total: game.players.length
+				},
 				inProgress: game.inProgress,
 				roundsPlayed: game.currentRoundNum - 1,
 				lastAction: timeSince(game.timeOfLastAction)
 			};
-			games.push(strippedGame);
+			games.unshift(strippedGame);
 		}
 		res.json({
 			numberOfConnectedUsers: app.io.engine.clientsCount,
@@ -65,7 +85,9 @@ module.exports = function(app) {
 	if (app.get("env") === "development") {
 		app.get("/dev", function(req, res) {
 			res.render("index", {
-				wordpacks: allPackNames
+				wordpacks: allPackNames,
+				js: webpackAssets.main.js,
+				css: webpackAssets.main.css
 			});
 		});
 	}

@@ -15,7 +15,8 @@ Player.prototype.getJson = function() {
 		name: this.name,
 		id: this.id,
 		isAdmin: this.isAdmin,
-		isConnected: this.isConnected
+		isConnected: this.isConnected,
+		isAi: !!this.isAi
 	};
 };
 
@@ -27,8 +28,8 @@ Player.prototype.send = function(event, data) {
 };
 
 Player.prototype.sendThen = function(event, data, onEvent, next) {
-	this.send(event, data);
 	this.socket.once(onEvent, next);
+	this.send(event, data);
 };
 
 Player.prototype.makeAdmin = function() {

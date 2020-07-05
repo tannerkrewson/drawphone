@@ -4,6 +4,28 @@
 
 var Round = require("./round");
 var Player = require("./player");
+var PlayerAI = require("./player-ai");
+
+const BOT_NAMES = [
+	"🤖 Garry-bot",
+	"🤖 Jerry-bot",
+	"🤖 Larry-bot",
+	"🤖 Terry-bot",
+	"🤖 Barry-bot",
+	"🤖 Mary-bot",
+	"🤖 Fairy-bot",
+	"🤖 Sperry-bot",
+	"🤖 Carrie-bot",
+	"🤖 Dairy-bot",
+	"🤖 Hairy-bot",
+	"🤖 Airy-bot",
+	"🤖 Perry-bot",
+	"🤖 Query-bot",
+	"🤖 Very-bot",
+	"🤖 Cherry-bot",
+	"🤖 Prairie-bot",
+	"🤖 Scary-bot"
+];
 
 function Game(code, onEmpty) {
 	this.code = code;
@@ -14,6 +36,7 @@ function Game(code, onEmpty) {
 	this.currentRound;
 
 	this.currentId = 1;
+	this.botCount = 0;
 	this.currentRoundNum = 1;
 	this.timeOfLastAction = new Date();
 }
@@ -28,6 +51,33 @@ Game.prototype.addPlayer = function(name, socket) {
 	this.players.push(newPlayer);
 	this.sendUpdatedPlayersList();
 	return newPlayer;
+};
+
+Game.prototype.addBotPlayer = function() {
+	if (this.botCount >= BOT_NAMES.length) return;
+
+	var newPlayer = new PlayerAI(
+		BOT_NAMES[this.botCount],
+		undefined,
+		this.getNextId()
+	);
+	this.botCount++;
+
+	this.players.push(newPlayer);
+	this.sendUpdatedPlayersList();
+	return newPlayer;
+};
+
+Game.prototype.removeBotPlayer = function() {
+	for (let i = this.players.length - 1; i >= 0; i--) {
+		const { id, isAi } = this.players[i];
+		if (isAi) {
+			this.removePlayer(id);
+			this.botCount--;
+			this.sendUpdatedPlayersList();
+			break;
+		}
+	}
 };
 
 Game.prototype.initPlayer = function(newPlayer) {
@@ -76,7 +126,7 @@ Game.prototype.onPlayerDisconnect = function(oldPlayer) {
 
 	var allPlayersDisconnected = true;
 	for (var j = 0; j < this.players.length; j++) {
-		if (this.players[j].isConnected) {
+		if (this.players[j].isConnected && !this.players[j].isAi) {
 			allPlayersDisconnected = false;
 			break;
 		}

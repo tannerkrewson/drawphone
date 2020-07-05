@@ -6,6 +6,7 @@ var shuffle = require("knuth-shuffle").knuthShuffle;
 var stripTags = require("striptags");
 
 var Chain = require("./chain");
+var AIGuessQueue = require("./ai-guess-queue");
 var DrawingLink = require("./link/drawinglink");
 var WordLink = require("./link/wordlink");
 
@@ -40,10 +41,14 @@ function Round(
 	}
 
 	this.finalNumOfLinks;
+	this.aiGuessQueue = new AIGuessQueue(() =>
+		words.getRandomWord(this.wordPackName)
+	);
 }
 
 Round.prototype.start = function() {
 	this.finalNumOfLinks = this.players.length;
+	this.aiGuessQueue.reset();
 
 	// demo mode
 	if (this.players.length === 1) {
@@ -84,6 +89,8 @@ Round.prototype.sendNewChains = function() {
 		: null;
 
 	this.players.forEach(function(player) {
+		if (player.isAi) player.setAIGuessQueue(self.aiGuessQueue);
+
 		//give each player a chain of their own
 		var wordToDraw = words.getRandomWord(self.wordPackName);
 		var thisChain = new Chain(
@@ -132,6 +139,8 @@ Round.prototype.sendWordFirstChains = function() {
 Round.prototype.receiveLink = function(player, receivedLink, chainId) {
 	var chain = this.getChain(chainId);
 
+	this.aiGuessQueue.playerAvailableForWork(player);
+
 	if (receivedLink.type === "drawing") {
 		chain.addLink(new DrawingLink(player, receivedLink.data));
 	} else if (receivedLink.type === "word") {
@@ -150,6 +159,8 @@ Round.prototype.nextLinkIfEveryoneIsDone = function() {
 	var noneDisconnected = this.disconnectedPlayers.length === 0;
 
 	if (allFinished && noneDisconnected) {
+		this.aiGuessQueue.reset();
+
 		//check if that was the last link
 		if (this.shouldHaveThisManyLinks === this.finalNumOfLinks) {
 			this.viewResults();

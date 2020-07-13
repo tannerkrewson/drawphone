@@ -2,7 +2,7 @@ const got = require("got");
 const crypto = require("crypto");
 
 // for shutterstock
-const [username, password] = process.env.SHUTTERSTOCK_API_TOKEN.split(":");
+const [username, password] = ["test","test"]
 
 var Player = require("./player");
 

@@ -34,6 +34,8 @@ Player.prototype.sendThen = function(event, data, onEvent, next) {
 
 Player.prototype.makeAdmin = function() {
 	this.isAdmin = true;
+	// update lobby (enable settings for new admin)
+	this.socket.emit("adminUpdatedSettings");
 };
 
 module.exports = Player;

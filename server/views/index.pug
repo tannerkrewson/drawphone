@@ -76,18 +76,18 @@ block content
         h5 Game Settings:
         .checkboxes.mb-3
           .custom-control.custom-switch
-            input#lobby-settings-wordfirst.custom-control-input(type='checkbox')
+            input#lobby-settings-wordfirst.custom-control-input.lobby-setting(type='checkbox')
             label.custom-control-label(for='lobby-settings-wordfirst') Players write first word (not recommended for first time)
           .custom-control.custom-switch
-            input#lobby-settings-showNeighbors.custom-control-input(type='checkbox')
+            input#lobby-settings-showNeighbors.custom-control-input.lobby-setting(type='checkbox')
             label.custom-control-label(for='lobby-settings-showNeighbors') Show identity of players you are passing to and from
         label Word pack:
-        select.form-control#lobby-settings-wordpack.mb-2
+        select.form-control.lobby-setting#lobby-settings-wordpack.mb-2
           option(disabled='', selected='') Select a word pack...
           for item in wordpacks
             option #{item}
         label Time limit:
-        select.form-control#lobby-settings-timelimit
+        select.form-control.lobby-setting#lobby-settings-timelimit
           option(disabled='', selected='') Select a drawing time limit...
           option No time limit (recommended)
           option 5 seconds
@@ -96,8 +96,9 @@ block content
           option 30 seconds
           option 45 seconds
           option 1 minute
-        button#lobby-settings-addbot.btn.btn-default.mt-2(type='button') Add Bot Player
-        button#lobby-settings-removebot.btn.btn-default.mt-2(type='button') Remove Bot Player
+        div#lobby-settings-bots.d-none
+          button#lobby-settings-addbot.btn.btn-default.mt-2(type='button') Add Bot Player
+          button#lobby-settings-removebot.btn.btn-default.mt-2(type='button') Remove Bot Player
     br
     .btn-toolbar
       button#lobby-leave.btn.btn-default.btn-lg.mr-2(type='button') Leave Game

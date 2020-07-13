@@ -80,6 +80,14 @@ module.exports = function(app) {
 			}
 		});
 
+		socket.on("adminUpdatedSettings", function(setting) {
+			if (!thisGame || !thisUser) return;
+
+			if (thisUser.isAdmin) {
+				thisGame.sendUpdatedSettings(setting);
+			}
+		})
+
 		socket.on("addBotPlayer", function() {
 			if (!thisGame || !thisUser) return;
 

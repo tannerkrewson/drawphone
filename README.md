@@ -19,8 +19,9 @@ Drawphone was inspired by [Spyfall](https://github.com/tannerkrewson/spyfall) an
 
 1. Clone the repo to get started
 2. Fork and create any pull requests against the `dev` branch
-3. Run `npm install`, then `npm start` to launch the server
-4. Go to `localhost:3000` in your browser
+3. (If needed) Install `node-canvas` dependencies: Drawphone uses [`node-canvas`](https://github.com/Automattic/node-canvas); on some OSes/processors, `npm` may attempt to compile/install it from source. See the `node-canvas` README for details.
+4. Run `npm install`, then `npm start` to launch the server
+5. Go to `localhost:3000` in your browser
 
 #### Tips
 

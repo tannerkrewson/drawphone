@@ -82,6 +82,16 @@ module.exports = function(app) {
 		}
 	});
 
+	app.post("/new", function(req, res) {
+		if (dp.locked) {
+			// 423 Locked
+			return res.status(423).send({ minutes: dp.minutesUntilRestart });
+		}
+
+		const theGame = dp.newGame();
+		res.json({ gameCode: theGame.code });
+	});
+
 	if (app.get("env") === "development") {
 		app.get("/dev", function(req, res) {
 			res.render("index", {

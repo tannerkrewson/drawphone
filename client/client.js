@@ -421,12 +421,18 @@ Lobby.prototype.initialize = function() {
 			self.wordPackDropdown.prop("disabled", false);
 		}
 
-		socket.emit("adminUpdatedSettings", {name: "wordfirst", value: self.wordFirstCheckbox.is(":checked")});
+		socket.emit("adminUpdatedSettings", {
+			name: "wordfirst",
+			value: self.wordFirstCheckbox.is(":checked")
+		});
 		self.checkIfReadyToStart();
 	});
 	this.showNeighborsCheckbox.on("change", function() {
 		self.showNeighbors = !!self.showNeighborsCheckbox.is(":checked");
-		socket.emit("adminUpdatedSettings", {name: "showNeighbors", value: self.showNeighborsCheckbox.is(":checked")});
+		socket.emit("adminUpdatedSettings", {
+			name: "showNeighbors",
+			value: self.showNeighborsCheckbox.is(":checked")
+		});
 
 		self.checkIfReadyToStart();
 		ga("send", "event", "Lobby", "show neighbors", self.showNeighbors);
@@ -456,12 +462,18 @@ Lobby.prototype.initialize = function() {
 				break;
 		}
 
-		socket.emit("adminUpdatedSettings", {name: "timelimit", value: self.timeLimitDropdown[0].value});
+		socket.emit("adminUpdatedSettings", {
+			name: "timelimit",
+			value: self.timeLimitDropdown[0].value
+		});
 		self.checkIfReadyToStart();
 	});
 	this.wordPackDropdown.on("change", function() {
 		self.wordPack = self.wordPackDropdown[0].value;
-		socket.emit("adminUpdatedSettings", {name: "wordpack", value: self.wordPackDropdown[0].value});
+		socket.emit("adminUpdatedSettings", {
+			name: "wordpack",
+			value: self.wordPackDropdown[0].value
+		});
 		self.checkIfReadyToStart();
 
 		ga("send", "event", "Lobby", "word pack change", self.wordPack);
@@ -478,7 +490,6 @@ Lobby.prototype.initialize = function() {
 	this.wordPackDropdown.prop("selectedIndex", 0);
 	this.wordPackDropdown.prop("disabled", false);
 
-
 	this.addBotButton.click(() => {
 		swal(
 			"Bad bot",
@@ -488,7 +499,6 @@ Lobby.prototype.initialize = function() {
 		socket.emit("addBotPlayer");
 	});
 	this.removeBotButton.click(() => socket.emit("removeBotPlayer"));
-
 
 	ga("send", "event", "Lobby", "created");
 };
@@ -562,7 +572,12 @@ Lobby.prototype.show = function(data) {
 Lobby.prototype.update = function(res) {
 	if (res.success) {
 		Screen.gameCode = res.gameCode;
-		this.title = "Game Code: " + Screen.getGameCodeHTML();
+		if (ROCKETCRAB_MODE) {
+			this.title = "Drawphone";
+		} else {
+			this.title = "Game Code: " + Screen.getGameCodeHTML();
+		}
+
 		this.subtitle = "Waiting for players...";
 		if (res.event === "updatePlayerList" && res.data.players) {
 			this.userList.update(res.data.players);
@@ -589,15 +604,19 @@ Lobby.prototype.update = function(res) {
 			}
 			console.log(`Changed: ${res.data.name} to ${res.data.value}`);
 			// update if admin changes
-			this.gameSettings.find(`#lobby-settings-${res.data.name}`).prop(
-				(
-					["wordfirst", "showNeighbors"].includes(res.data.name) ? "checked" : "value"
-				), 
-				res.data.value
-			);
+			this.gameSettings
+				.find(`#lobby-settings-${res.data.name}`)
+				.prop(
+					["wordfirst", "showNeighbors"].includes(res.data.name)
+						? "checked"
+						: "value",
+					res.data.value
+				);
 			// change wordpack to default (on player screens) if admin turns on firstword
 			if (res.data.name === "wordfirst" && res.data.value === true) {
-				this.gameSettings.find(`#lobby-settings-wordpack`).val("Select a word pack...")
+				this.gameSettings
+					.find(`#lobby-settings-wordpack`)
+					.val("Select a word pack...");
 			}
 		}
 
@@ -727,10 +746,15 @@ Game.prototype.initialize = function() {
 
 Game.prototype.show = function() {
 	Screen.prototype.show.call(this);
-	Screen.prototype.setSubtitle.call(
-		this,
-		"Game code: " + Screen.getGameCodeHTML()
-	);
+
+	if (ROCKETCRAB_MODE) {
+		Screen.prototype.setSubtitle.call(this, "🚀🦀");
+	} else {
+		Screen.prototype.setSubtitle.call(
+			this,
+			"Game code: " + Screen.getGameCodeHTML()
+		);
+	}
 
 	//allow touch events on the canvas
 	$("#game-drawing").css("pointer-events", "auto");
@@ -1435,6 +1459,22 @@ if (relativeUrl === "/dev") {
 		name: Math.random()
 			.toString()
 			.substring(2, 6)
+	});
+}
+
+const urlParams = new URLSearchParams(window.location.search);
+const isRocketcrab = urlParams.get("rocketcrab") === "true";
+const name = urlParams.get("name");
+//const isHost = urlParams.get("ishost") === "true";
+const code = urlParams.get("code");
+
+const ROCKETCRAB_MODE = isRocketcrab && name && code;
+
+if (ROCKETCRAB_MODE) {
+	socket.open();
+	socket.emit("joinGame", {
+		code,
+		name
 	});
 }
 

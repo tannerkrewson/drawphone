@@ -36,6 +36,8 @@ Drawphone.prototype.newGame = function(forceCode) {
 };
 
 Drawphone.prototype.findGame = function(code) {
+	if (!code || code.length !== 4) return false;
+
 	for (var i = 0; i < this.games.length; i++) {
 		if (this.games[i].code === code.toLowerCase()) {
 			return this.games[i];

@@ -31,7 +31,7 @@ function Game(code, onEmpty) {
 	this.code = code;
 	this.onEmpty = onEmpty;
 	this.players = [];
-	this.admin;
+	this.host;
 	this.inProgress = false;
 	this.currentRound;
 
@@ -84,13 +84,13 @@ Game.prototype.removeBotPlayer = function() {
 
 Game.prototype.sendUpdatedSettings = function(setting) {
 	this.sendToAll("updateSettings", setting);
-}
+};
 
 Game.prototype.initPlayer = function(newPlayer) {
-	//if this is the first user, make them admin
+	//if this is the first user, make them host
 	if (this.players.length === 0) {
-		this.admin = newPlayer;
-		newPlayer.makeAdmin();
+		this.host = newPlayer;
+		newPlayer.makeHost();
 	}
 
 	//when this player disconnects, remove them from this game
@@ -117,14 +117,14 @@ Game.prototype.initPlayer = function(newPlayer) {
 };
 
 Game.prototype.onPlayerDisconnect = function(oldPlayer) {
-	//if the player was admin
-	if (oldPlayer.id === this.admin.id) {
-		//find the first connected player to be admin
+	//if the player was host
+	if (oldPlayer.id === this.host.id) {
+		//find the first connected player to be host
 		for (var i = 0; i < this.players.length; i++) {
 			var thisPlayer = this.players[i];
 			if (thisPlayer.isConnected) {
-				this.admin = thisPlayer;
-				thisPlayer.makeAdmin();
+				this.host = thisPlayer;
+				thisPlayer.makeHost();
 				break;
 			}
 		}

@@ -39,7 +39,7 @@ module.exports = function(app) {
 				return;
 			}
 
-			if (data.timeLimit !== false && thisUser.isAdmin) {
+			if (data.timeLimit !== false && thisUser.isHost) {
 				thisGame.startNewRound(
 					data.timeLimit,
 					data.wordPackName,
@@ -73,25 +73,25 @@ module.exports = function(app) {
 
 			var idToKick = data.playerToKick.id;
 			var playerToKick = thisGame.getPlayer(idToKick);
-			if (thisUser.isAdmin && playerToKick) {
+			if (thisUser.isHost && playerToKick) {
 				//this will simulate the 'disconnect' event, and run all of the
 				//	methods that were tied into that in the initPlayer function
 				playerToKick.socket.disconnect();
 			}
 		});
 
-		socket.on("adminUpdatedSettings", function(setting) {
+		socket.on("hostUpdatedSettings", function(setting) {
 			if (!thisGame || !thisUser) return;
 
-			if (thisUser.isAdmin) {
+			if (thisUser.isHost) {
 				thisGame.sendUpdatedSettings(setting);
 			}
-		})
+		});
 
 		socket.on("addBotPlayer", function() {
 			if (!thisGame || !thisUser) return;
 
-			if (thisUser.isAdmin) {
+			if (thisUser.isHost) {
 				thisGame.addBotPlayer();
 			}
 		});
@@ -99,7 +99,7 @@ module.exports = function(app) {
 		socket.on("removeBotPlayer", function() {
 			if (!thisGame || !thisUser) return;
 
-			if (thisUser.isAdmin) {
+			if (thisUser.isHost) {
 				thisGame.removeBotPlayer();
 			}
 		});

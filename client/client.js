@@ -369,7 +369,7 @@ function Lobby() {
 	this.viewPreviousResultsButton = $("#lobby-prevres");
 	this.gameCode = "";
 
-	//this is what the admin selects from the dropdowns
+	//this is what the host selects from the dropdowns
 	this.selectedTimeLimit = false;
 	this.wordPack = false;
 	this.showNeighbors = false;
@@ -421,7 +421,7 @@ Lobby.prototype.initialize = function() {
 			self.wordPackDropdown.prop("disabled", false);
 		}
 
-		socket.emit("adminUpdatedSettings", {
+		socket.emit("hostUpdatedSettings", {
 			name: "wordfirst",
 			value: self.wordFirstCheckbox.is(":checked")
 		});
@@ -429,7 +429,7 @@ Lobby.prototype.initialize = function() {
 	});
 	this.showNeighborsCheckbox.on("change", function() {
 		self.showNeighbors = !!self.showNeighborsCheckbox.is(":checked");
-		socket.emit("adminUpdatedSettings", {
+		socket.emit("hostUpdatedSettings", {
 			name: "showNeighbors",
 			value: self.showNeighborsCheckbox.is(":checked")
 		});
@@ -462,7 +462,7 @@ Lobby.prototype.initialize = function() {
 				break;
 		}
 
-		socket.emit("adminUpdatedSettings", {
+		socket.emit("hostUpdatedSettings", {
 			name: "timelimit",
 			value: self.timeLimitDropdown[0].value
 		});
@@ -470,7 +470,7 @@ Lobby.prototype.initialize = function() {
 	});
 	this.wordPackDropdown.on("change", function() {
 		self.wordPack = self.wordPackDropdown[0].value;
-		socket.emit("adminUpdatedSettings", {
+		socket.emit("hostUpdatedSettings", {
 			name: "wordpack",
 			value: self.wordPackDropdown[0].value
 		});
@@ -584,7 +584,7 @@ Lobby.prototype.update = function(res) {
 		}
 		this.checkIfReadyToStart();
 
-		if (res.player.isAdmin) {
+		if (res.player.isHost) {
 			//show the start game button
 			this.startButton.removeClass(HIDDEN);
 			//show the game Settings
@@ -603,7 +603,7 @@ Lobby.prototype.update = function(res) {
 				$(setting).prop("disabled", true);
 			}
 			console.log(`Changed: ${res.data.name} to ${res.data.value}`);
-			// update if admin changes
+			// update if host changes
 			this.gameSettings
 				.find(`#lobby-settings-${res.data.name}`)
 				.prop(
@@ -612,7 +612,7 @@ Lobby.prototype.update = function(res) {
 						: "value",
 					res.data.value
 				);
-			// change wordpack to default (on player screens) if admin turns on firstword
+			// change wordpack to default (on player screens) if host turns on firstword
 			if (res.data.name === "wordfirst" && res.data.value === true) {
 				this.gameSettings
 					.find(`#lobby-settings-wordpack`)
@@ -1171,17 +1171,17 @@ Waiting.prototype.show = function() {
 };
 
 Waiting.prototype.updateWaitingList = function(res) {
-	//show/hide the admin notice
-	if (res.you.isAdmin) {
-		$("#waiting-adminmsg").removeClass(HIDDEN);
+	//show/hide the host notice
+	if (res.you.isHost) {
+		$("#waiting-hostmsg").removeClass(HIDDEN);
 	} else {
-		$("#waiting-adminmsg").addClass(HIDDEN);
+		$("#waiting-hostmsg").addClass(HIDDEN);
 	}
 	var notFinished = res.data.notFinished;
 	var disconnected = res.data.disconnected;
 	this.userList.update(notFinished, disconnected, function(tappedPlayer) {
 		//ran when the client taps one of the usernames
-		if (res.you.isAdmin) {
+		if (res.you.isHost) {
 			swal(
 				{
 					title: "Kick " + tappedPlayer.name + "?",
@@ -1202,10 +1202,10 @@ Waiting.prototype.updateWaitingList = function(res) {
 						tappedPlayer.name + " was kicked.",
 						"success"
 					);
-					ga("send", "event", "User list", "Admin kick player");
+					ga("send", "event", "User list", "Host kick player");
 				}
 			);
-			ga("send", "event", "User list", "Admin tap player");
+			ga("send", "event", "User list", "Host tap player");
 		}
 	});
 };

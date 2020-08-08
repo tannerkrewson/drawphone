@@ -39,6 +39,8 @@ function Game(code, onEmpty) {
 	this.botCount = 0;
 	this.currentRoundNum = 1;
 	this.timeOfLastAction = new Date();
+
+	setTimeout(() => this.deleteGameIfEmpty(), 60 * 1000);
 }
 
 Game.prototype.newPlayer = function(name, socket) {
@@ -123,6 +125,12 @@ Game.prototype.onPlayerDisconnect = function(oldPlayer) {
 			}
 		}
 	}
+
+	this.deleteGameIfEmpty();
+};
+
+Game.prototype.deleteGameIfEmpty = function() {
+	if (this.code === "ffff") return;
 
 	var allPlayersDisconnected = true;
 	for (var j = 0; j < this.players.length; j++) {

@@ -155,6 +155,8 @@ Drawphone.prototype.attachSocketListeners = function() {
 
 	socket.on("updatePlayerList", this.lobby.update.bind(this.lobby));
 
+	socket.on("updateSettings", this.lobby.update.bind(this.lobby));
+
 	socket.on("nextLink", this.game.newLink.bind(this.game));
 
 	socket.on("viewResults", this.results.show.bind(this.results));
@@ -361,6 +363,7 @@ function Lobby() {
 	this.showNeighborsCheckbox = $("#lobby-settings-showNeighbors");
 	this.timeLimitDropdown = $("#lobby-settings-timelimit");
 	this.wordPackDropdown = $("#lobby-settings-wordpack");
+	this.gameSettingsBots = $("#lobby-settings-bots");
 	this.addBotButton = $("#lobby-settings-addbot");
 	this.removeBotButton = $("#lobby-settings-removebot");
 	this.viewPreviousResultsButton = $("#lobby-prevres");
@@ -417,10 +420,13 @@ Lobby.prototype.initialize = function() {
 		} else {
 			self.wordPackDropdown.prop("disabled", false);
 		}
+
+		socket.emit("adminUpdatedSettings", {name: "wordfirst", value: self.wordFirstCheckbox.is(":checked")});
 		self.checkIfReadyToStart();
 	});
 	this.showNeighborsCheckbox.on("change", function() {
 		self.showNeighbors = !!self.showNeighborsCheckbox.is(":checked");
+		socket.emit("adminUpdatedSettings", {name: "showNeighbors", value: self.showNeighborsCheckbox.is(":checked")});
 
 		self.checkIfReadyToStart();
 		ga("send", "event", "Lobby", "show neighbors", self.showNeighbors);
@@ -450,10 +456,12 @@ Lobby.prototype.initialize = function() {
 				break;
 		}
 
+		socket.emit("adminUpdatedSettings", {name: "timelimit", value: self.timeLimitDropdown[0].value});
 		self.checkIfReadyToStart();
 	});
 	this.wordPackDropdown.on("change", function() {
 		self.wordPack = self.wordPackDropdown[0].value;
+		socket.emit("adminUpdatedSettings", {name: "wordpack", value: self.wordPackDropdown[0].value});
 		self.checkIfReadyToStart();
 
 		ga("send", "event", "Lobby", "word pack change", self.wordPack);
@@ -470,6 +478,7 @@ Lobby.prototype.initialize = function() {
 	this.wordPackDropdown.prop("selectedIndex", 0);
 	this.wordPackDropdown.prop("disabled", false);
 
+
 	this.addBotButton.click(() => {
 		swal(
 			"Bad bot",
@@ -479,6 +488,7 @@ Lobby.prototype.initialize = function() {
 		socket.emit("addBotPlayer");
 	});
 	this.removeBotButton.click(() => socket.emit("removeBotPlayer"));
+
 
 	ga("send", "event", "Lobby", "created");
 };
@@ -554,7 +564,9 @@ Lobby.prototype.update = function(res) {
 		Screen.gameCode = res.gameCode;
 		this.title = "Game Code: " + Screen.getGameCodeHTML();
 		this.subtitle = "Waiting for players...";
-		this.userList.update(res.data.players);
+		if (res.event === "updatePlayerList" && res.data.players) {
+			this.userList.update(res.data.players);
+		}
 		this.checkIfReadyToStart();
 
 		if (res.player.isAdmin) {
@@ -562,9 +574,31 @@ Lobby.prototype.update = function(res) {
 			this.startButton.removeClass(HIDDEN);
 			//show the game Settings
 			this.gameSettings.removeClass(HIDDEN);
+			this.gameSettingsBots.removeClass(HIDDEN);
+			for (let setting of this.gameSettings.find(".lobby-setting")) {
+				$(setting).prop("disabled", false);
+			}
 		} else {
 			this.startButton.addClass(HIDDEN);
-			this.gameSettings.addClass(HIDDEN);
+			this.gameSettings.removeClass(HIDDEN);
+			this.gameSettingsBots.addClass(HIDDEN);
+
+			// set settings disabled for players
+			for (let setting of this.gameSettings.find(".lobby-setting")) {
+				$(setting).prop("disabled", true);
+			}
+			console.log(`Changed: ${res.data.name} to ${res.data.value}`);
+			// update if admin changes
+			this.gameSettings.find(`#lobby-settings-${res.data.name}`).prop(
+				(
+					["wordfirst", "showNeighbors"].includes(res.data.name) ? "checked" : "value"
+				), 
+				res.data.value
+			);
+			// change wordpack to default (on player screens) if admin turns on firstword
+			if (res.data.name === "wordfirst" && res.data.value === true) {
+				this.gameSettings.find(`#lobby-settings-wordpack`).val("Select a word pack...")
+			}
 		}
 
 		if (res.data.canViewLastRoundResults) {

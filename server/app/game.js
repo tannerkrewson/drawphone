@@ -82,6 +82,10 @@ Game.prototype.removeBotPlayer = function() {
 	}
 };
 
+Game.prototype.sendUpdatedSettings = function(setting) {
+	this.sendToAll("updateSettings", setting);
+}
+
 Game.prototype.initPlayer = function(newPlayer) {
 	//if this is the first user, make them admin
 	if (this.players.length === 0) {
@@ -206,6 +210,7 @@ Game.prototype.sendToAll = function(event, data) {
 	this.players.forEach(function(player) {
 		player.socket.emit(event, {
 			success: true,
+			event: event,
 			gameCode: self.code,
 			player: player.getJson(),
 			data

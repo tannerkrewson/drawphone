@@ -1606,15 +1606,32 @@ function getQuickInfoStringOfResults(results) {
 socket.on("makeAIGuess", ({ data: drawingToGuess }) => {
 	const image = new Image();
 
-	image.onload = () => classify(image);
+	const isDoodle = drawingToGuess.startsWith("data");
+
+	image.onload = () => {
+		if (isDoodle) {
+			const canvas = document.createElement("canvas");
+			canvas.height = 565;
+			canvas.width = 565;
+
+			const ctx = canvas.getContext("2d");
+			ctx.fillStyle = "white";
+			ctx.fillRect(0, 0, 565, 565);
+			ctx.drawImage(image, 0, 0);
+
+			classify(canvas, true);
+		} else {
+			classify(image, false);
+		}
+	};
+
 	image.onabort = onMakeAIGuessError;
 	image.onerror = onMakeAIGuessError;
 	image.crossOrigin = "anonymous";
 	image.src = drawingToGuess;
 });
 
-function classify(image) {
-	const isDoodle = image.src.startsWith("data");
+function classify(image, isDoodle) {
 	const model = isDoodle ? "DoodleNet" : "MobileNet";
 
 	console.log("running", model);

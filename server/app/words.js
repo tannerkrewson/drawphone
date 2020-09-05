@@ -7,8 +7,8 @@ var fs = require("fs");
 const PACK_NAMES = [
 	"Simple words (recommended)",
 	"Advanced words",
-	"Cards Against Humanity (18+)",
-	"Cards Against Humanity Family Edition (13+)",
+	"Immature words (13+)",
+	"Naughty words (18+)",
 	"Animals",
 	"Adjectives",
 	"Verbs"

@@ -834,6 +834,8 @@ Game.prototype.showButtons = function(showClearButton) {
 		showElement("#game-drawing-undo");
 		$("#game-drawing-redo").addClass("disabled");
 		$("#game-drawing-undo").addClass("disabled");
+
+		showElement("#game-draw-buttons");
 	} else {
 		$("#game-drawing-redo").addClass(HIDDEN);
 		$("#game-drawing-undo").addClass(HIDDEN);
@@ -845,6 +847,7 @@ Game.prototype.hideBoth = function() {
 	$("#game-drawing").addClass(HIDDEN);
 	$("#game-word").addClass(HIDDEN);
 	$("#game-buttons").addClass(HIDDEN);
+	$("#game-draw-buttons").addClass(HIDDEN);
 };
 
 Game.prototype.newLink = function(res) {
@@ -1345,7 +1348,13 @@ function getDrawingCanvas() {
 		undoFinishedStatus: 1,
 		redoFinishedStatus: 1,
 		undoButton: $("#game-drawing-undo"),
-		redoButton: $("#game-drawing-redo")
+		redoButton: $("#game-drawing-redo"),
+		colorInput: $("#game-drawing-color"),
+		brushsizeInput: $("#game-drawing-brushsize"),
+		colorOut: $("#game-drawing-color-text"),
+		brushsizeOut: $("#game-drawing-brushsize-text"),
+		brushsize: 4,
+		color: "#000000"
 	};
 	thisCanvas.on("path:created", function() {
 		updateCanvasState();
@@ -1455,8 +1464,31 @@ function getDrawingCanvas() {
 		}
 	};
 
+	var changeColor = function() {
+		document.getElementById(
+			"game-drawing-color-text"
+		).innerHTML = document.getElementById("game-drawing-color").value;
+		thisCanvas.freeDrawingBrush.color = document.getElementById(
+			"game-drawing-color"
+		).value;
+	};
+
+	var changeBrushsize = function() {
+		document.getElementById(
+			"game-drawing-brushsize-text"
+		).innerHTML = document.getElementById("game-drawing-brushsize").value;
+		thisCanvas.freeDrawingBrush.width =
+			parseInt(
+				document.getElementById("game-drawing-brushsize").value,
+				10
+			) || 1;
+	};
+
 	state.undoButton.on("click", undo);
 	state.redoButton.on("click", redo);
+
+	state.colorInput.on("change", changeColor);
+	state.brushsizeInput.on("change", changeBrushsize);
 
 	thisCanvas.remove = function() {
 		state.undoButton.off("click");

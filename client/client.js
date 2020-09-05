@@ -497,24 +497,9 @@ Lobby.prototype.update = function(res) {
 		for (let setting of this.gameSettings.find(".lobby-setting")) {
 			$(setting).prop("disabled", true);
 		}
-		// update if host changes
-		const settingToUpdate = this.gameSettings.find(
-			`#lobby-settings-${res.data.name}`
-		);
 
-		if (["wordfirst", "showNeighbors"].includes(res.data.name)) {
-			settingToUpdate.prop("checked", res.data.value);
-		} else if (res.data.name === "timelimit") {
-			settingToUpdate.text(res.data.value);
-		} else {
-			settingToUpdate.prop("value", res.data.value);
-		}
-
-		// change wordpack to default (on player screens) if host turns on firstword
-		if (res.data.name === "wordfirst" && res.data.value === true) {
-			this.gameSettings
-				.find(`#lobby-settings-wordpack`)
-				.val("Select a word pack...");
+		if (res.data.setting) {
+			this.updateNonHostSettings(res.data.setting);
 		}
 	}
 
@@ -522,6 +507,26 @@ Lobby.prototype.update = function(res) {
 		this.viewPreviousResultsButton.removeClass(HIDDEN);
 	} else {
 		this.viewPreviousResultsButton.addClass(HIDDEN);
+	}
+};
+
+Lobby.prototype.updateNonHostSettings = function({ name, value }) {
+	// update if host changes
+	const settingToUpdate = this.gameSettings.find(`#lobby-settings-${name}`);
+
+	if (["wordfirst", "showNeighbors"].includes(name)) {
+		settingToUpdate.prop("checked", value);
+	} else if (name === "timelimit") {
+		settingToUpdate.text(value);
+	} else {
+		settingToUpdate.prop("value", value);
+	}
+
+	// change wordpack to default (on player screens) if host turns on firstword
+	if (name === "wordfirst" && value === true) {
+		this.gameSettings
+			.find(`#lobby-settings-wordpack`)
+			.val("Select a word pack...");
 	}
 };
 

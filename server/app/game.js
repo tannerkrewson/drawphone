@@ -83,7 +83,11 @@ Game.prototype.removeBotPlayer = function() {
 };
 
 Game.prototype.sendUpdatedSettings = function(setting) {
-	this.sendToAll("updateSettings", setting);
+	this.sendToAll("updateSettings", {
+		setting,
+		canViewLastRoundResults:
+			this.currentRound && this.currentRound.canViewLastRoundResults
+	});
 };
 
 Game.prototype.initPlayer = function(newPlayer) {

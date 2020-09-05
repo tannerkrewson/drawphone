@@ -38,12 +38,26 @@ input[type="text"] {
 }
 
 #lobby-settings {
+	text-align: left;
 	font-size: 0.9em;
 }
 
-.btn-toolbar {
+#lobby-settings h5 {
 	text-align: center;
-	display: inline-block;
+	margin-bottom: 0.2rem;
+}
+
+#lobby-settings-bot {
+	text-align: center;
+}
+
+label {
+	margin-bottom: 0.2rem;
+}
+
+.btn-toolbar {
+	display: flex;
+	justify-content: center;
 }
 ​ .form-group {
 	text-align: center;

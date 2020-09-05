@@ -17,7 +17,6 @@ block content
       button#joinbtn.btn.btn-default.btn-lg.mr-2(type='button') Join Game
       button#newbtn.btn.btn-default.btn-lg(type='button') New Game
     br
-    br
     .btn-group-vertical(role="group" aria-label="...")
       button#archivebtn.btn.btn-default(type='button') View Previous Results
       button#howbtn.btn.btn-default(type='button') How to Play
@@ -52,30 +51,21 @@ block content
             button#newmenu-back.btn.btn-default.btn-lg.mr-2(type='button') Back
             button#newmenu-go.btn.btn-default.btn-lg(type='submit') Start
   div#lobby.d-none
-    div.row.justify-content-center.mb-2
+    div.row.justify-content-center.mb-4
       div.col-sm-8
-        h5 Players:
+        h5 Players
         ul#lobby-players.list-unstyled.row
-      br
-      button#lobby-prevres.btn.btn-default.mt-2(type='button').d-none View Last Round's Results
-      br
-    div.row.justify-content-center.mb-2
+      button#lobby-prevres.btn.btn-default.mt-3(type='button').d-none View Last Round's Results
+    div.row.justify-content-center.mb-3
       div#lobby-settings.col-sm-8.d-none
-        h5 Game Settings:
-        .checkboxes.mb-3
-          .custom-control.custom-switch
-            input#lobby-settings-wordfirst.custom-control-input.lobby-setting(type='checkbox')
-            label.custom-control-label(for='lobby-settings-wordfirst') Players write first word (not recommended for first time)
-          .custom-control.custom-switch
-            input#lobby-settings-showNeighbors.custom-control-input.lobby-setting(type='checkbox')
-            label.custom-control-label(for='lobby-settings-showNeighbors') Show identity of players you are passing to and from
+        h5 Options
         label Word pack:
         select.form-control.lobby-setting#lobby-settings-wordpack.mb-2
           option(disabled='', selected='') Select a word pack...
           for item in wordpacks
             option #{item}
         label Time limit:
-        select.form-control.lobby-setting#lobby-settings-timelimit
+        select.form-control.lobby-setting.mb-3#lobby-settings-timelimit
           option(disabled='', selected='') Select a drawing time limit...
           option No time limit (recommended)
           option 5 seconds
@@ -84,21 +74,24 @@ block content
           option 30 seconds
           option 45 seconds
           option 1 minute
-        .btn-toolbar.mt-4#lobby-settings-bots.d-none
+        .checkboxes.mb-3
+          .custom-control.custom-switch
+            input#lobby-settings-wordfirst.custom-control-input.lobby-setting(type='checkbox')
+            label.custom-control-label(for='lobby-settings-wordfirst') Players write first word
+          .custom-control.custom-switch
+            input#lobby-settings-showNeighbors.custom-control-input.lobby-setting(type='checkbox')
+            label.custom-control-label(for='lobby-settings-showNeighbors') Show who players are passing to and from
+        .btn-toolbar.mb-3#lobby-settings-bots.d-none
           button#lobby-settings-addbot.btn.btn-default.mr-2(type='button') Add Bot
           button#lobby-settings-removebot.btn.btn-default(type='button') Remove Bot
-    .btn-toolbar.mt-4
+    .btn-toolbar.mb-4
       button#lobby-leave.btn.btn-default.btn-lg.mr-2(type='button') Leave Game
       button#lobby-start.btn.btn-default.btn-lg.disabled.d-none(type='button') Start Game
-    br
-    br
     div.card.thanks-panel
       div.card-body
         div Thanks for playing Drawphone!
         p If you had fun, try out my other game:
-        a.btn.btn-default(type='button', role='button', href='https://spyfall.tannerkrewson.com/', style='font-size:1.1em;') Play Spyfall
-        br
-        br
+        a.btn.btn-default.mb-3(type='button', role='button', href='https://spyfall.tannerkrewson.com/', style='font-size:1.1em;') Play Spyfall
         div or, if you're feeling hungry:
         include buymebutton.pug
 

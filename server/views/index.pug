@@ -65,15 +65,10 @@ block content
           for item in wordpacks
             option #{item}
         label Time limit:
-        select.form-control.lobby-setting.mb-3#lobby-settings-timelimit
-          option(disabled='', selected='') Select a drawing time limit...
-          option No time limit (recommended)
-          option 5 seconds
-          option 10 seconds
-          option 15 seconds
-          option 30 seconds
-          option 45 seconds
-          option 1 minute
+        .btn-toolbar.mb-3
+          button#timelimit-minus.lobby-setting.btn.btn-default -
+          span#lobby-settings-timelimit Loading...
+          button#timelimit-plus.lobby-setting.btn.btn-default +
         .checkboxes.mb-3
           .custom-control.custom-switch
             input#lobby-settings-wordfirst.custom-control-input.lobby-setting(type='checkbox')

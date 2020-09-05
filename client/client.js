@@ -357,7 +357,9 @@ function Lobby() {
 	this.gameSettings = $("#lobby-settings");
 	this.wordFirstCheckbox = $("#lobby-settings-wordfirst");
 	this.showNeighborsCheckbox = $("#lobby-settings-showNeighbors");
-	this.timeLimitDropdown = $("#lobby-settings-timelimit");
+	this.timeLimitDisplay = $("#lobby-settings-timelimit");
+	this.timeLimitMinus = $("#timelimit-minus");
+	this.timeLimitPlus = $("#timelimit-plus");
 	this.wordPackDropdown = $("#lobby-settings-wordpack");
 	this.gameSettingsBots = $("#lobby-settings-bots");
 	this.addBotButton = $("#lobby-settings-addbot");
@@ -366,7 +368,7 @@ function Lobby() {
 	this.gameCode = "";
 
 	//this is what the host selects from the dropdowns
-	this.selectedTimeLimit = false;
+	this.selectedTimeLimit = 0;
 	this.wordPack = false;
 	this.showNeighbors = false;
 
@@ -390,7 +392,7 @@ Lobby.prototype.initialize = function() {
 
 	this.wordFirstCheckbox.prop("checked", false);
 	this.showNeighborsCheckbox.prop("checked", false);
-	this.timeLimitDropdown.prop("selectedIndex", 0);
+	this.timeLimitDisplay.text("No time limit");
 	this.wordPackDropdown.prop("selectedIndex", 0);
 	this.wordPackDropdown.prop("disabled", false);
 
@@ -496,14 +498,18 @@ Lobby.prototype.update = function(res) {
 			$(setting).prop("disabled", true);
 		}
 		// update if host changes
-		this.gameSettings
-			.find(`#lobby-settings-${res.data.name}`)
-			.prop(
-				["wordfirst", "showNeighbors"].includes(res.data.name)
-					? "checked"
-					: "value",
-				res.data.value
-			);
+		const settingToUpdate = this.gameSettings.find(
+			`#lobby-settings-${res.data.name}`
+		);
+
+		if (["wordfirst", "showNeighbors"].includes(res.data.name)) {
+			settingToUpdate.prop("checked", res.data.value);
+		} else if (res.data.name === "timelimit") {
+			settingToUpdate.text(res.data.value);
+		} else {
+			settingToUpdate.prop("value", res.data.value);
+		}
+
 		// change wordpack to default (on player screens) if host turns on firstword
 		if (res.data.name === "wordfirst" && res.data.value === true) {
 			this.gameSettings
@@ -523,7 +529,8 @@ Lobby.prototype.clearHostHandlers = function() {
 	this.startButton.off("click");
 	this.wordFirstCheckbox.off("change");
 	this.showNeighborsCheckbox.off("change");
-	this.timeLimitDropdown.off("change");
+	this.timeLimitMinus.off("click");
+	this.timeLimitPlus.off("click");
 	this.wordPackDropdown.off("change");
 	this.addBotButton.off("click");
 	this.removeBotButton.off("click");
@@ -591,43 +598,33 @@ Lobby.prototype.initHost = function() {
 		ga("send", "event", "Lobby", "show neighbors", this.showNeighbors);
 	});
 
-	const onTimeLimitDropdownChange = () => {
-		switch (this.timeLimitDropdown[0].value) {
-			case "No time limit (recommended)":
-				this.selectedTimeLimit = 0;
-				break;
-			case "5 seconds":
-				this.selectedTimeLimit = 5;
-				break;
-			case "10 seconds":
-				this.selectedTimeLimit = 10;
-				break;
-			case "15 seconds":
-				this.selectedTimeLimit = 15;
-				break;
-			case "30 seconds":
-				this.selectedTimeLimit = 30;
-				break;
-			case "45 seconds":
-				this.selectedTimeLimit = 45;
-				break;
-			case "1 minute":
-				this.selectedTimeLimit = 60;
-				break;
-		}
+	const changeTimeLimit = modifier => {
+		const oldTimeLimit = this.selectedTimeLimit;
+		if (oldTimeLimit >= 30) modifier *= 15;
+		if (oldTimeLimit < 30) modifier *= 5;
+
+		this.selectedTimeLimit = Math.max(0, oldTimeLimit + modifier);
+
+		const newDisplay =
+			this.selectedTimeLimit === 0
+				? "No time limit"
+				: this.selectedTimeLimit + " seconds";
+		this.timeLimitDisplay.text(newDisplay);
+
+		if (oldTimeLimit === this.selectedTimeLimit) return;
 
 		this.checkIfReadyToStart();
-	};
-
-	this.timeLimitDropdown.on("change", () => {
-		onTimeLimitDropdownChange();
 
 		socket.emit("hostUpdatedSettings", {
 			name: "timelimit",
-			value: this.timeLimitDropdown[0].value
+			value: newDisplay
 		});
-	});
-	onTimeLimitDropdownChange();
+	};
+
+	this.timeLimitMinus.on("click", () => changeTimeLimit(-1));
+	this.timeLimitPlus.on("click", () => changeTimeLimit(1));
+
+	changeTimeLimit(0);
 
 	const onWordPackDropdownChange = () => {
 		const selected = this.wordPackDropdown[0].value;

@@ -55,6 +55,13 @@ label {
 	margin-bottom: 0.2rem;
 }
 
+#lobby-settings-timelimit {
+	margin: 0 1em;
+	line-height: 2.5em;
+	min-width: 6em;
+	text-align: center;
+}
+
 .btn-toolbar {
 	display: flex;
 	justify-content: center;

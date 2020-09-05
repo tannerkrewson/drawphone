@@ -168,6 +168,67 @@ span.avoidwrap {
 	display: none;
 }
 
+.drawphone-d {
+	display: inline-block;
+	color: #ff0000;
+	animation: 0.5s ease-in-out 0ms 1 emphasize;
+}
+.drawphone-r {
+	display: inline-block;
+	color: #ff4000;
+	animation: 0.5s ease-in-out 75ms 1 emphasize;
+}
+.drawphone-a {
+	display: inline-block;
+	color: #ff7f00;
+	animation: 0.5s ease-in-out 150ms 1 emphasize;
+}
+.drawphone-w {
+	display: inline-block;
+	color: #ffc400;
+	animation: 0.5s ease-in-out 225ms 1 emphasize;
+}
+.drawphone-p {
+	display: inline-block;
+	color: #80c920;
+	animation: 0.5s ease-in-out 300ms 1 emphasize;
+}
+.drawphone-h {
+	display: inline-block;
+	color: #00ce40;
+	animation: 0.5s ease-in-out 375ms 1 emphasize;
+}
+.drawphone-o {
+	display: inline-block;
+	color: #0003ff;
+	animation: 0.5s ease-in-out 450ms 1 emphasize;
+}
+.drawphone-n {
+	display: inline-block;
+	color: #4802ff;
+	animation: 0.5s ease-in-out 525ms 1 emphasize;
+}
+.drawphone-e {
+	display: inline-block;
+	color: #8f00ff;
+	animation: 0.5s ease-in-out 600ms 1 emphasize;
+}
+
+@keyframes emphasize {
+	0% {
+		transform: scale(1);
+		margin: 0;
+	}
+	50% {
+		transform: scale(1.4);
+		margin: 0 0.1em;
+	}
+	100% {
+		transform: scale(1);
+		margin: 0;
+	}
+}
+
 /* buy me a taco button */
 .bmc-button .taco {
 	margin-bottom: 1px !important;

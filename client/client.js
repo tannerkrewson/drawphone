@@ -181,7 +181,8 @@ function Screen() {
 	this.subtitle = "Just a moment!";
 	this.isLoading = true;
 
-	this.defaultTitle = "Drawphone";
+	this.defaultTitle =
+		'<div class="animated-title"><span class="drawphone-d">D</span><span class="drawphone-r">r</span><span class="drawphone-a">a</span><span class="drawphone-w">w</span><span class="drawphone-p">p</span><span class="drawphone-h">h</span><span class="drawphone-o">o</span><span class="drawphone-n">n</span><span class="drawphone-e">e</span></div>';
 	this.defaultSubtitle = "Telephone with pictures";
 }
 

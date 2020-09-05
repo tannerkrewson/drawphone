@@ -42,7 +42,7 @@ function Round(
 
 	this.finalNumOfLinks;
 	this.aiGuessQueue = new AIGuessQueue(() =>
-		words.getRandomWord(this.wordPackName)
+		words.getRandomWord(this.wordPackName || "Simple words (recommended)")
 	);
 }
 
@@ -116,13 +116,22 @@ Round.prototype.sendNewChains = function() {
 Round.prototype.sendWordFirstChains = function() {
 	var currentChainId = 0;
 	var self = this;
+
+	var jsonPlayers = this.showNeighbors
+		? this.players.map(player => player.getJson())
+		: null;
+
 	this.players.forEach(function(player) {
+		if (player.isAi) player.setAIGuessQueue(self.aiGuessQueue);
+
 		//give each player a chain of their own
 		var thisChain = new Chain(
 			false,
 			player,
 			currentChainId++,
-			self.timeLimit
+			self.timeLimit,
+			self.showNeighbors,
+			jsonPlayers
 		);
 		self.chains.push(thisChain);
 
@@ -155,7 +164,8 @@ Round.prototype.receiveLink = function(player, receivedLink, chainId) {
 
 Round.prototype.nextLinkIfEveryoneIsDone = function() {
 	var listNotFinished = this.getListOfNotFinishedPlayers();
-	var allFinished = listNotFinished.length === 0;
+	var areChainsInitialized = this.players.length === this.chains.length;
+	var allFinished = areChainsInitialized && listNotFinished.length === 0;
 	var noneDisconnected = this.disconnectedPlayers.length === 0;
 
 	if (allFinished && noneDisconnected) {

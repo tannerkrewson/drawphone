@@ -53,6 +53,10 @@ class PlayerAI extends Player {
 				drawingToGuess: linkContent,
 				next: this.#lastCallback
 			});
+		} else if (linkType === "first-word") {
+			this.#lastCallback({
+				link: { data: this.aiGuessQueue.getRandomWord(), type: "word" }
+			});
 		}
 	}
 

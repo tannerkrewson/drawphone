@@ -17,16 +17,12 @@ block content
       button#joinbtn.btn.btn-default.btn-lg.mr-2(type='button') Join Game
       button#newbtn.btn.btn-default.btn-lg(type='button') New Game
     br
-    .btn-toolbar
-      button#archivebtn.btn.btn-default.mt-2(type='button') View Previous Results
-    br
     br
     .btn-group-vertical(role="group" aria-label="...")
+      button#archivebtn.btn.btn-default(type='button') View Previous Results
       button#howbtn.btn.btn-default(type='button') How to Play
-      button#ssbtn.btn.btn-default(type='button') Screenshots
       button#mgbtn.btn.btn-default(type='button') Games Like Drawphone
       a.btn.btn-default(type='button', role='button', href='https://docs.google.com/forms/d/e/1FAIpQLSe0lIL4ZYxyKDNHqv25VkLqOg7tk2VhOcOA-yDAuYxKFx6kyw/viewform', target='_blank') Submit Feedback
-      a.btn.btn-default(type='button', role='button', href='https://www.reddit.com/r/boardgames/comments/7lhj20/a_year_ago_i_was_wondering_why_there_were_no/', target='_blank') Original Reddit Post
     br
     br
     include buymebutton.pug
@@ -88,11 +84,10 @@ block content
           option 30 seconds
           option 45 seconds
           option 1 minute
-        div#lobby-settings-bots.d-none
-          button#lobby-settings-addbot.btn.btn-default.mt-2(type='button') Add Bot Player
-          button#lobby-settings-removebot.btn.btn-default.mt-2(type='button') Remove Bot Player
-    br
-    .btn-toolbar
+        .btn-toolbar.mt-4#lobby-settings-bots.d-none
+          button#lobby-settings-addbot.btn.btn-default.mr-2(type='button') Add Bot
+          button#lobby-settings-removebot.btn.btn-default(type='button') Remove Bot
+    .btn-toolbar.mt-4
       button#lobby-leave.btn.btn-default.btn-lg.mr-2(type='button') Leave Game
       button#lobby-start.btn.btn-default.btn-lg.disabled.d-none(type='button') Start Game
     br

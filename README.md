@@ -1,15 +1,12 @@
-<div align="center">
-  <img src="http://i.imgur.com/detQDdM.png"/>
-  <br>
-  <h2>
-    Play now at: <a href="https://drawphone.tannerkrewson.com/">drawphone.tannerkrewson.com</a>
-  </h2>
-  <br>
-  <img src="https://i.imgur.com/RA5HwjB.png" width="222"/><img src="https://i.imgur.com/JgFvlRb.png" width="222"/><img src="https://i.imgur.com/nVdQccl.png" width="222"/><img src="https://i.imgur.com/VlfnAvL.png" width="222"/>
-</div>
-<br>
+![Drawphone](https://i.imgur.com/UDwA90p.png)
 
-# Development
+### Play now at: [drawphone.tannerkrewson.com](https://drawphone.tannerkrewson.com/)
+
+Drawphone was built with Node.js, jQuery and [Pug](https://github.com/pugjs/pug). It was one of my first coding projects, so the code is a bit of a mess... 😂
+
+Issues, feature requests, and pull requests welcome!
+
+## Development
 
 #### Instructions
 

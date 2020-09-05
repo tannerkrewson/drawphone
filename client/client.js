@@ -241,7 +241,6 @@ function MainMenu(onJoin, onNew) {
 	this.newButton = $("#newbtn");
 	this.archiveButton = $("#archivebtn");
 	this.howButton = $("#howbtn");
-	this.ssButton = $("#ssbtn");
 	this.mgButton = $("#mgbtn");
 	this.onJoin = onJoin;
 	this.onNew = onNew;
@@ -259,9 +258,6 @@ MainMenu.prototype.initialize = function() {
 	});
 	this.howButton.click(function() {
 		window.location.href = "/how-to-play";
-	});
-	this.ssButton.click(function() {
-		window.location.href = "/screenshots";
 	});
 	this.mgButton.click(function() {
 		window.location.href = "/more-games";
@@ -493,7 +489,7 @@ Lobby.prototype.initialize = function() {
 	this.addBotButton.click(() => {
 		swal(
 			"Bad bot",
-			'Warning! The bots are a little janky. They think every drawing is "camouflage". But, they are real bots that make their best guesses based on the Mobilenet and Doodlenet machine learning models. 🤖',
+			'Warning! The bots are a little janky. They think most drawings are "rain". But, they are real bots that make their best guesses based on the Mobilenet and Doodlenet machine learning models. 🤖',
 			"warning"
 		);
 		socket.emit("addBotPlayer");

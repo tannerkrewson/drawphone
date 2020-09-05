@@ -1354,8 +1354,6 @@ function getDrawingCanvas() {
 		redoButton: $("#game-drawing-redo"),
 		colorInput: $("#game-drawing-color"),
 		brushsizeInput: $("#game-drawing-brushsize"),
-		colorOut: $("#game-drawing-color-text"),
-		brushsizeOut: $("#game-drawing-brushsize-text"),
 		brushsize: 4,
 		color: "#000000"
 	};
@@ -1363,7 +1361,7 @@ function getDrawingCanvas() {
 		updateCanvasState();
 	});
 
-	var updateCanvasState = function() {
+	const updateCanvasState = () => {
 		state.undoButton.removeClass("disabled");
 		thisCanvas.isBlank = false;
 		if (state.undoStatus == false && state.redoStatus == false) {
@@ -1390,7 +1388,7 @@ function getDrawingCanvas() {
 		}
 	};
 
-	var undo = function() {
+	const undo = () => {
 		if (state.undoFinishedStatus) {
 			if (state.currentStateIndex == -1) {
 				state.undoStatus = false;
@@ -1428,7 +1426,7 @@ function getDrawingCanvas() {
 		}
 	};
 
-	var redo = function() {
+	const redo = () => {
 		if (state.redoFinishedStatus) {
 			if (
 				state.currentStateIndex == state.canvasState.length - 1 &&
@@ -1467,24 +1465,13 @@ function getDrawingCanvas() {
 		}
 	};
 
-	var changeColor = function() {
-		document.getElementById(
-			"game-drawing-color-text"
-		).innerHTML = document.getElementById("game-drawing-color").value;
-		thisCanvas.freeDrawingBrush.color = document.getElementById(
-			"game-drawing-color"
-		).value;
+	const changeColor = () => {
+		thisCanvas.freeDrawingBrush.color = state.colorInput.val();
 	};
 
-	var changeBrushsize = function() {
-		document.getElementById(
-			"game-drawing-brushsize-text"
-		).innerHTML = document.getElementById("game-drawing-brushsize").value;
+	const changeBrushsize = () => {
 		thisCanvas.freeDrawingBrush.width =
-			parseInt(
-				document.getElementById("game-drawing-brushsize").value,
-				10
-			) || 1;
+			parseInt(state.brushsizeInput.val(), 10) || 1;
 	};
 
 	state.undoButton.on("click", undo);
@@ -1496,6 +1483,8 @@ function getDrawingCanvas() {
 	thisCanvas.remove = function() {
 		state.undoButton.off("click");
 		state.redoButton.off("click");
+		state.colorInput.val("#000000");
+		state.brushsizeInput.val(4);
 		thisCanvas.dispose();
 		$("#game-drawing-canvas").empty();
 	};

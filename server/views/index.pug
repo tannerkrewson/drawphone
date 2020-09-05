@@ -111,25 +111,20 @@ block content
       img#game-word-drawingtoname.drawing
       br
       br
-      input#game-word-in.form-control(type='text', placeholder='Enter your title here')
-    br    
-    div.row.mb-3#game-draw-buttons.d-none
-      div.col-md-6
+      input#game-word-in.form-control(type='text', placeholder='Enter your title here')  
+    div.row#game-draw-buttons.d-none
+      div.col-md-6.mt-2
         div.input-group
           div.input-group-prepend
             span.input-group-text Color
           input#game-drawing-color.form-control(type='color', value='#000000')
-          div.input-group-append
-            span.input-group-text#game-drawing-color-text #000000
-      div.col-md-6
+      div.col-md-6.mt-2
         div.input-group
           div.input-group-prepend
             span.input-group-text Size
-          input#game-drawing-brushsize.form-control(type='range', value='5', min='1', max='60')
-          div.input-group-append
-            span.input-group-text#game-drawing-brushsize-text 5
-    br
-    .btn-toolbar#game-buttons.d-none
+          .form-control(style='display: flex;justify-content: center;')
+            input#game-drawing-brushsize(type='range', value='5', min='1', max='60')
+    .btn-toolbar#game-buttons.d-none.mt-3
       button#game-drawing-undo.btn.btn-default.btn-lg.disabled.mr-2(type='button') Undo
       button#game-drawing-redo.btn.btn-default.btn-lg.disabled.mr-2(type='button') Redo
       button#game-send.btn.btn-default.btn-lg(type='button') Done

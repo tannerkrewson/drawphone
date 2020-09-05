@@ -376,104 +376,12 @@ function Lobby() {
 Lobby.prototype.initialize = function() {
 	Screen.prototype.initialize.call(this);
 
-	var self = this;
 	this.leaveButton.click(function() {
 		ga("send", "event", "Lobby", "leave");
 		//refresh the page
 		location.reload();
 	});
-	this.startButton.click(function() {
-		var ready = !this.isLoading && self.checkIfReadyToStart();
-		if (self.userList.numberOfPlayers === 1 && ready) {
-			swal(
-				{
-					title: "Demo mode",
-					text:
-						"Would you like to play Drawphone with just yourself to see how it works?",
-					type: "info",
-					showCancelButton: true
-				},
-				function() {
-					self.start.bind(self)();
-				}
-			);
-		} else if (ready) {
-			self.start.bind(self)();
-		} else {
-			swal(
-				"Not ready to start",
-				"Make sure have selected a word pack, a drawing time limit, and that you have at least four players.",
-				"error"
-			);
-			ga("send", "event", "Lobby", "disallowed start attempt");
-		}
-	});
-	this.wordFirstCheckbox.on("change", function() {
-		if (self.wordFirstCheckbox.is(":checked")) {
-			self.wordPack = false;
-			self.wordPackDropdown.prop("selectedIndex", 0);
-			self.wordPackDropdown.prop("disabled", true);
-		} else {
-			self.wordPackDropdown.prop("disabled", false);
-		}
 
-		socket.emit("hostUpdatedSettings", {
-			name: "wordfirst",
-			value: self.wordFirstCheckbox.is(":checked")
-		});
-		self.checkIfReadyToStart();
-	});
-	this.showNeighborsCheckbox.on("change", function() {
-		self.showNeighbors = !!self.showNeighborsCheckbox.is(":checked");
-		socket.emit("hostUpdatedSettings", {
-			name: "showNeighbors",
-			value: self.showNeighborsCheckbox.is(":checked")
-		});
-
-		self.checkIfReadyToStart();
-		ga("send", "event", "Lobby", "show neighbors", self.showNeighbors);
-	});
-	this.timeLimitDropdown.on("change", function() {
-		switch (self.timeLimitDropdown[0].value) {
-			case "No time limit (recommended)":
-				self.selectedTimeLimit = 0;
-				break;
-			case "5 seconds":
-				self.selectedTimeLimit = 5;
-				break;
-			case "10 seconds":
-				self.selectedTimeLimit = 10;
-				break;
-			case "15 seconds":
-				self.selectedTimeLimit = 15;
-				break;
-			case "30 seconds":
-				self.selectedTimeLimit = 30;
-				break;
-			case "45 seconds":
-				self.selectedTimeLimit = 45;
-				break;
-			case "1 minute":
-				self.selectedTimeLimit = 60;
-				break;
-		}
-
-		socket.emit("hostUpdatedSettings", {
-			name: "timelimit",
-			value: self.timeLimitDropdown[0].value
-		});
-		self.checkIfReadyToStart();
-	});
-	this.wordPackDropdown.on("change", function() {
-		self.wordPack = self.wordPackDropdown[0].value;
-		socket.emit("hostUpdatedSettings", {
-			name: "wordpack",
-			value: self.wordPackDropdown[0].value
-		});
-		self.checkIfReadyToStart();
-
-		ga("send", "event", "Lobby", "word pack change", self.wordPack);
-	});
 	this.viewPreviousResultsButton.click(function() {
 		socket.emit("viewPreviousResults", {});
 
@@ -485,16 +393,6 @@ Lobby.prototype.initialize = function() {
 	this.timeLimitDropdown.prop("selectedIndex", 0);
 	this.wordPackDropdown.prop("selectedIndex", 0);
 	this.wordPackDropdown.prop("disabled", false);
-
-	this.addBotButton.click(() => {
-		swal(
-			"Bad bot",
-			'Warning! The bots are a little janky. They think most drawings are "rain". But, they are real bots that make their best guesses based on the Mobilenet and Doodlenet machine learning models. 🤖',
-			"warning"
-		);
-		socket.emit("addBotPlayer");
-	});
-	this.removeBotButton.click(() => socket.emit("removeBotPlayer"));
 
 	ga("send", "event", "Lobby", "created");
 };
@@ -544,90 +442,221 @@ Lobby.prototype.show = function(data) {
 			Screen.prototype.waitingForResponse.call(this, false);
 			return;
 		}
-	} else {
-		//reset the word first wordFirstCheckbox
-		this.wordFirstCheckbox.prop("checked", false);
-
-		//reset the time limit selector
-		this.selectedTimeLimit = false;
-		this.timeLimitDropdown.prop("selectedIndex", 0);
-
-		//reset the word pack selector
-		this.wordPack = false;
-		this.wordPackDropdown.prop("selectedIndex", 0);
-		this.wordPackDropdown.prop("disabled", false);
-
-		//grey-out start button
-		this.startButton.addClass("disabled");
 	}
+
 	Screen.prototype.waitingForResponse.call(this, false);
 
 	Screen.prototype.show.call(this);
 };
 
 Lobby.prototype.update = function(res) {
-	if (res.success) {
-		Screen.gameCode = res.gameCode;
-		if (ROCKETCRAB_MODE) {
-			this.title = "Drawphone";
-		} else {
-			this.title = "Game Code: " + Screen.getGameCodeHTML();
-		}
-
-		this.subtitle = "Waiting for players...";
-		if (res.event === "updatePlayerList" && res.data.players) {
-			this.userList.update(res.data.players);
-		}
-		this.checkIfReadyToStart();
-
-		if (res.player.isHost) {
-			//show the start game button
-			this.startButton.removeClass(HIDDEN);
-			//show the game Settings
-			this.gameSettings.removeClass(HIDDEN);
-			this.gameSettingsBots.removeClass(HIDDEN);
-			for (let setting of this.gameSettings.find(".lobby-setting")) {
-				$(setting).prop("disabled", false);
-			}
-		} else {
-			this.startButton.addClass(HIDDEN);
-			this.gameSettings.removeClass(HIDDEN);
-			this.gameSettingsBots.addClass(HIDDEN);
-
-			// set settings disabled for players
-			for (let setting of this.gameSettings.find(".lobby-setting")) {
-				$(setting).prop("disabled", true);
-			}
-			console.log(`Changed: ${res.data.name} to ${res.data.value}`);
-			// update if host changes
-			this.gameSettings
-				.find(`#lobby-settings-${res.data.name}`)
-				.prop(
-					["wordfirst", "showNeighbors"].includes(res.data.name)
-						? "checked"
-						: "value",
-					res.data.value
-				);
-			// change wordpack to default (on player screens) if host turns on firstword
-			if (res.data.name === "wordfirst" && res.data.value === true) {
-				this.gameSettings
-					.find(`#lobby-settings-wordpack`)
-					.val("Select a word pack...");
-			}
-		}
-
-		if (res.data.canViewLastRoundResults) {
-			this.viewPreviousResultsButton.removeClass(HIDDEN);
-		} else {
-			this.viewPreviousResultsButton.addClass(HIDDEN);
-		}
-	} else {
+	if (!res.success) {
 		ga("send", "exception", {
 			exDescription: res.error,
 			exFatal: false
 		});
 		swal("Error updating lobby", res.error, "error");
+
+		return;
 	}
+
+	Screen.gameCode = res.gameCode;
+	if (ROCKETCRAB_MODE) {
+		this.title = "Drawphone";
+	} else {
+		this.title = "Game Code: " + Screen.getGameCodeHTML();
+	}
+
+	this.subtitle = "Waiting for players...";
+	if (res.event === "updatePlayerList" && res.data.players) {
+		this.userList.update(res.data.players);
+	}
+	this.checkIfReadyToStart();
+
+	if (res.player.isHost) {
+		//show the start game button
+		this.startButton.removeClass(HIDDEN);
+		//show the game Settings
+		this.gameSettings.removeClass(HIDDEN);
+		this.gameSettingsBots.removeClass(HIDDEN);
+		for (let setting of this.gameSettings.find(".lobby-setting")) {
+			$(setting).prop("disabled", false);
+		}
+
+		this.initHost();
+	} else {
+		this.clearHostHandlers();
+
+		this.startButton.addClass(HIDDEN);
+		this.gameSettings.removeClass(HIDDEN);
+		this.gameSettingsBots.addClass(HIDDEN);
+
+		// set settings disabled for players
+		for (let setting of this.gameSettings.find(".lobby-setting")) {
+			$(setting).prop("disabled", true);
+		}
+		// update if host changes
+		this.gameSettings
+			.find(`#lobby-settings-${res.data.name}`)
+			.prop(
+				["wordfirst", "showNeighbors"].includes(res.data.name)
+					? "checked"
+					: "value",
+				res.data.value
+			);
+		// change wordpack to default (on player screens) if host turns on firstword
+		if (res.data.name === "wordfirst" && res.data.value === true) {
+			this.gameSettings
+				.find(`#lobby-settings-wordpack`)
+				.val("Select a word pack...");
+		}
+	}
+
+	if (res.data.canViewLastRoundResults) {
+		this.viewPreviousResultsButton.removeClass(HIDDEN);
+	} else {
+		this.viewPreviousResultsButton.addClass(HIDDEN);
+	}
+};
+
+Lobby.prototype.clearHostHandlers = function() {
+	this.startButton.off("click");
+	this.wordFirstCheckbox.off("change");
+	this.showNeighborsCheckbox.off("change");
+	this.timeLimitDropdown.off("change");
+	this.wordPackDropdown.off("change");
+	this.addBotButton.off("click");
+	this.removeBotButton.off("click");
+};
+
+Lobby.prototype.initHost = function() {
+	this.clearHostHandlers();
+
+	this.startButton.on("click", () => {
+		var ready = !this.isLoading && this.checkIfReadyToStart();
+		if (this.userList.numberOfPlayers === 1 && ready) {
+			swal(
+				{
+					title: "Demo mode",
+					text:
+						"Would you like to play Drawphone with just yourself to see how it works?",
+					type: "info",
+					showCancelButton: true
+				},
+				() => {
+					this.start.bind(this)();
+				}
+			);
+		} else if (ready) {
+			this.start.bind(this)();
+		} else {
+			swal(
+				"Not ready to start",
+				"Make sure have selected a word pack, a drawing time limit, and that you have at least four players.",
+				"error"
+			);
+			ga("send", "event", "Lobby", "disallowed start attempt");
+		}
+	});
+
+	const onWordFirstChange = () => {
+		if (this.wordFirstCheckbox.is(":checked")) {
+			this.wordPack = false;
+			this.wordPackDropdown.prop("selectedIndex", 0);
+			this.wordPackDropdown.prop("disabled", true);
+		} else {
+			this.wordPackDropdown.prop("disabled", false);
+		}
+
+		this.checkIfReadyToStart();
+	};
+	this.wordFirstCheckbox.on("change", () => {
+		onWordFirstChange();
+
+		socket.emit("hostUpdatedSettings", {
+			name: "wordfirst",
+			value: this.wordFirstCheckbox.is(":checked")
+		});
+	});
+	onWordFirstChange();
+
+	this.showNeighborsCheckbox.on("change", () => {
+		this.showNeighbors = !!this.showNeighborsCheckbox.is(":checked");
+		socket.emit("hostUpdatedSettings", {
+			name: "showNeighbors",
+			value: this.showNeighborsCheckbox.is(":checked")
+		});
+
+		this.checkIfReadyToStart();
+		ga("send", "event", "Lobby", "show neighbors", this.showNeighbors);
+	});
+
+	const onTimeLimitDropdownChange = () => {
+		switch (this.timeLimitDropdown[0].value) {
+			case "No time limit (recommended)":
+				this.selectedTimeLimit = 0;
+				break;
+			case "5 seconds":
+				this.selectedTimeLimit = 5;
+				break;
+			case "10 seconds":
+				this.selectedTimeLimit = 10;
+				break;
+			case "15 seconds":
+				this.selectedTimeLimit = 15;
+				break;
+			case "30 seconds":
+				this.selectedTimeLimit = 30;
+				break;
+			case "45 seconds":
+				this.selectedTimeLimit = 45;
+				break;
+			case "1 minute":
+				this.selectedTimeLimit = 60;
+				break;
+		}
+
+		this.checkIfReadyToStart();
+	};
+
+	this.timeLimitDropdown.on("change", () => {
+		onTimeLimitDropdownChange();
+
+		socket.emit("hostUpdatedSettings", {
+			name: "timelimit",
+			value: this.timeLimitDropdown[0].value
+		});
+	});
+	onTimeLimitDropdownChange();
+
+	const onWordPackDropdownChange = () => {
+		const selected = this.wordPackDropdown[0].value;
+		this.wordPack = selected === "Select a word pack..." ? false : selected;
+
+		this.checkIfReadyToStart();
+	};
+
+	this.wordPackDropdown.on("change", () => {
+		onWordPackDropdownChange();
+		socket.emit("hostUpdatedSettings", {
+			name: "wordpack",
+			value: this.wordPackDropdown[0].value
+		});
+
+		ga("send", "event", "Lobby", "word pack change", this.wordPack);
+	});
+	onWordPackDropdownChange();
+
+	this.addBotButton.on("click", () => {
+		swal(
+			"Bad bot",
+			'Warning! The bots are a little janky. They think most drawings are "rain". But, they are real bots that make their best guesses based on the Mobilenet and Doodlenet machine learning models. 🤖',
+			"warning"
+		);
+		socket.emit("addBotPlayer");
+	});
+
+	this.removeBotButton.on("click", () => socket.emit("removeBotPlayer"));
 };
 
 Lobby.prototype.checkIfReadyToStart = function() {

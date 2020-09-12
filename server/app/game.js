@@ -121,8 +121,10 @@ Game.prototype.initPlayer = function(newPlayer) {
 };
 
 Game.prototype.onPlayerDisconnect = function(oldPlayer) {
-	//if the player was host, or there is no host
-	if (oldPlayer.id === this.host.id || !this.host) {
+	const noHost = !this.host;
+	const playerWasHost = this.host && oldPlayer.id === this.host.id;
+
+	if (playerWasHost || noHost) {
 		this.host = undefined;
 		//find the first connected player to be host
 		for (var i = 0; i < this.players.length; i++) {

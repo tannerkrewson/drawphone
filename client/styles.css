@@ -228,8 +228,8 @@ span.avoidwrap {
 		margin: 0;
 	}
 	50% {
-		transform: scale(1.4);
-		margin: 0 0.1em;
+		transform: scale(1.25);
+		margin: 0 0.05em;
 	}
 	100% {
 		transform: scale(1);

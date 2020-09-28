@@ -936,6 +936,7 @@ Game.prototype.checkIfDone = function(newLinkType) {
 		if (this.canvas.isBlank) {
 			showElement("#game-drawing");
 			showElement("#game-buttons");
+			showElement("#game-draw-buttons");
 			swal(
 				"Your picture is blank!",
 				"Please draw a picture, then try again.",

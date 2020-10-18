@@ -242,7 +242,6 @@ function MainMenu(onJoin, onNew) {
 	this.newButton = $("#newbtn");
 	this.archiveButton = $("#archivebtn");
 	this.howButton = $("#howbtn");
-	this.mgButton = $("#mgbtn");
 	this.onJoin = onJoin;
 	this.onNew = onNew;
 
@@ -259,9 +258,6 @@ MainMenu.prototype.initialize = function() {
 	});
 	this.howButton.click(function() {
 		window.location.href = "/how-to-play";
-	});
-	this.mgButton.click(function() {
-		window.location.href = "/more-games";
 	});
 };
 

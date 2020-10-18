@@ -13,9 +13,17 @@ block content
   hr
   div#loading Loading...
   div#mainmenu.d-none
-    .alert.alert-primary(style='text-align:center;')
-      h4 Colors and brush sizes are finally here! 🎉🌈
-      |Plus, some minor improvements & bug fixes, especially for the bots. 🤖
+    .rocketcrab-alert.rocketcrab-style
+      .mt-2.mb-2
+        img.mr-1(src='pencil-alt.svg' alt='' width='24')
+        img.ml-1(src='phone-alt.svg' alt='' width='24')
+        |&nbsp;&nbsp;🡆&nbsp;&nbsp;
+        img.rocketsvg.mr-1(src='https://rocketcrab.com/rocket.svg' alt='' width='26')
+        img.crabsvg.ml-1(src='https://rocketcrab.com/crab.svg' alt='' width='26')
+        .mb-3
+      | Try Drawphone (and lots of other awesome games) on:
+      br
+      a.rocketcrablink(href="https://rocketcrab.com", target='_blank') rocketcrab.com
     .btn-toolbar
       button#joinbtn.btn.btn-default.btn-lg.mr-2(type='button') Join Game
       button#newbtn.btn.btn-default.btn-lg(type='button') New Game
@@ -23,8 +31,6 @@ block content
     .btn-group-vertical(role="group" aria-label="...")
       button#archivebtn.btn.btn-default(type='button') View Previous Results
       button#howbtn.btn.btn-default(type='button') How to Play
-      button#mgbtn.btn.btn-default(type='button') Games Like Drawphone
-      a.btn.btn-default(type='button', role='button', href='https://docs.google.com/forms/d/e/1FAIpQLSe0lIL4ZYxyKDNHqv25VkLqOg7tk2VhOcOA-yDAuYxKFx6kyw/viewform', target='_blank') Submit Feedback
     br
     br
     include buymebutton.pug
@@ -87,11 +93,12 @@ block content
       button#lobby-start.btn.btn-default.btn-lg.disabled.d-none(type='button') Start Game
     div.card.thanks-panel
       div.card-body
-        div Thanks for playing Drawphone!
-        p If you had fun, try out my other game:
-        a.btn.btn-default.mb-3(type='button', role='button', href='https://spyfall.tannerkrewson.com/', style='font-size:1.1em;') Play Spyfall
-        div or, if you're feeling hungry:
+        .rocketcrab-style.mb-1 Play Drawphone and other cool party games:
+        a.rocketcrablink.rocketcrabbtn.btn.btn-default.mb-4(type='button', role='button', href='https://rocketcrab.com/', style='font-size:1.1em;', target='_blank') 🚀🦀 rocketcrab.com
+        div or, if you're feeling magnanimous:
         include buymebutton.pug
+        .mt-4.mb-1 or, join the brand-spankin' new rocketcrab/Drawphone Discord!
+        a#discordbtn.btn.btn-default(type='button', role='button', href='https://discord.gg/MvYRVCP', style='font-size:1.1em;', target='_blank') Join our Discord
 
 
   div#game.d-none

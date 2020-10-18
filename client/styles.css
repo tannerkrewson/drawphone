@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Inconsolata:wght@600&family=Mukta&display=swap");
+
 body {
 	font-family: "Pangolin", serif;
 }
@@ -176,50 +178,93 @@ span.avoidwrap {
 	display: none;
 }
 
+.rocketcrab-alert {
+	box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
+	background: #fff;
+	margin-bottom: 2em;
+	padding: 1em;
+	width: 100%;
+	transition: all 0.2s ease;
+	border-radius: 5px;
+	box-sizing: border-box;
+	color: #000;
+	background-color: #fff;
+	border: 1px solid rgba(223, 225, 229, 0);
+}
+
+.rocketcrab-style {
+	font-family: "Mukta", Helvetica Neue, Helvetica, Arial, sans-serif;
+}
+
+.rocketcrablink {
+	font-family: "Inconsolata", monospace;
+	font-weight: 600;
+	font-size: 1.5em;
+}
+
+.rocketcrabbtn {
+	box-shadow: rgba(0, 0, 0, 0.12) 0px 3px 7px 3px;
+	border: none;
+}
+
+#discordbtn {
+	background-color: #7289da;
+	border: none;
+	color: white;
+}
+
+.rocketsvg {
+	filter: drop-shadow(0 0 6px cyan);
+}
+
+.crabsvg {
+	filter: drop-shadow(0 0 6px #ff0000d9);
+}
+
 .drawphone-d {
 	display: inline-block;
-	color: #ff0000;
-	animation: 0.5s ease-in-out 0ms 1 emphasize;
+	/*color: #ff0000;
+	animation: 0.5s ease-in-out 0ms 1 emphasize;*/
 }
 .drawphone-r {
 	display: inline-block;
-	color: #ff4000;
-	animation: 0.5s ease-in-out 75ms 1 emphasize;
+	/*color: #ff4000;
+	animation: 0.5s ease-in-out 75ms 1 emphasize;*/
 }
 .drawphone-a {
 	display: inline-block;
-	color: #ff7f00;
-	animation: 0.5s ease-in-out 150ms 1 emphasize;
+	/*color: #ff7f00;
+	animation: 0.5s ease-in-out 150ms 1 emphasize;*/
 }
 .drawphone-w {
 	display: inline-block;
-	color: #ffc400;
-	animation: 0.5s ease-in-out 225ms 1 emphasize;
+	/*color: #ffc400;
+	animation: 0.5s ease-in-out 225ms 1 emphasize;*/
 }
 .drawphone-p {
 	display: inline-block;
-	color: #80c920;
-	animation: 0.5s ease-in-out 300ms 1 emphasize;
+	/*color: #80c920;
+	animation: 0.5s ease-in-out 300ms 1 emphasize;*/
 }
 .drawphone-h {
 	display: inline-block;
-	color: #00ce40;
-	animation: 0.5s ease-in-out 375ms 1 emphasize;
+	/*color: #00ce40;
+	animation: 0.5s ease-in-out 375ms 1 emphasize;*/
 }
 .drawphone-o {
 	display: inline-block;
-	color: #0003ff;
-	animation: 0.5s ease-in-out 450ms 1 emphasize;
+	/*color: #0003ff;
+	animation: 0.5s ease-in-out 450ms 1 emphasize;*/
 }
 .drawphone-n {
 	display: inline-block;
-	color: #4802ff;
-	animation: 0.5s ease-in-out 525ms 1 emphasize;
+	/*color: #4802ff;
+	animation: 0.5s ease-in-out 525ms 1 emphasize;*/
 }
 .drawphone-e {
 	display: inline-block;
-	color: #8f00ff;
-	animation: 0.5s ease-in-out 600ms 1 emphasize;
+	/*color: #8f00ff;
+	animation: 0.5s ease-in-out 600ms 1 emphasize;*/
 }
 
 @keyframes emphasize {
@@ -237,21 +282,21 @@ span.avoidwrap {
 	}
 }
 
-/* buy me a taco button */
-.bmc-button .taco {
+/* buy me a potato button */
+.bmc-button .potato {
 	margin-bottom: 1px !important;
 	box-shadow: none !important;
 	border: none !important;
 	vertical-align: middle !important;
 	font-size: 1.5em;
-	line-height: 1em;
+	line-height: 1.1em;
 }
 .bmc-button {
 	padding: 7px 10px 7px 10px !important;
 	text-decoration: none !important;
 	display: inline-flex !important;
 	color: #ffffff !important;
-	background-color: #ff813f !important;
+	background-color: #79d6b5 !important;
 	border-radius: 5px !important;
 	border: 1px solid transparent !important;
 	padding: 7px 10px 7px 10px !important;

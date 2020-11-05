@@ -47,23 +47,31 @@ Game.prototype.newPlayer = function(name, socket) {
 	return new Player(name, socket, this.getNextId());
 };
 
+Game.prototype.newBotPlayer = function(customName) {
+	if (this.botCount >= BOT_NAMES.length && !customName) return;
+
+	this.botCount++;
+
+	return new PlayerAI(
+		customName || BOT_NAMES[this.botCount],
+		undefined,
+		this.getNextId()
+	);
+};
+
 Game.prototype.addPlayer = function(name, socket) {
 	var newPlayer = this.newPlayer(name, socket);
 	this.initPlayer(newPlayer);
+
 	this.players.push(newPlayer);
 	this.sendUpdatedPlayersList();
 	return newPlayer;
 };
 
 Game.prototype.addBotPlayer = function() {
-	if (this.botCount >= BOT_NAMES.length) return;
+	const newPlayer = this.newBotPlayer();
 
-	var newPlayer = new PlayerAI(
-		BOT_NAMES[this.botCount],
-		undefined,
-		this.getNextId()
-	);
-	this.botCount++;
+	if (!newPlayer) return false;
 
 	this.players.push(newPlayer);
 	this.sendUpdatedPlayersList();

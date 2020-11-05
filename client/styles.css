@@ -98,6 +98,10 @@ label {
 .user {
 	border: 1px solid LightGrey;
 	padding: 8px;
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 
 .user-container {

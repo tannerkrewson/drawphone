@@ -1199,43 +1199,74 @@ Waiting.prototype.show = function() {
 };
 
 Waiting.prototype.updateWaitingList = function(res) {
+	const { notFinished, disconnected } = res.data;
+
 	//show/hide the host notice
 	if (res.you.isHost) {
 		$("#waiting-hostmsg").removeClass(HIDDEN);
+		this.userList.update(
+			notFinished,
+			disconnected,
+			promptKickPlayer,
+			promptReplaceBot
+		);
 	} else {
 		$("#waiting-hostmsg").addClass(HIDDEN);
+		this.userList.update(notFinished, disconnected);
 	}
-	var notFinished = res.data.notFinished;
-	var disconnected = res.data.disconnected;
-	this.userList.update(notFinished, disconnected, function(tappedPlayer) {
-		//ran when the client taps one of the usernames
-		if (res.you.isHost) {
-			swal(
-				{
-					title: "Kick " + tappedPlayer.name + "?",
-					text:
-						"Someone will have to join this game to replace them.",
-					type: "warning",
-					showCancelButton: true,
-					confirmButtonClass: "btn-danger",
-					confirmButtonText: "Kick",
-					closeOnConfirm: false
-				},
-				function() {
-					socket.emit("kickPlayer", {
-						playerToKick: tappedPlayer
-					});
-					swal(
-						"Done!",
-						tappedPlayer.name + " was kicked.",
-						"success"
-					);
-					ga("send", "event", "User list", "Host kick player");
-				}
-			);
-			ga("send", "event", "User list", "Host tap player");
+};
+
+const promptKickPlayer = tappedPlayer => {
+	//ran when the client taps one of the usernames
+
+	swal(
+		{
+			title: "Kick " + tappedPlayer.name + "?",
+			text:
+				"Someone will have to join this game to replace them. (Or, you could use a bot!)",
+			type: "warning",
+			showCancelButton: true,
+			confirmButtonClass: "btn-danger",
+			confirmButtonText: "Kick",
+			closeOnConfirm: false
+		},
+		() => {
+			socket.emit("kickPlayer", {
+				playerToKick: tappedPlayer
+			});
+			swal("Done!", tappedPlayer.name + " was kicked.", "success");
+			ga("send", "event", "User list", "Host kick player");
 		}
-	});
+	);
+	ga("send", "event", "User list", "Host tap player");
+};
+
+const promptReplaceBot = tappedPlayer => {
+	//ran when the client taps one of the disconnected players
+
+	swal(
+		{
+			title: "Replace " + tappedPlayer.name + " with a bot?",
+			text: "Fair warning, the bots aren't very smart!",
+			type: "warning",
+			showCancelButton: true,
+			confirmButtonClass: "btn-danger",
+			confirmButtonText: "Replace",
+			closeOnConfirm: false
+		},
+		() => {
+			socket.emit("replacePlayerWithBot", {
+				playerToReplaceWithBot: tappedPlayer
+			});
+			swal(
+				"Done!",
+				tappedPlayer.name + " was replaced with a bot.",
+				"success"
+			);
+			ga("send", "event", "User list", "Host replace player with a bot");
+		}
+	);
+	ga("send", "event", "User list", "Host tap player");
 };
 
 Replace.prototype = Object.create(Screen.prototype);
@@ -1290,47 +1321,50 @@ function UserList(ul) {
 	this.botPlayers = 0;
 }
 
-UserList.prototype.update = function(newList, disconnectedList, onPress) {
+UserList.prototype.update = function(
+	newList,
+	disconnectedList,
+	onKick,
+	onBotReplace
+) {
 	//clear all of the user boxes using jquery
 	this.ul.empty();
 
-	this.draw(newList, false, onPress);
+	this.draw(newList, false, onKick);
 	if (disconnectedList) {
 		if (disconnectedList.length > 0) {
 			$("#waiting-disconnectedmsg").removeClass(HIDDEN);
-			this.draw(disconnectedList, true);
+			this.draw(disconnectedList, true, onBotReplace);
 		} else {
 			$("#waiting-disconnectedmsg").addClass(HIDDEN);
 		}
 	}
 };
 
-UserList.prototype.draw = function(list, makeBoxDark, onPress) {
+UserList.prototype.draw = function(list, makeBoxDark, onClick) {
 	this.numberOfPlayers = 0;
 	this.realPlayers = 0;
 	this.botPlayers = 0;
 
-	for (var i = 0; i < list.length; i++) {
+	list.forEach(player => {
 		this.numberOfPlayers++;
-		list[i].isAi ? this.botPlayers++ : this.realPlayers++;
+		player.isAi ? this.botPlayers++ : this.realPlayers++;
 
 		var listBox = $("<span></span>");
-		var listItem = $("<li>" + list[i].name + "</li>").appendTo(listBox);
+		var listItem = $("<li>" + player.name + "</li>").appendTo(listBox);
 		listItem.addClass("user");
 		if (makeBoxDark) {
 			listItem.addClass("disconnected");
 		}
 		listBox.addClass("col-xs-6");
 		listBox.addClass("user-container");
-		if (onPress) {
-			(function(player) {
-				listBox.click(function() {
-					onPress(player);
-				});
-			})(list[i]);
+
+		if (onClick) {
+			listBox.on("click", () => onClick(player));
 		}
+
 		listBox.appendTo(this.ul);
-	}
+	});
 };
 
 // https://github.com/abhi06991/Undo-Redo-Fabricjs

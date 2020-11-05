@@ -80,6 +80,24 @@ module.exports = function(app) {
 			}
 		});
 
+		socket.on("replacePlayerWithBot", function(data) {
+			const isInGame = thisGame && thisGame.currentRound;
+			const isHost = thisUser && thisUser.isHost;
+			if (!isInGame || !isHost) return;
+
+			const oldPlayer = data.playerToReplaceWithBot;
+			const botPlayer = thisGame.newBotPlayer(
+				"👻 The Ghost of " + oldPlayer.name
+			);
+			const thisRound = thisGame.currentRound;
+
+			if (botPlayer && thisRound.canBeReplaced(oldPlayer.id)) {
+				thisRound.replacePlayer(oldPlayer.id, botPlayer);
+				thisRound.updateWaitingList();
+				thisRound.nextLinkIfEveryoneIsDone();
+			}
+		});
+
 		socket.on("hostUpdatedSettings", function(setting) {
 			if (!thisGame || !thisUser) return;
 

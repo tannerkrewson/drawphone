@@ -274,6 +274,8 @@ Round.prototype.replacePlayer = function(playerToReplaceId, newPlayer) {
 			//delete 'em from disconnectedPlayers
 			this.disconnectedPlayers.splice(i, 1);
 
+			if (newPlayer.isAi) newPlayer.setAIGuessQueue(this.aiGuessQueue);
+
 			//check if the disconnectedPlayer (dp) had submitted their link
 			var dpChain = this.getChainByLastSentPlayerId(newPlayer.id);
 			var dpDidFinishTheirLink =

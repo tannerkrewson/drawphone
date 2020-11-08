@@ -1656,7 +1656,7 @@ function getQuickInfoStringOfResults(results) {
 	result += ": ";
 
 	var firstChainLinks = results.chains[0].links;
-	result += firstChainLinks[0].data;
+	result += firstChainLinks[0].data || firstChainLinks[1].data;
 	result += " to ";
 	result += firstChainLinks[firstChainLinks.length - 1].data;
 
@@ -1664,7 +1664,7 @@ function getQuickInfoStringOfResults(results) {
 
 	result += ", ";
 	var secondChainLinks = results.chains[1].links;
-	result += secondChainLinks[0].data;
+	result += secondChainLinks[0].data || secondChainLinks[1].data;
 	result += " to ";
 	result += secondChainLinks[secondChainLinks.length - 1].data;
 	result += ", etc.";

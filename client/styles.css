@@ -167,6 +167,10 @@ span.avoidwrap {
 	display: inline-block;
 }
 
+#result-others h4 {
+	margin: 0 auto 0.5rem;
+}
+
 .well {
 	min-height: 20px;
 	padding: 19px;

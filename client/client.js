@@ -1051,22 +1051,9 @@ Results.prototype.initialize = function() {
 Results.prototype.show = function(res, isArchivePage) {
 	socket.off("disconnect");
 
-	var chains = res.data.chains;
-	var ourChain;
-	for (var i = 0; i < chains.length; i++) {
-		var chain = chains[i];
-		if (chain.owner.id === res.you.id) {
-			ourChain = chain;
-			break;
-		}
-	}
+	const chains = res.data.chains;
 
-	//if we don't own a chain, just show the first one
-	if (ourChain) {
-		this.render(ourChain, chains);
-	} else {
-		this.render(chains[0], chains);
-	}
+	this.render(chains[0], chains);
 
 	Screen.prototype.show.call(this);
 
@@ -1076,12 +1063,11 @@ Results.prototype.show = function(res, isArchivePage) {
 };
 
 Results.prototype.render = function(chainToShow, allChains) {
-	Screen.prototype.setTitle.call(
-		this,
-		chainToShow.owner.name + "'s Drawphone results"
-	);
+	const chainNumber = allChains.indexOf(chainToShow);
+
+	Screen.prototype.setTitle.call(this, "Results #" + (chainNumber + 1));
 	var subtitle =
-		"Now, take turns holding up your phones where everyone can see, and reading off your results to the group.";
+		chainToShow.owner.name + " should present these results to the group!";
 	Screen.prototype.setSubtitle.call(this, subtitle);
 	this.displayChain(chainToShow);
 	this.displayOtherChainButtons(allChains, chainToShow);
@@ -1152,21 +1138,23 @@ Results.prototype.displayOtherChainButtons = function(
 		others.append("<h4>View more results:</h4>");
 	}
 
-	// alphabetize
-	chainsToList.sort((a, b) => a.owner.name.localeCompare(b.owner.name));
-
 	var self = this;
 	for (var i = 0; i < chainsToList.length; i++) {
 		var chain = chainsToList[i];
 
 		const disabled = chain.id === chainToIgnore.id ? "disabled" : "";
 
+		// "players write first word" chains have the first word at index 1.
+		const buttonLabel = chain.links[0].data || chain.links[1].data;
+
 		var button = $(
 			'<button type="button"' +
 				disabled +
 				">" +
-				chain.owner.name +
-				"'s results</button>"
+				(i + 1) +
+				". " +
+				buttonLabel +
+				"</button>"
 		);
 		button.addClass("btn btn-default btn-lg");
 		(function(thisChain, chainList) {

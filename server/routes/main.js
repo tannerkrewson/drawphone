@@ -46,21 +46,42 @@ module.exports = function(app) {
 
 	app.get("/stats", function(req, res) {
 		var games = [];
+		let realPlayerCount = 0;
 		for (var game of dp.games) {
+			const real = game.players.length - game.botCount;
+			realPlayerCount += real;
+
+			const inProgressCounts = game.currentRound
+				? {
+						disconnected:
+							game.currentRound.disconnectedPlayers.length,
+						potential: game.currentRound.potentialPlayers.length
+				  }
+				: {};
+
 			var strippedGame = {
 				players: {
-					real: game.players.length - game.botCount,
+					real,
 					bot: game.botCount,
-					total: game.players.length
+					total: game.players.length,
+					...inProgressCounts
 				},
-				inProgress: game.inProgress,
 				roundsPlayed: game.currentRoundNum - 1,
 				lastAction: timeSince(game.timeOfLastAction)
 			};
+
 			games.unshift(strippedGame);
 		}
+
+		const lastRebootDate = new Date();
+		lastRebootDate.setSeconds(
+			lastRebootDate.getSeconds() - process.uptime()
+		);
+
 		res.json({
-			numberOfConnectedUsers: app.io.engine.clientsCount,
+			totalSocketClients: app.io.engine.clientsCount,
+			totalRealPlayers: realPlayerCount,
+			lastReboot: timeSince(lastRebootDate),
 			games: games
 		});
 	});

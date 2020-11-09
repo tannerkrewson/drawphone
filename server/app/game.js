@@ -110,7 +110,7 @@ Game.prototype.initPlayer = function(newPlayer) {
 	newPlayer.socket.on("disconnect", function() {
 		newPlayer.isConnected = false;
 		if (self.inProgress) {
-			self.currentRound.findReplacementFor(newPlayer);
+			self.currentRound.findReplacementFor(newPlayer, self.code);
 		} else {
 			self.removePlayer(newPlayer.id);
 		}

@@ -49,22 +49,23 @@ module.exports = function(app) {
 		});
 
 		socket.on("tryReplacePlayer", function(data) {
-			if (!thisGame || !thisGame.currentRound) return;
+			const thisRound = thisGame.currentRound;
 
-			var thisRound = thisGame.currentRound;
-			var toReplaceId = data.playerToReplace.id;
+			if (!thisGame || !thisRound) return;
+
+			const toReplaceId = data.playerToReplace.id;
+
 			if (thisUser && thisRound.canBeReplaced(toReplaceId)) {
-				thisUser = thisRound.replacePlayer(toReplaceId, thisUser);
+				thisUser = thisRound.replacePlayer(
+					toReplaceId,
+					thisUser,
+					thisGame.code
+				);
 				thisGame.initPlayer(thisUser);
 				thisRound.updateWaitingList();
 				thisRound.nextLinkIfEveryoneIsDone();
 			} else {
-				//give the user semi-useful error message,
-				//  instead of literally nothing happening
-				onJoinGame({
-					code: thisGame.code,
-					name: thisUser.name
-				});
+				thisRound.sendUpdateToPotentialPlayers(thisGame.code);
 			}
 		});
 
@@ -136,6 +137,7 @@ module.exports = function(app) {
 					error: "Name too short/long"
 				});
 			} else {
+				const thisRound = thisGame.currentRound;
 				if (!thisGame.inProgress) {
 					thisUser = thisGame.addPlayer(theName, socket);
 					socket.emit("joinGameRes", {
@@ -143,19 +145,10 @@ module.exports = function(app) {
 						game: thisGame.getJsonGame(),
 						you: thisUser.getJson()
 					});
-				} else if (
-					thisGame.currentRound.disconnectedPlayers.length > 0
-				) {
-					thisUser = thisGame.newPlayer(theName, socket);
-					socket.emit("replacePlayer", {
-						gameCode: thisGame.code,
-						players: thisGame.currentRound.getPlayersThatNeedToBeReplaced()
-					});
 				} else {
-					socket.emit("joinGameRes", {
-						success: false,
-						error: "Game in progress"
-					});
+					thisUser = thisGame.newPlayer(theName, socket);
+					thisRound.potentialPlayers.push(thisUser);
+					thisRound.sendUpdateToPotentialPlayers(thisGame.code);
 				}
 			}
 		}

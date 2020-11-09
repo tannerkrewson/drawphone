@@ -30,6 +30,7 @@ function Round(
 	this.onResults = onResults;
 	this.chains = [];
 	this.disconnectedPlayers = [];
+	this.potentialPlayers = [];
 	this.canViewLastRoundResults = false;
 	this.isWordFirstGame = !this.wordPackName;
 
@@ -241,9 +242,10 @@ Round.prototype.viewResults = function() {
 	});
 };
 
-Round.prototype.findReplacementFor = function(player) {
+Round.prototype.findReplacementFor = function(player, gameCode) {
 	this.disconnectedPlayers.push(player.getJson());
 	this.updateWaitingList();
+	this.sendUpdateToPotentialPlayers(gameCode);
 };
 
 Round.prototype.getPlayersThatNeedToBeReplaced = function() {
@@ -259,7 +261,11 @@ Round.prototype.canBeReplaced = function(playerToReplaceId) {
 	return false;
 };
 
-Round.prototype.replacePlayer = function(playerToReplaceId, newPlayer) {
+Round.prototype.replacePlayer = function(
+	playerToReplaceId,
+	newPlayer,
+	gameCode
+) {
 	for (var i = 0; i < this.disconnectedPlayers.length; i++) {
 		if (this.disconnectedPlayers[i].id === playerToReplaceId) {
 			//give 'em the id of the old player
@@ -273,6 +279,12 @@ Round.prototype.replacePlayer = function(playerToReplaceId, newPlayer) {
 
 			//delete 'em from disconnectedPlayers
 			this.disconnectedPlayers.splice(i, 1);
+
+			this.potentialPlayers = this.potentialPlayers.filter(
+				p => p !== newPlayer
+			);
+
+			this.sendUpdateToPotentialPlayers(gameCode);
 
 			if (newPlayer.isAi) newPlayer.setAIGuessQueue(this.aiGuessQueue);
 
@@ -304,6 +316,16 @@ Round.prototype.updateWaitingList = function() {
 		notFinished: this.getListOfNotFinishedPlayers(),
 		disconnected: this.disconnectedPlayers
 	});
+};
+
+Round.prototype.sendUpdateToPotentialPlayers = function(gameCode) {
+	const payload = {
+		gameCode,
+		players: this.getPlayersThatNeedToBeReplaced()
+	};
+	this.potentialPlayers.forEach(player =>
+		player.send("replacePlayer", payload)
+	);
 };
 
 Round.prototype.getListOfNotFinishedPlayers = function() {

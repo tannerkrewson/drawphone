@@ -1266,32 +1266,40 @@ function Replace() {
 }
 
 Replace.prototype.initialize = function() {
-	$("#replace-leave").click(function() {
-		//refresh the page
-		location.reload();
-	});
+	// when leave button is clicked, refresh the page
+	$("#replace-leave").on("click", () => location.reload());
+
 	Screen.prototype.initialize.call(this);
 };
 
-Replace.prototype.show = function(data) {
-	Screen.gameCode = data.gameCode;
-	Screen.prototype.setSubtitle.call(this, "Ready to join game...");
+Replace.prototype.show = function({ data }) {
+	const { gameCode, players } = data;
 
-	var choices = $("#replace-choices");
-	var players = data.players;
-
+	const choices = $("#replace-choices");
 	choices.empty();
 
-	var self = this;
-	players.forEach(function(player) {
-		var button = $('<button type="button">' + player.name + "</button>");
-		button.addClass("btn btn-default btn-lg");
-		button.click(function() {
-			self.sendChoice(player);
+	if (players.length) {
+		players.forEach(player => {
+			const button = $(
+				'<button type="button">' + player.name + "</button>"
+			);
+
+			button.addClass("btn btn-default btn-lg");
+			button.on("click", () => this.sendChoice(player));
+
+			choices.append(button);
+			choices.append("<br>");
 		});
-		choices.append(button);
-		choices.append("<br>");
-	});
+	} else {
+		choices.append(
+			"<p>This game is currently full. If you stay on this page, it " +
+				"will automatically update to let you know if someone has " +
+				"left!</p>"
+		);
+	}
+
+	Screen.gameCode = gameCode;
+	Screen.prototype.setSubtitle.call(this, "Ready to join game...");
 	Screen.prototype.show.call(this);
 };
 

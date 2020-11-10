@@ -9,6 +9,7 @@ var Chain = require("./chain");
 var AIGuessQueue = require("./ai-guess-queue");
 var DrawingLink = require("./link/drawinglink");
 var WordLink = require("./link/wordlink");
+var { sendResultsToAwsArchive } = require("./aws-archive");
 
 var WordPacks = require("./words");
 var words = new WordPacks();
@@ -228,18 +229,26 @@ Round.prototype.getChainByOwnerId = function(ownerId) {
 };
 
 Round.prototype.viewResults = function() {
-	var chains = this.getAllChains();
+	const chains = this.getAllChains();
 
 	//starts as false, and will be true every round after first round
 	this.canViewLastRoundResults = true;
 
 	this.onResults();
 
-	this.players.forEach(function(player) {
+	this.players.forEach(player =>
 		player.send("viewResults", {
 			chains
-		});
-	});
+		})
+	);
+
+	try {
+		if (this.shouldArchiveResultsToAws()) {
+			sendResultsToAwsArchive(chains, this.wordPackName);
+		}
+	} catch (error) {
+		console.log("aws upload failed");
+	}
 };
 
 Round.prototype.findReplacementFor = function(player, gameCode) {
@@ -387,6 +396,17 @@ Round.prototype.getAllChains = function() {
 		newChains.push(chain.getJson());
 	});
 	return newChains;
+};
+
+Round.prototype.shouldArchiveResultsToAws = function() {
+	const isEnabled =
+		process.env.ACCESS_KEY_ID && process.env.SECRET_ACCESS_KEY;
+	const isNoBots = this.players.reduce((acc, cur) => acc && !cur.isAi);
+	const isAllowedWordPack =
+		this.wordPackName &&
+		(this.wordPackName.includes("Simple") ||
+			this.wordPackName.includes("Advanced"));
+	return isEnabled && isNoBots && isAllowedWordPack;
 };
 
 module.exports = Round;

@@ -24,6 +24,7 @@
 	"dependencies": {
 		"@fortawesome/fontawesome-free": "^5.13.1",
 		"assets-webpack-plugin": "^5.0.2",
+		"aws-sdk": "^2.788.0",
 		"blueimp-canvas-to-blob": "^3.27.0",
 		"body-parser": "^1.19.0",
 		"bootstrap": "^4.5.0",

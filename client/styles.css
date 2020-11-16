@@ -191,6 +191,7 @@ span.avoidwrap {
 	background: #fff;
 	margin-bottom: 2em;
 	padding: 1em;
+	padding-top: 0.8em;
 	width: 100%;
 	transition: all 0.2s ease;
 	border-radius: 5px;
@@ -207,12 +208,20 @@ span.avoidwrap {
 .rocketcrablink {
 	font-family: "Inconsolata", monospace;
 	font-weight: 600;
-	font-size: 1.5em;
+	margin-left: 0.3em;
+	color: black;
 }
 
 .rocketcrabbtn {
 	box-shadow: rgba(0, 0, 0, 0.12) 0px 3px 7px 3px;
 	border: none;
+}
+
+.drawphone-line {
+	position: relative;
+	animation: scroll 1.5s infinite;
+	animation-timing-function: linear;
+	white-space: nowrap;
 }
 
 #discordbtn {
@@ -287,6 +296,15 @@ span.avoidwrap {
 	100% {
 		transform: scale(1);
 		margin: 0;
+	}
+}
+
+@keyframes scroll {
+	0% {
+		margin-left: calc(-72px - 3rem);
+	}
+	100% {
+		margin-left: calc(-36px - 1.5rem);
 	}
 }
 

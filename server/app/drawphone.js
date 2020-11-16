@@ -31,7 +31,6 @@ Drawphone.prototype.newGame = function(forceCode) {
 		self.removeGame(newCode);
 	});
 	this.games.push(newGame);
-	console.log(newCode + " created");
 	return newGame;
 };
 
@@ -68,7 +67,6 @@ Drawphone.prototype.removeGame = function(code) {
 	var index = this.games.indexOf(game);
 	if (index > -1) {
 		this.games.splice(index, 1);
-		console.log(code + " removed");
 	}
 };
 

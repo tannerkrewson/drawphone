@@ -35,6 +35,8 @@ function Round(
 	this.canViewLastRoundResults = false;
 	this.isWordFirstGame = !this.wordPackName;
 
+	this.startTime;
+
 	if (this.isWordFirstGame) {
 		this.shouldHaveThisManyLinks = 1;
 	} else {
@@ -80,6 +82,8 @@ Round.prototype.start = function() {
 	} else {
 		this.sendWordFirstChains();
 	}
+
+	this.startTime = Date.now();
 };
 
 Round.prototype.sendNewChains = function() {
@@ -236,9 +240,12 @@ Round.prototype.viewResults = function() {
 
 	this.onResults();
 
+	const roundTime = (Date.now() - this.startTime) / this.players.length;
+
 	this.players.forEach(player =>
 		player.send("viewResults", {
-			chains
+			chains,
+			...(player.isHost ? { roundTime } : {})
 		})
 	);
 

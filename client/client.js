@@ -1051,7 +1051,11 @@ Results.prototype.initialize = function() {
 Results.prototype.show = function(res, isArchivePage) {
 	socket.off("disconnect");
 
-	const chains = res.data.chains;
+	const { chains, roundTime } = res.data;
+
+	if (roundTime) {
+		ga("send", "event", "Results", "round time per player", roundTime);
+	}
 
 	this.render(chains[0], chains);
 

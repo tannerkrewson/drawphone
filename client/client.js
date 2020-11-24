@@ -398,7 +398,20 @@ Lobby.prototype.initialize = function() {
 
 Lobby.prototype.show = function(data) {
 	socket.off("disconnect");
-	socket.on("disconnect", function() {
+	socket.on("disconnect", reason => {
+		// if the disconnection was initiated by the server
+		// it was likely a kick from the host
+		if (reason === "io server disconnect") {
+			onActualDisconnect();
+		}
+	});
+
+	socket.off("reconnect_failed");
+	socket.on("reconnect_failed", () => {
+		onActualDisconnect();
+	});
+
+	const onActualDisconnect = () => {
 		swal("Connection lost!", "Reloading...", "error");
 		ga("send", "exception", {
 			exDescription: "Socket connection lost",
@@ -406,7 +419,7 @@ Lobby.prototype.show = function(data) {
 		});
 		//refresh the page
 		location.reload();
-	});
+	};
 
 	//if this was called by a socket.io event
 	if (data) {
@@ -1527,7 +1540,7 @@ function getDrawingCanvas() {
 //  Main
 //
 
-var socket = io({ autoConnect: false });
+var socket = io({ autoConnect: false, reconnectionAttempts: 3 });
 
 //try to join the dev game
 var relativeUrl = window.location.pathname + window.location.search;

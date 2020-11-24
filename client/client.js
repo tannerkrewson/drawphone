@@ -23,15 +23,16 @@ import Dexie from "dexie";
 import ml5 from "ml5";
 
 //prevent page from refreshing when Join game buttons are pressed
-$(function() {
-	$("form").submit(function() {
+$(function () {
+	$("form").submit(function () {
 		return false;
 	});
-});
 
-if (!location.hostname.startsWith("dpk")) {
-	$(".hide-on-dpk").show();
-}
+	// arrow function won't set "this"
+	$(".close").on("click", function () {
+		$(this).parent().parent().remove();
+	});
+});
 
 //
 //  Constants
@@ -69,7 +70,7 @@ function startTimer(duration, onTick) {
 		minutes,
 		seconds;
 
-	var tick = function() {
+	var tick = function () {
 		minutes = parseInt(timer / 60, 10);
 		seconds = parseInt(timer % 60, 10);
 
@@ -96,34 +97,34 @@ function Drawphone() {
 
 	var self = this;
 	this.mainMenu = new MainMenu(
-		function() {
+		function () {
 			//ran when Join Game button is pressed
 			self.joinMenu.show();
 		},
-		function() {
+		function () {
 			//ran when New Game button is pressed
 			self.newMenu.show();
 		}
 	);
 
-	this.joinMenu = new JoinMenu(function() {
+	this.joinMenu = new JoinMenu(function () {
 		//ran when Back button is pressed
 		self.mainMenu.show();
 	});
 
-	this.newMenu = new NewMenu(function() {
+	this.newMenu = new NewMenu(function () {
 		//ran when Back button is pressed
 		self.mainMenu.show();
 	});
 
 	this.lobby = new Lobby();
 
-	this.game = new Game(function() {
+	this.game = new Game(function () {
 		//ran when the player sends
 		self.waiting.show();
 	});
 
-	this.results = new Results(function() {
+	this.results = new Results(function () {
 		//ran when done button on results page is tapped
 		self.lobby.show();
 	});
@@ -142,15 +143,15 @@ function Drawphone() {
 	this.screens.push(this.replace);
 }
 
-Drawphone.prototype.initializeAll = function() {
-	this.screens.forEach(function(screen) {
+Drawphone.prototype.initializeAll = function () {
+	this.screens.forEach(function (screen) {
 		screen.initialize();
 	});
 
 	this.attachSocketListeners();
 };
 
-Drawphone.prototype.attachSocketListeners = function() {
+Drawphone.prototype.attachSocketListeners = function () {
 	socket.on("joinGameRes", this.lobby.show.bind(this.lobby));
 
 	socket.on("updatePlayerList", this.lobby.update.bind(this.lobby));
@@ -171,7 +172,7 @@ Drawphone.prototype.attachSocketListeners = function() {
 	socket.on("replacePlayer", this.replace.show.bind(this.replace));
 };
 
-Drawphone.prototype.begin = function() {
+Drawphone.prototype.begin = function () {
 	this.mainMenu.show();
 };
 
@@ -186,9 +187,9 @@ function Screen() {
 	this.defaultSubtitle = "Telephone with pictures";
 }
 
-Screen.prototype.initialize = function() {};
+Screen.prototype.initialize = function () {};
 
-Screen.prototype.show = function() {
+Screen.prototype.show = function () {
 	hideAll();
 	showElement(this.id);
 
@@ -196,27 +197,27 @@ Screen.prototype.show = function() {
 	$("#subtitle").text(this.subtitle);
 };
 
-Screen.prototype.setTitle = function(title) {
+Screen.prototype.setTitle = function (title) {
 	this.title = title;
 	$("#title").html(this.title);
 };
 
-Screen.prototype.setSubtitle = function(subtitle) {
+Screen.prototype.setSubtitle = function (subtitle) {
 	this.subtitle = subtitle;
 	$("#subtitle").html(this.subtitle);
 };
 
-Screen.prototype.showTitles = function() {
+Screen.prototype.showTitles = function () {
 	$("#title").html(this.title);
 	$("#subtitle").html(this.subtitle);
 };
 
-Screen.prototype.setDefaultTitles = function() {
+Screen.prototype.setDefaultTitles = function () {
 	this.setTitle(this.defaultTitle);
 	this.setSubtitle(this.defaultSubtitle);
 };
 
-Screen.prototype.waitingForResponse = function(isLoading) {
+Screen.prototype.waitingForResponse = function (isLoading) {
 	this.isLoading = isLoading;
 	hideAll();
 	if (isLoading) {
@@ -228,7 +229,7 @@ Screen.prototype.waitingForResponse = function(isLoading) {
 
 Screen.gameCode = "";
 
-Screen.getGameCodeHTML = function() {
+Screen.getGameCodeHTML = function () {
 	return '<span class="gamecode">' + Screen.gameCode + "</span>";
 };
 
@@ -248,15 +249,15 @@ function MainMenu(onJoin, onNew) {
 	Screen.prototype.setDefaultTitles.call(this);
 }
 
-MainMenu.prototype.initialize = function() {
+MainMenu.prototype.initialize = function () {
 	Screen.prototype.initialize.call(this);
 
 	this.joinButton.click(this.onJoin);
 	this.newButton.click(this.onNew);
-	this.archiveButton.click(function() {
+	this.archiveButton.click(function () {
 		window.location.href = "/archive";
 	});
-	this.howButton.click(function() {
+	this.howButton.click(function () {
 		window.location.href = "/how-to-play";
 	});
 };
@@ -275,11 +276,11 @@ function JoinMenu(onBack) {
 	Screen.prototype.setDefaultTitles.call(this);
 }
 
-JoinMenu.prototype.initialize = function() {
+JoinMenu.prototype.initialize = function () {
 	Screen.prototype.initialize.call(this);
 
 	this.backButton.click(this.onBack);
-	this.goButton.click(function() {
+	this.goButton.click(function () {
 		if (!this.isLoading) {
 			Screen.prototype.waitingForResponse.call(this, true);
 			var code = $("#joinincode").val();
@@ -288,14 +289,14 @@ JoinMenu.prototype.initialize = function() {
 			socket.open();
 			socket.emit("joinGame", {
 				code: code,
-				name: name
+				name: name,
 			});
 		}
 	});
 
 	var self = this;
 
-	this.codeInput.on("input", function() {
+	this.codeInput.on("input", function () {
 		self.codeInput.val(
 			self.codeInput
 				.val()
@@ -326,18 +327,18 @@ function NewMenu(onBack) {
 	Screen.prototype.setDefaultTitles.call(this);
 }
 
-NewMenu.prototype.initialize = function() {
+NewMenu.prototype.initialize = function () {
 	Screen.prototype.initialize.call(this);
 
 	this.backButton.click(this.onBack);
-	this.goButton.click(function() {
+	this.goButton.click(function () {
 		if (!this.isLoading) {
 			Screen.prototype.waitingForResponse.call(this, true);
 			var name = $("#newinname").val();
 
 			socket.open();
 			socket.emit("newGame", {
-				name: name
+				name: name,
 			});
 		}
 	});
@@ -372,16 +373,16 @@ function Lobby() {
 	this.userList = new UserList($("#lobby-players"));
 }
 
-Lobby.prototype.initialize = function() {
+Lobby.prototype.initialize = function () {
 	Screen.prototype.initialize.call(this);
 
-	this.leaveButton.click(function() {
+	this.leaveButton.click(function () {
 		ga("send", "event", "Lobby", "leave");
 		//refresh the page
 		location.reload();
 	});
 
-	this.viewPreviousResultsButton.click(function() {
+	this.viewPreviousResultsButton.click(function () {
 		socket.emit("viewPreviousResults", {});
 
 		ga("send", "event", "Lobby", "view previous results");
@@ -396,9 +397,9 @@ Lobby.prototype.initialize = function() {
 	ga("send", "event", "Lobby", "created");
 };
 
-Lobby.prototype.show = function(data) {
+Lobby.prototype.show = function (data) {
 	socket.off("disconnect");
-	socket.on("disconnect", reason => {
+	socket.on("disconnect", (reason) => {
 		// if the disconnection was initiated by the server
 		// it was likely a kick from the host
 		if (reason === "io server disconnect") {
@@ -415,7 +416,7 @@ Lobby.prototype.show = function(data) {
 		swal("Connection lost!", "Reloading...", "error");
 		ga("send", "exception", {
 			exDescription: "Socket connection lost",
-			exFatal: false
+			exFatal: false,
 		});
 		//refresh the page
 		location.reload();
@@ -432,13 +433,13 @@ Lobby.prototype.show = function(data) {
 				player: data.you,
 				data: {
 					players: data.game.players,
-					canViewLastRoundResults: data.game.canViewLastRoundResults
-				}
+					canViewLastRoundResults: data.game.canViewLastRoundResults,
+				},
 			});
 		} else {
 			ga("send", "exception", {
 				exDescription: data.error,
-				exFatal: false
+				exFatal: false,
 			});
 
 			if (data.content) {
@@ -446,7 +447,7 @@ Lobby.prototype.show = function(data) {
 					title: data.error,
 					type: "error",
 					text: data.content,
-					html: true
+					html: true,
 				});
 			} else {
 				swal(data.error, "", "error");
@@ -461,11 +462,11 @@ Lobby.prototype.show = function(data) {
 	Screen.prototype.show.call(this);
 };
 
-Lobby.prototype.update = function(res) {
+Lobby.prototype.update = function (res) {
 	if (!res.success) {
 		ga("send", "exception", {
 			exDescription: res.error,
-			exFatal: false
+			exFatal: false,
 		});
 		swal("Error updating lobby", res.error, "error");
 
@@ -520,7 +521,7 @@ Lobby.prototype.update = function(res) {
 	}
 };
 
-Lobby.prototype.updateNonHostSettings = function({ name, value }) {
+Lobby.prototype.updateNonHostSettings = function ({ name, value }) {
 	// update if host changes
 	const settingToUpdate = this.gameSettings.find(`#lobby-settings-${name}`);
 
@@ -540,7 +541,7 @@ Lobby.prototype.updateNonHostSettings = function({ name, value }) {
 	}
 };
 
-Lobby.prototype.clearHostHandlers = function() {
+Lobby.prototype.clearHostHandlers = function () {
 	this.startButton.off("click");
 	this.wordFirstCheckbox.off("change");
 	this.showNeighborsCheckbox.off("change");
@@ -551,7 +552,7 @@ Lobby.prototype.clearHostHandlers = function() {
 	this.removeBotButton.off("click");
 };
 
-Lobby.prototype.initHost = function() {
+Lobby.prototype.initHost = function () {
 	this.clearHostHandlers();
 
 	this.startButton.on("click", () => {
@@ -563,7 +564,7 @@ Lobby.prototype.initHost = function() {
 					text:
 						"Would you like to play Drawphone with just yourself to see how it works?",
 					type: "info",
-					showCancelButton: true
+					showCancelButton: true,
 				},
 				() => {
 					this.start.bind(this)();
@@ -597,7 +598,7 @@ Lobby.prototype.initHost = function() {
 
 		socket.emit("hostUpdatedSettings", {
 			name: "wordfirst",
-			value: this.wordFirstCheckbox.is(":checked")
+			value: this.wordFirstCheckbox.is(":checked"),
 		});
 	});
 	onWordFirstChange();
@@ -606,14 +607,14 @@ Lobby.prototype.initHost = function() {
 		this.showNeighbors = !!this.showNeighborsCheckbox.is(":checked");
 		socket.emit("hostUpdatedSettings", {
 			name: "showNeighbors",
-			value: this.showNeighborsCheckbox.is(":checked")
+			value: this.showNeighborsCheckbox.is(":checked"),
 		});
 
 		this.checkIfReadyToStart();
 		ga("send", "event", "Lobby", "show neighbors", this.showNeighbors);
 	});
 
-	const changeTimeLimit = modifier => {
+	const changeTimeLimit = (modifier) => {
 		const oldTimeLimit = this.selectedTimeLimit;
 		if (oldTimeLimit >= 30) modifier *= 15;
 		if (oldTimeLimit < 30) modifier *= 5;
@@ -632,7 +633,7 @@ Lobby.prototype.initHost = function() {
 
 		socket.emit("hostUpdatedSettings", {
 			name: "timelimit",
-			value: newDisplay
+			value: newDisplay,
 		});
 	};
 
@@ -652,7 +653,7 @@ Lobby.prototype.initHost = function() {
 		onWordPackDropdownChange();
 		socket.emit("hostUpdatedSettings", {
 			name: "wordpack",
-			value: this.wordPackDropdown[0].value
+			value: this.wordPackDropdown[0].value,
 		});
 
 		ga("send", "event", "Lobby", "word pack change", this.wordPack);
@@ -671,7 +672,7 @@ Lobby.prototype.initHost = function() {
 	this.removeBotButton.on("click", () => socket.emit("removeBotPlayer"));
 };
 
-Lobby.prototype.checkIfReadyToStart = function() {
+Lobby.prototype.checkIfReadyToStart = function () {
 	if (
 		this.selectedTimeLimit !== false &&
 		(this.wordPack !== false || this.wordFirstCheckbox.is(":checked")) &&
@@ -687,12 +688,12 @@ Lobby.prototype.checkIfReadyToStart = function() {
 	}
 };
 
-Lobby.prototype.start = function() {
+Lobby.prototype.start = function () {
 	Screen.prototype.waitingForResponse.call(this, true);
 	socket.emit("tryStartGame", {
 		timeLimit: this.selectedTimeLimit,
 		wordPackName: this.wordPack,
-		showNeighbors: this.showNeighbors
+		showNeighbors: this.showNeighbors,
 	});
 	ga("send", "event", "Game", "start");
 	ga("send", "event", "Game", "time limit", this.selectedTimeLimit);
@@ -731,7 +732,7 @@ function Game(onWait) {
 	window.addEventListener("resize", this.resizeCanvas.bind(this), false);
 }
 
-Game.prototype.initialize = function() {
+Game.prototype.initialize = function () {
 	Screen.prototype.initialize.call(this);
 	var doneButton = $("#game-send");
 
@@ -739,18 +740,19 @@ Game.prototype.initialize = function() {
 	var self = this;
 
 	//if user touches the canvas, it not blank no more
-	$("#game-drawing").on("mousedown touchstart", function() {
+	$("#game-drawing").on("mousedown touchstart", function () {
 		//if this is their first mark
 		if (self.canvas.isBlank && self.timeLimit > 0 && !self.submitTimer) {
 			//start the timer
-			self.displayTimerInterval = startTimer(self.timeLimit, function(
-				timeLeft
-			) {
-				self.timerDisplay.text(
-					timeLeft + " left to finish your drawing"
-				);
-			});
-			self.submitTimer = window.setTimeout(function() {
+			self.displayTimerInterval = startTimer(
+				self.timeLimit,
+				function (timeLeft) {
+					self.timerDisplay.text(
+						timeLeft + " left to finish your drawing"
+					);
+				}
+			);
+			self.submitTimer = window.setTimeout(function () {
 				//when the time runs out...
 				//we don't care if it is blank
 				self.canvas.isBlank = false;
@@ -768,12 +770,12 @@ Game.prototype.initialize = function() {
 		self.canvas.isBlank = false;
 	});
 
-	doneButton.click(function() {
+	doneButton.click(function () {
 		self.onDone();
 	});
 
 	//run done when enter key is pressed in word input
-	$("#game-word-in").keypress(function(e) {
+	$("#game-word-in").keypress(function (e) {
 		var key = e.which;
 		if (key === 13) {
 			self.onDone();
@@ -781,7 +783,7 @@ Game.prototype.initialize = function() {
 	});
 };
 
-Game.prototype.show = function() {
+Game.prototype.show = function () {
 	Screen.prototype.show.call(this);
 
 	if (ROCKETCRAB_MODE) {
@@ -798,7 +800,7 @@ Game.prototype.show = function() {
 	this.done = false;
 };
 
-Game.prototype.showDrawing = function(disallowChanges) {
+Game.prototype.showDrawing = function (disallowChanges) {
 	if (!disallowChanges) {
 		this.canvas = getDrawingCanvas();
 	}
@@ -834,13 +836,13 @@ Game.prototype.showDrawing = function(disallowChanges) {
 	this.showButtons(shouldShowUndoButtons);
 };
 
-Game.prototype.showWord = function() {
+Game.prototype.showWord = function () {
 	showElement("#game-word");
 	this.showButtons(false);
 	this.show();
 };
 
-Game.prototype.showButtons = function(showClearButton) {
+Game.prototype.showButtons = function (showClearButton) {
 	if (showClearButton) {
 		showElement("#game-drawing-redo");
 		showElement("#game-drawing-undo");
@@ -855,14 +857,14 @@ Game.prototype.showButtons = function(showClearButton) {
 	showElement("#game-buttons");
 };
 
-Game.prototype.hideBoth = function() {
+Game.prototype.hideBoth = function () {
 	$("#game-drawing").addClass(HIDDEN);
 	$("#game-word").addClass(HIDDEN);
 	$("#game-buttons").addClass(HIDDEN);
 	$("#game-draw-buttons").addClass(HIDDEN);
 };
 
-Game.prototype.newLink = function(res) {
+Game.prototype.newLink = function (res) {
 	var lastLink = res.data.link;
 	var lastLinkType = lastLink.type;
 	var count = res.data.count;
@@ -922,13 +924,13 @@ Game.prototype.newLink = function(res) {
 
 	//this will be ran when the done button is clicked, or
 	//  the enter key is pressed in the word input
-	this.onDone = function() {
+	this.onDone = function () {
 		this.checkIfDone(newLinkType);
 	};
 	Screen.prototype.waitingForResponse.call(this, false);
 };
 
-Game.prototype.checkIfDone = function(newLinkType) {
+Game.prototype.checkIfDone = function (newLinkType) {
 	this.done = true;
 
 	//disable the submit timer to prevent duplicate sends
@@ -959,9 +961,7 @@ Game.prototype.checkIfDone = function(newLinkType) {
 			this.sendLink(newLinkType, newLink);
 		}
 	} else if (newLinkType === WORD) {
-		newLink = $("#game-word-in")
-			.val()
-			.trim();
+		newLink = $("#game-word-in").val().trim();
 		//check if it is blank
 		if (newLink === "") {
 			this.showWord();
@@ -978,20 +978,20 @@ Game.prototype.checkIfDone = function(newLinkType) {
 	}
 };
 
-Game.prototype.sendLink = function(type, data) {
+Game.prototype.sendLink = function (type, data) {
 	Screen.prototype.setTitle.call(this, "Sending...");
 
 	socket.emit("finishedLink", {
 		link: {
 			type: type,
-			data: data
-		}
+			data: data,
+		},
 	});
 	ga("send", "event", "Link", "submit", type);
 	this.onWait();
 };
 
-Game.prototype.resizeCanvas = function() {
+Game.prototype.resizeCanvas = function () {
 	var container = $("#game-drawing");
 	if (this.canvas) {
 		this.canvas.setHeight(container.width());
@@ -1000,13 +1000,13 @@ Game.prototype.resizeCanvas = function() {
 	}
 };
 
-Game.prototype.setTimer = function() {
+Game.prototype.setTimer = function () {
 	if (this.timeLimit && !this.timeLimit === 0) {
 		window.setTimeout();
 	}
 };
 
-Game.prototype.showNeighbors = function(
+Game.prototype.showNeighbors = function (
 	showNeighbors,
 	playerList,
 	thisPlayer,
@@ -1054,14 +1054,14 @@ function Results(onDoneViewingResults) {
 	this.id = "#result";
 }
 
-Results.prototype.initialize = function() {
+Results.prototype.initialize = function () {
 	var self = this;
-	$("#result-done").on("click", function() {
+	$("#result-done").on("click", function () {
 		self.onDoneViewingResults();
 	});
 };
 
-Results.prototype.show = function(res, isArchivePage) {
+Results.prototype.show = function (res, isArchivePage) {
 	socket.off("disconnect");
 
 	const { chains, roundTime } = res.data;
@@ -1079,7 +1079,7 @@ Results.prototype.show = function(res, isArchivePage) {
 	}
 };
 
-Results.prototype.render = function(chainToShow, allChains) {
+Results.prototype.render = function (chainToShow, allChains) {
 	const chainNumber = allChains.indexOf(chainToShow);
 
 	Screen.prototype.setTitle.call(this, "Results #" + (chainNumber + 1));
@@ -1090,7 +1090,7 @@ Results.prototype.render = function(chainToShow, allChains) {
 	this.displayOtherChainButtons(allChains, chainToShow);
 };
 
-Results.prototype.displayChain = function(chain) {
+Results.prototype.displayChain = function (chain) {
 	var results = $("#result-content");
 	results.empty();
 
@@ -1144,7 +1144,7 @@ Results.prototype.displayChain = function(chain) {
 	results.append(wentFromBox);
 };
 
-Results.prototype.displayOtherChainButtons = function(
+Results.prototype.displayOtherChainButtons = function (
 	chainsToList,
 	chainToIgnore
 ) {
@@ -1174,8 +1174,8 @@ Results.prototype.displayOtherChainButtons = function(
 				"</button>"
 		);
 		button.addClass("btn btn-default btn-lg");
-		(function(thisChain, chainList) {
-			button.click(function() {
+		(function (thisChain, chainList) {
+			button.click(function () {
 				self.render(thisChain, chainList);
 
 				//jump to top of the page
@@ -1198,12 +1198,12 @@ function Waiting() {
 	this.userList = new UserList($("#waiting-players"));
 }
 
-Waiting.prototype.show = function() {
+Waiting.prototype.show = function () {
 	Screen.prototype.setSubtitle.call(this, $("subtitle").html());
 	Screen.prototype.show.call(this);
 };
 
-Waiting.prototype.updateWaitingList = function(res) {
+Waiting.prototype.updateWaitingList = function (res) {
 	const { notFinished, disconnected } = res.data;
 
 	//show/hide the host notice
@@ -1221,7 +1221,7 @@ Waiting.prototype.updateWaitingList = function(res) {
 	}
 };
 
-const promptKickPlayer = tappedPlayer => {
+const promptKickPlayer = (tappedPlayer) => {
 	//ran when the client taps one of the usernames
 
 	swal(
@@ -1233,11 +1233,11 @@ const promptKickPlayer = tappedPlayer => {
 			showCancelButton: true,
 			confirmButtonClass: "btn-danger",
 			confirmButtonText: "Kick",
-			closeOnConfirm: false
+			closeOnConfirm: false,
 		},
 		() => {
 			socket.emit("kickPlayer", {
-				playerToKick: tappedPlayer
+				playerToKick: tappedPlayer,
 			});
 			swal("Done!", tappedPlayer.name + " was kicked.", "success");
 			ga("send", "event", "User list", "Host kick player");
@@ -1246,7 +1246,7 @@ const promptKickPlayer = tappedPlayer => {
 	ga("send", "event", "User list", "Host tap player");
 };
 
-const promptReplaceBot = tappedPlayer => {
+const promptReplaceBot = (tappedPlayer) => {
 	//ran when the client taps one of the disconnected players
 
 	swal(
@@ -1257,11 +1257,11 @@ const promptReplaceBot = tappedPlayer => {
 			showCancelButton: true,
 			confirmButtonClass: "btn-danger",
 			confirmButtonText: "Replace",
-			closeOnConfirm: false
+			closeOnConfirm: false,
 		},
 		() => {
 			socket.emit("replacePlayerWithBot", {
-				playerToReplaceWithBot: tappedPlayer
+				playerToReplaceWithBot: tappedPlayer,
 			});
 			swal(
 				"Done!",
@@ -1282,21 +1282,21 @@ function Replace() {
 	Screen.prototype.setTitle.call(this, "Choose a player to replace");
 }
 
-Replace.prototype.initialize = function() {
+Replace.prototype.initialize = function () {
 	// when leave button is clicked, refresh the page
 	$("#replace-leave").on("click", () => location.reload());
 
 	Screen.prototype.initialize.call(this);
 };
 
-Replace.prototype.show = function({ data }) {
+Replace.prototype.show = function ({ data }) {
 	const { gameCode, players } = data;
 
 	const choices = $("#replace-choices");
 	choices.empty();
 
 	if (players.length) {
-		players.forEach(player => {
+		players.forEach((player) => {
 			const button = $(
 				'<button type="button">' + player.name + "</button>"
 			);
@@ -1320,9 +1320,9 @@ Replace.prototype.show = function({ data }) {
 	Screen.prototype.show.call(this);
 };
 
-Replace.prototype.sendChoice = function(playerToReplace) {
+Replace.prototype.sendChoice = function (playerToReplace) {
 	socket.emit("tryReplacePlayer", {
-		playerToReplace: playerToReplace
+		playerToReplace: playerToReplace,
 	});
 	ga("send", "event", "Player replacement", "replace", self.timeLimit);
 };
@@ -1334,7 +1334,7 @@ function UserList(ul) {
 	this.botPlayers = 0;
 }
 
-UserList.prototype.update = function(
+UserList.prototype.update = function (
 	newList,
 	disconnectedList,
 	onKick,
@@ -1354,12 +1354,12 @@ UserList.prototype.update = function(
 	}
 };
 
-UserList.prototype.draw = function(list, makeBoxDark, onClick) {
+UserList.prototype.draw = function (list, makeBoxDark, onClick) {
 	this.numberOfPlayers = 0;
 	this.realPlayers = 0;
 	this.botPlayers = 0;
 
-	list.forEach(player => {
+	list.forEach((player) => {
 		this.numberOfPlayers++;
 		player.isAi ? this.botPlayers++ : this.realPlayers++;
 
@@ -1399,9 +1399,9 @@ function getDrawingCanvas() {
 		colorInput: $("#game-drawing-color"),
 		brushsizeInput: $("#game-drawing-brushsize"),
 		brushsize: 4,
-		color: "#000000"
+		color: "#000000",
 	};
-	thisCanvas.on("path:created", function() {
+	thisCanvas.on("path:created", function () {
 		updateCanvasState();
 	});
 
@@ -1443,7 +1443,7 @@ function getDrawingCanvas() {
 						state.undoStatus = true;
 						thisCanvas.loadFromJSON(
 							state.canvasState[state.currentStateIndex - 1],
-							function() {
+							function () {
 								thisCanvas.renderAll();
 								state.undoStatus = false;
 								state.currentStateIndex -= 1;
@@ -1486,7 +1486,7 @@ function getDrawingCanvas() {
 					state.redoStatus = true;
 					thisCanvas.loadFromJSON(
 						state.canvasState[state.currentStateIndex + 1],
-						function() {
+						function () {
 							thisCanvas.isBlank = false;
 							thisCanvas.renderAll();
 							state.redoStatus = false;
@@ -1524,7 +1524,7 @@ function getDrawingCanvas() {
 	state.colorInput.on("change", changeColor);
 	state.brushsizeInput.on("change", changeBrushsize);
 
-	thisCanvas.remove = function() {
+	thisCanvas.remove = function () {
 		state.undoButton.off("click");
 		state.redoButton.off("click");
 		state.colorInput.val("#000000");
@@ -1549,9 +1549,7 @@ if (relativeUrl === "/dev") {
 	socket.open();
 	socket.emit("joinGame", {
 		code: "ffff",
-		name: Math.random()
-			.toString()
-			.substring(2, 6)
+		name: Math.random().toString().substring(2, 6),
 	});
 }
 
@@ -1567,7 +1565,7 @@ if (ROCKETCRAB_MODE) {
 	socket.open();
 	socket.emit("joinGame", {
 		code,
-		name
+		name,
 	});
 }
 
@@ -1605,7 +1603,7 @@ async function renderArchive() {
 			weekday: "long",
 			year: "numeric",
 			month: "long",
-			day: "numeric"
+			day: "numeric",
 		});
 
 		if (theDate !== lastDate) {
@@ -1622,12 +1620,12 @@ async function renderArchive() {
 		);
 		button.addClass("btn btn-default prevresbtn");
 
-		(function(chains) {
-			button.click(function() {
+		(function (chains) {
+			button.click(function () {
 				drawphone.results.show(
 					{
 						data: { chains },
-						you: { id: "this id doesn't exist" }
+						you: { id: "this id doesn't exist" },
 					},
 					true
 				);
@@ -1644,7 +1642,7 @@ async function renderArchive() {
 		archiveContent.append(button);
 	}
 
-	drawphone.results.onDoneViewingResults = function() {
+	drawphone.results.onDoneViewingResults = function () {
 		archive.show();
 		result.hide();
 
@@ -1666,7 +1664,7 @@ function getResultsListFromStorage() {
 function initArchiveDb() {
 	var db = new Dexie("DrawphoneDatabase");
 	db.version(1).stores({
-		archive: "++id,date,chains"
+		archive: "++id,date,chains",
 	});
 	return db;
 }
@@ -1676,7 +1674,7 @@ function getQuickInfoStringOfResults(results) {
 	result += new Date(results.date).toLocaleTimeString("en-us", {
 		hour: "2-digit",
 		minute: "2-digit",
-		hour12: true
+		hour12: true,
 	});
 	result += ": ";
 
@@ -1743,8 +1741,8 @@ function classify(image, isDoodle) {
 				success: true,
 				link: {
 					type: "word",
-					data: label.split(",")[0]
-				}
+					data: label.split(",")[0],
+				},
 			});
 		})
 	);
@@ -1753,6 +1751,6 @@ function classify(image, isDoodle) {
 function onMakeAIGuessError(e) {
 	console.error(e);
 	socket.emit("AIGuessResult", {
-		success: false
+		success: false,
 	});
 }

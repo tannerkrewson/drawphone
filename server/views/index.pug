@@ -13,48 +13,19 @@ block content
   hr
   div#loading Loading...
   div#mainmenu.d-none
-    .rocketcrab-alert.rocketcrab-style
-      i(style='font-size:.8em;') Announcing...
-      div(style='font-size:1.4em;') The Longest Drawphone Ever
-      .drawphone-line
-        img.mr-2(src='pencil-alt.svg' alt='' width='18')
-        img.mr-3(src='phone-alt.svg' alt='' width='18')
-        img.mr-2(src='pencil-alt.svg' alt='' width='18')
-        img.mr-3(src='phone-alt.svg' alt='' width='18')
-        img.mr-2(src='pencil-alt.svg' alt='' width='18')
-        img.mr-3(src='phone-alt.svg' alt='' width='18')
-        img.mr-2(src='pencil-alt.svg' alt='' width='18')
-        img.mr-3(src='phone-alt.svg' alt='' width='18')
-        img.mr-2(src='pencil-alt.svg' alt='' width='18')
-        img.mr-3(src='phone-alt.svg' alt='' width='18')
-        img.mr-2(src='pencil-alt.svg' alt='' width='18')
-        img.mr-3(src='phone-alt.svg' alt='' width='18')
-        img.mr-2(src='pencil-alt.svg' alt='' width='18')
-        img.mr-3(src='phone-alt.svg' alt='' width='18')
-        img.mr-2(src='pencil-alt.svg' alt='' width='18')
-        img.mr-3(src='phone-alt.svg' alt='' width='18')
-        img.mr-2(src='pencil-alt.svg' alt='' width='18')
-        img.mr-3(src='phone-alt.svg' alt='' width='18')
-        img.mr-2(src='pencil-alt.svg' alt='' width='18')
-        img(src='phone-alt.svg' alt='' width='18')
-      div(style='margin-top:.3em;font-size:.9em;') Want to be a part of the world-record for most players in a Drawphone 
-        |game?
-      a#discordbtn.btn.btn-default(type='button', role='button', href='https://discord.gg/MvYRVCP', style='margin-top:.4em;font-size:.9em;', target='_blank') Join our Discord
-    .btn-toolbar
+    include announcements.pug
+    .btn-toolbar.mt-3
       a.btn.btn-default.btn-lg.mr-2(href="https://rocketcrab.com/join",type='button') Join Party
       a.btn.btn-default.btn-lg(href="https://rocketcrab.com/transfer/new",type='button') Start Party
-    .mt-3
-      |Now powered by 
+    .mt-3.mb-3
+      |Powered by 
       img.rocketsvg.ml-1(src='https://rocketcrab.com/rocket.svg' alt='' width='16')
       img.crabsvg.ml-1(src='https://rocketcrab.com/crab.svg' alt='' width='16')
       a.rocketcrablink(href="https://rocketcrab.com", target='_blank') rocketcrab.com
-    .mb-3 Lmk if you have issues!
     .btn-group-vertical(role="group" aria-label="...")
       button#archivebtn.btn.btn-default(type='button') View Previous Results
       button#howbtn.btn.btn-default(type='button') How to Play
     br
-    br
-    include buymebutton.pug
   div.row.justify-content-center
     div.col
       div#joinmenu.d-none
@@ -81,7 +52,8 @@ block content
             button#newmenu-back.btn.btn-default.btn-lg.mr-2(type='button') Back
             button#newmenu-go.btn.btn-default.btn-lg(type='submit') Start
   div#lobby.d-none
-    div.row.justify-content-center.mb-4
+    include announcements.pug
+    div.row.justify-content-center.mb-4.mt-3
       div.col-sm-8
         h5 Players
         ul#lobby-players.list-unstyled.row
@@ -112,16 +84,6 @@ block content
     .btn-toolbar.mb-4
       button#lobby-leave.btn.btn-default.btn-lg.mr-2(type='button') Leave Game
       button#lobby-start.btn.btn-default.btn-lg.disabled.d-none(type='button') Start Game
-    div.card.thanks-panel
-      div.card-body
-        .rocketcrab-style.mb-1 Play Drawphone and other cool party games:
-        a.rocketcrablink.rocketcrabbtn.btn.btn-default.mb-4(type='button', role='button', href='https://rocketcrab.com/', style='font-size:1.1em;', target='_blank') 🚀🦀 rocketcrab.com
-        div or, if you're feeling magnanimous:
-        include buymebutton.pug
-        .mt-4.mb-1 or, join the brand-spankin' new rocketcrab/Drawphone Discord!
-        a#discordbtn.btn.btn-default(type='button', role='button', href='https://discord.gg/MvYRVCP', style='font-size:1.1em;', target='_blank') Join our Discord
-
-
   div#game.d-none
     div#neighboring-players-container.neighboring-players-container
       div#previous-player-container.player-name.d-none

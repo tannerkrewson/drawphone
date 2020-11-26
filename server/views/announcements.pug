@@ -29,13 +29,6 @@
         |Want to be a part of the world-record for most players in a Drawphone 
         |game?
     a#discordbtn.btn.btn-default(type='button', role='button', href='https://discord.gg/MvYRVCP', style='margin-top:.4em;font-size:.9em;', target='_blank') Join our Discord
-div.card.thanks-panel(style="width:100%;")
-     div.card-body
-        button.close(type='button', data-dismiss='alert', aria-label='Close')
-            span(aria-hidden='true') ×
-        div Fun fact: Drawphone & Rocketcrab lose money! Wait, that's not fun 
-            |at all!
-        include buymebutton.pug
 div.card.thanks-panel
     div.card-body 
         button.close(type='button', data-dismiss='alert', aria-label='Close')
@@ -43,5 +36,11 @@ div.card.thanks-panel
         div Apologies for the crashing last weekend! I've 
             |made some updates that should help! 🤞 Oh, and happy Thanksgiving, 
             | Americans!
-        p - ❤️ Tanner
-        div P.S. Drawphone has no max player limit!!!!! Stop asking meee!!! 😂
+        p ❤️ Tanner
+        div P.S. Drawphone has no max player limit!
+div.card.thanks-panel(style="width:100%;")
+     div.card-body
+        button.close(type='button', data-dismiss='alert', aria-label='Close')
+            span(aria-hidden='true') ×
+        div Thanks for playing! 🎉
+        include buymebutton.pug

@@ -52,19 +52,19 @@ function Round(
 }
 
 Round.prototype.computeChainShuffle = function() {
-	//compute how much to rotate by so that each player gets a random
-	//other players entry but never their own
-	var players = [];
+	//compute how much to rotate by each round so that each player gets a
+	//   random player every round
+	var totalRotateAmount = [];
 	for (var i = 0; i < this.chains.length; i++) {
-		players.push(i);
+		totalRotateAmount.push(i);
 	}
-	shuffle(players);
-	for (var i = 0; i < players.length - 1; i++) {
-		var diff = players[i+1] - players[i];
-		if (diff < 0) {
-			diff += players.length;
+	shuffle(totalRotateAmount);
+	for (var i = 0; i < totalRotateAmount.length - 1; i++) {
+		var rotateAmount = totalRotateAmount[i+1] - totalRotateAmount[i];
+		if (rotateAmount < 0) {
+			rotateAmount += totalRotateAmount.length;
 		}
-		this.chainShuffle.push(diff);
+		this.chainShuffle.push(rotateAmount);
 	}
 }
 
@@ -210,7 +210,7 @@ Round.prototype.startNextLink = function() {
 
 	//rotate the chains in place
 	//  this is so that players get a chain they have not already had
-	var rotateAmount = this.chainShuffle.pop();
+	var rotateAmount = this.chainShuffle.shift();
 	for (var i = 0; i < rotateAmount; i++) {
 		this.chains.push(this.chains.shift());
 	}

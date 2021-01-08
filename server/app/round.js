@@ -57,8 +57,8 @@ Round.prototype.computeChainShuffle = function() {
 	var players = [];
 	for (var i = 0; i < this.chains.length; i++) {
 		players.push(i);
-        }
-        shuffle(players);
+	}
+	shuffle(players);
 	for (var i = 0; i < players.length - 1; i++) {
 		var diff = players[i+1] - players[i];
 		if (diff < 0) {

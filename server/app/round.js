@@ -30,6 +30,7 @@ function Round(
 	this.showNeighbors = showNeighbors;
 	this.onResults = onResults;
 	this.chains = [];
+	this.chainShuffle = [];
 	this.disconnectedPlayers = [];
 	this.potentialPlayers = [];
 	this.canViewLastRoundResults = false;
@@ -48,6 +49,23 @@ function Round(
 	this.aiGuessQueue = new AIGuessQueue(() =>
 		words.getRandomWord(this.wordPackName || "Simple words (recommended)")
 	);
+}
+
+Round.prototype.computeChainShuffle = function() {
+	//compute how much to rotate by so that each player gets a random
+	//other players entry but never their own
+	var players = [];
+	for (var i = 0; i < this.chains.length; i++) {
+		players.push(i);
+        }
+        shuffle(players);
+	for (var i = 0; i < players.length - 1; i++) {
+		var diff = players[i+1] - players[i];
+		if (diff < 0) {
+			diff += players.length;
+		}
+		this.chainShuffle.push(diff);
+	}
 }
 
 Round.prototype.start = function() {
@@ -82,6 +100,7 @@ Round.prototype.start = function() {
 	} else {
 		this.sendWordFirstChains();
 	}
+	this.computeChainShuffle();
 
 	this.startTime = Date.now();
 };
@@ -191,7 +210,10 @@ Round.prototype.startNextLink = function() {
 
 	//rotate the chains in place
 	//  this is so that players get a chain they have not already had
-	this.chains.push(this.chains.shift());
+	var rotateAmount = this.chainShuffle.pop();
+	for (var i = 0; i < rotateAmount; i++) {
+		this.chains.push(this.chains.shift());
+	}
 
 	//distribute the chains to each player
 	//  players and chains will have the same length

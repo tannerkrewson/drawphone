@@ -1397,6 +1397,9 @@ function getDrawingCanvas() {
 		undoButton: $("#game-drawing-undo"),
 		redoButton: $("#game-drawing-redo"),
 		colorInput: $("#game-drawing-color"),
+		recentColorButton1: $("#game-drawing-recent-color1"),
+		recentColorButton2: $("#game-drawing-recent-color2"),
+		recentColorButton3: $("#game-drawing-recent-color3"),
 		brushsizeInput: $("#game-drawing-brushsize"),
 		brushsize: 4,
 		color: "#000000",
@@ -1510,6 +1513,51 @@ function getDrawingCanvas() {
 	};
 
 	const changeColor = () => {
+		state.recentColorButton3.css(
+			"background-color",
+			state.recentColorButton2.css("background-color")
+		);
+		state.recentColorButton2.css(
+			"background-color",
+			state.recentColorButton1.css("background-color")
+		);
+		state.recentColorButton1.css(
+			"background-color",
+			thisCanvas.freeDrawingBrush.color
+		);
+		thisCanvas.freeDrawingBrush.color = state.colorInput.val();
+	};
+
+	const rgbToHex = (rgb) => {
+		if (/^#[0-9A-F]{6}$/i.test(rgb)) return rgb;
+
+		rgb = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+		function hex(x) {
+			return ("0" + parseInt(x).toString(16)).slice(-2);
+		}
+		return "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
+	};
+
+	const recallColor = (index, color) => {
+		state.colorInput.val(rgbToHex(color));
+		if (index >= 3) {
+			state.recentColorButton3.css(
+				"background-color",
+				state.recentColorButton2.css("background-color")
+			);
+		}
+		if (index >= 2) {
+			state.recentColorButton2.css(
+				"background-color",
+				state.recentColorButton1.css("background-color")
+			);
+		}
+		if (index >= 1) {
+			state.recentColorButton1.css(
+				"background-color",
+				thisCanvas.freeDrawingBrush.color
+			);
+		}
 		thisCanvas.freeDrawingBrush.color = state.colorInput.val();
 	};
 
@@ -1522,12 +1570,25 @@ function getDrawingCanvas() {
 	state.redoButton.on("click", redo);
 
 	state.colorInput.on("change", changeColor);
+	state.recentColorButton1.on("click", () => {
+		recallColor(1, state.recentColorButton1.css("background-color"));
+	});
+	state.recentColorButton2.on("click", () => {
+		recallColor(2, state.recentColorButton2.css("background-color"));
+	});
+	state.recentColorButton3.on("click", () => {
+		recallColor(3, state.recentColorButton3.css("background-color"));
+	});
 	state.brushsizeInput.on("change", changeBrushsize);
 
 	thisCanvas.remove = function () {
 		state.undoButton.off("click");
 		state.redoButton.off("click");
 		state.colorInput.val("#000000");
+		state.colorInput.off("change");
+		state.recentColorButton1.off("click");
+		state.recentColorButton2.off("click");
+		state.recentColorButton3.off("click");
 		state.brushsizeInput.val(4);
 		thisCanvas.dispose();
 		$("#game-drawing-canvas").empty();

@@ -15,6 +15,43 @@ var WordPacks = require("./words");
 var words = new WordPacks();
 words.loadAll();
 
+// Use each row for a chain. Columns have repetition. For example:
+//   0,4,1,3,2 --> word1
+//   1,0,2,4,3 --> word2
+//   2,1,3,0,4 --> word3
+//   3,2,4,1,0 --> word4
+//   4,3,0,2,1 --> word5
+// If we used columns for the chains, 2 always comes after 1 and before 3.
+function rowCompleteLatinSquare(order) {
+	var diff = [];
+	for (var i = 0; i < order - 1; i++) {
+		diff.push(i + 1);
+	}
+	for (var i = 1; i < order - 1; i += 2) {
+		diff[i] = order - (i + 1);
+	}
+
+	var L = [];
+	for (var i = 0; i < order; i++) {
+		L.push([]);
+		for (var j = 0; j < order; j++) {
+			L[i].push(0);
+		}
+	}
+	for (var j = 0; j < order; j++) {
+		L[j][0] = j;
+	}
+	for (var j = 1; j < order; j++) {
+		for (var i = 0; i < order; i++) {
+			L[i][j] = L[i][j-1] - diff[j-1];
+			if (L[i][j] < 0) {
+				L[i][j] += order;
+			}
+		}
+	}
+	return L;
+}
+
 function Round(
 	number,
 	players,
@@ -30,6 +67,8 @@ function Round(
 	this.showNeighbors = showNeighbors;
 	this.onResults = onResults;
 	this.chains = [];
+	this.linkOrder;
+	this.roundNumber = 0;
 	this.disconnectedPlayers = [];
 	this.potentialPlayers = [];
 	this.canViewLastRoundResults = false;
@@ -82,6 +121,7 @@ Round.prototype.start = function() {
 	} else {
 		this.sendWordFirstChains();
 	}
+	this.linkOrder = rowCompleteLatinSquare(this.chains.length);
 
 	this.startTime = Date.now();
 };
@@ -189,15 +229,15 @@ Round.prototype.nextLinkIfEveryoneIsDone = function() {
 Round.prototype.startNextLink = function() {
 	this.shouldHaveThisManyLinks++;
 
-	//rotate the chains in place
-	//  this is so that players get a chain they have not already had
-	this.chains.push(this.chains.shift());
+	//the first column of linkOrder has the first player in it
+	//  don't send players their own drawings
+        this.roundNumber++;
 
 	//distribute the chains to each player
 	//  players and chains will have the same length
 	var self = this;
 	for (var i = 0; i < this.players.length; i++) {
-		var thisChain = this.chains[i];
+		var thisChain = this.chains[this.linkOrder[i][this.roundNumber]];
 		var thisPlayer = this.players[i];
 
 		thisChain.lastPlayerSentTo = thisPlayer.getJson();

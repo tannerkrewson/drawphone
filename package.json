@@ -9,7 +9,8 @@
 		"start:dev": "nodemon --exec npm run start:prod --ignore public/",
 		"build:dev": "webpack --mode development --watch",
 		"start:prod": "node ./server/bin/www",
-		"build:prod": "webpack --mode production"
+		"build:prod": "webpack --mode production",
+		"test": "jest"
 	},
 	"repository": {
 		"type": "git",
@@ -55,6 +56,7 @@
 	},
 	"devDependencies": {
 		"husky": "^4.3.0",
+		"jest": "^26.6.3",
 		"nodemon": "^2.0.6",
 		"prettier": "^2.2.0",
 		"pretty-quick": "^3.1.0"

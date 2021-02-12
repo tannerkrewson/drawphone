@@ -81,19 +81,6 @@ const allPassesFromUniquePlayers = (chains) => {
             return links[indexOfPlayerChainWasLastWith].player.id;
         });
 
-        /*
-		if (
-			!noDuplicates(idsOfPlayersChainWasReceivedFrom) &&
-			chains.length < 6 
-		) {
-			console.log(
-				idsOfPlayersChainWasReceivedFrom,
-				chains.map(({ links }) =>
-					links.map(({ player }) => player.id).slice(1)
-				)
-			);
-		}*/
-
         const [a, b] = [
             new Set(idsOfPlayersChainWasReceivedFrom).size,
             idsOfPlayersChainWasReceivedFrom.length,
@@ -101,7 +88,13 @@ const allPassesFromUniquePlayers = (chains) => {
 
         sumOfDuplicatePasses += b - a;
 
-        //expect(noDuplicates(idsOfPlayersChainWasReceivedFrom)).toBeTruthy();
+        // TODO: add test for odd and first word cases
+        if (
+            chains[0].links[0].type !== "first-word" &&
+            chains.length % 2 === 0
+        ) {
+            expect(noDuplicates(idsOfPlayersChainWasReceivedFrom)).toBeTruthy();
+        }
     });
 };
 

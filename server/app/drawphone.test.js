@@ -29,8 +29,14 @@ const sendLinks = (players) => {
 };
 
 const advance = (game) => {
+	let iterations = 0;
 	while (game.inProgress) {
 		sendLinks(game.players);
+
+		iterations++;
+		if (iterations > game.players.length * 2) {
+			throw "This game is never going to end, huh?";
+		}
 	}
 };
 
@@ -57,6 +63,7 @@ const allChainsUnique = (chains) =>
 		expect(wereLinksSentToUniquePlayers(links)).toBeTruthy()
 	);
 
+let sumOfDuplicatePasses = 0;
 const allPassesFromUniquePlayers = (chains) => {
 	const playerIdList = chains.map(({ links }) => links[0].player.id);
 
@@ -73,17 +80,28 @@ const allPassesFromUniquePlayers = (chains) => {
 			);
 			return links[indexOfPlayerChainWasLastWith].player.id;
 		});
+
+		/*
 		if (
 			!noDuplicates(idsOfPlayersChainWasReceivedFrom) &&
-			chains.length < 6
+			chains.length < 6 
 		) {
-			console.log(thisPlayerId, idsOfPlayersChainWasReceivedFrom);
 			console.log(
-				chains.map(({ links }) => links.map(({ player }) => player.id))
+				idsOfPlayersChainWasReceivedFrom,
+				chains.map(({ links }) =>
+					links.map(({ player }) => player.id).slice(1)
+				)
 			);
-		}
+		}*/
 
-		expect(noDuplicates(idsOfPlayersChainWasReceivedFrom)).toBeTruthy();
+		const [a, b] = [
+			new Set(idsOfPlayersChainWasReceivedFrom).size,
+			idsOfPlayersChainWasReceivedFrom.length,
+		];
+
+		sumOfDuplicatePasses += b - a;
+
+		//expect(noDuplicates(idsOfPlayersChainWasReceivedFrom)).toBeTruthy();
 	});
 };
 
@@ -246,3 +264,17 @@ for (let i = 8; i <= 32; i++) {
 		testGame(i, typeOrderGenerator(i, true), true);
 	});
 }
+
+afterAll(() => {
+	console.log(
+		"sum of passes from same player (lower is better):",
+		sumOfDuplicatePasses
+	);
+});
+
+/*
+sumOfDuplicatePasses history
+
+original: 20242
+nlewycky: 5331
+*/

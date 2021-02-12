@@ -53,13 +53,21 @@ const oddApproxRCLS = (order) => {
 //   4,3,0,2,1 --> word5
 // If we used columns for the chains, 2 always comes after 1 and before 3.
 function evenExactRCLS(order) {
-    var diff = [];
-    for (var i = 0; i < order - 1; i++) {
-        diff.push(i + 1);
-    }
-    for (var i = 1; i < order - 1; i += 2) {
-        diff[i] = order - (i + 1);
-    }
+    /*
+	generates array of 1 ... order-1
+	ex. order=10: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+	
+	then maps it to this:
+	ex. order=10: [1, 8, 3, 6, 5, 4, 7, 2, 9, 0]
+
+	unzipped:
+	[1, 3, 5, 7, 9] (odds increasing)
+	[8, 6, 4, 2, 0] (evens decreasing)
+
+	*/
+    let diff = Array.from({ length: order }, (_, i) => i + 1).map((n, i) =>
+        i % 2 === 1 ? order - i - 1 : n
+    );
 
     var L = [];
     for (var i = 0; i < order; i++) {

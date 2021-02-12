@@ -277,4 +277,5 @@ sumOfDuplicatePasses history
 
 original: 20242
 nlewycky: 5331
+evenExact + oddApprox: 655
 */

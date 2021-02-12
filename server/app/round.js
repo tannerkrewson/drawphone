@@ -15,6 +15,36 @@ var WordPacks = require("./words");
 var words = new WordPacks();
 words.loadAll();
 
+// https://stackoverflow.com/a/58326608
+const rotateArray = (arr, count = 1) => {
+    return [...arr.slice(count, arr.length), ...arr.slice(0, count)];
+};
+
+// https://math.stackexchange.com/a/4000891 "In the odd prime case..."
+const oddApproxRCLS = (order) => {
+    const m = (order - 1) / 2;
+
+    let result = [Array.from({ length: order }, (_, i) => i)];
+    const last = () => result[result.length - 1];
+
+    for (let i = 1; i <= m; i++) {
+        const direction = i % 2 === 0 ? -1 : 1;
+        result.push(rotateArray(last(), i * direction));
+    }
+
+    const mDirection = m % 2 === 0 ? -1 : 1;
+    result.push(rotateArray(last(), mDirection));
+
+    for (let i = m - 1; i >= 1; i--) {
+        const direction = i % 2 === 0 ? 1 : -1;
+        result.push(rotateArray(last(), i * direction));
+    }
+
+    // rotates the 2d array
+    // https://stackoverflow.com/a/17428705
+    return result[0].map((_, colIndex) => result.map((row) => row[colIndex]));
+};
+
 // Use each row for a chain. Columns have repetition. For example:
 //   0,4,1,3,2 --> word1
 //   1,0,2,4,3 --> word2
@@ -22,7 +52,7 @@ words.loadAll();
 //   3,2,4,1,0 --> word4
 //   4,3,0,2,1 --> word5
 // If we used columns for the chains, 2 always comes after 1 and before 3.
-function rowCompleteLatinSquare(order) {
+function evenExactRCLS(order) {
     var diff = [];
     for (var i = 0; i < order - 1; i++) {
         diff.push(i + 1);
@@ -51,6 +81,9 @@ function rowCompleteLatinSquare(order) {
     }
     return L;
 }
+
+const rowCompleteLatinSquare = (order) =>
+    order % 2 === 0 ? evenExactRCLS(order) : oddApproxRCLS(order);
 
 function Round(
     number,

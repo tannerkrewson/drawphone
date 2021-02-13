@@ -1,13 +1,12 @@
-const got = require("got");
-const crypto = require("crypto");
+import got from "got";
+import crypto from "crypto";
+
+import Player from "./player.js";
 
 // for shutterstock
 const [username, password] = (process.env.SHUTTERSTOCK_API_TOKEN || "").split(
     ":"
 );
-
-var Player = require("./player");
-
 class PlayerAI extends Player {
     #lastCallback;
     isAi = true;
@@ -100,4 +99,4 @@ class PlayerAI extends Player {
         "/500/500";
 }
 
-module.exports = PlayerAI;
+export default PlayerAI;

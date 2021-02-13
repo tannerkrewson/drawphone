@@ -2,7 +2,14 @@
 // Drawphone Words
 //
 
-var fs = require("fs");
+import fs from "fs";
+
+// https://stackoverflow.com/a/62892482
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const PACK_NAMES = [
     "Simple words (recommended)",
@@ -14,62 +21,67 @@ const PACK_NAMES = [
     "Verbs",
 ];
 
-function WordPacks() {
-    this.wordPacks = [];
-}
+class WordPacks {
+    constructor() {
+        this.wordPacks = [];
+    }
 
-WordPacks.prototype.loadAll = function () {
-    var self = this;
-    //reads each txt file in the words folder
-    //the name of the file will be the name of the pack
-    PACK_NAMES.forEach((packName) => {
-        var pathToTxt = __dirname + "/../words/" + packName + ".txt";
-        var arrayOfWords = fs.readFileSync(pathToTxt).toString().split(/\r?\n/);
+    loadAll() {
+        const self = this;
+        //reads each txt file in the words folder
+        //the name of the file will be the name of the pack
+        PACK_NAMES.forEach((packName) => {
+            var pathToTxt = __dirname + "/../words/" + packName + ".txt";
+            let arrayOfWords = fs
+                .readFileSync(pathToTxt)
+                .toString()
+                .split(/\r?\n/);
 
-        //remove all blank lines
-        var newArrayOfWords = [];
-        for (var i = 0; i < arrayOfWords.length; i++) {
-            var thisWord = arrayOfWords[i].trim();
-            if (thisWord !== "") {
-                newArrayOfWords.push(thisWord);
+            //remove all blank lines
+            const newArrayOfWords = [];
+            for (let i = 0; i < arrayOfWords.length; i++) {
+                const thisWord = arrayOfWords[i].trim();
+                if (thisWord !== "") {
+                    newArrayOfWords.push(thisWord);
+                }
+            }
+            arrayOfWords = newArrayOfWords;
+
+            //can't have an empty list!
+            if (arrayOfWords.length === 0) {
+                console.log(
+                    `${packName}.txt is empty. Please add some words, or delete it.`
+                );
+                process.exit(1);
+            }
+
+            self.wordPacks.push(new WordPack(packName, arrayOfWords));
+        });
+    }
+
+    get(packName) {
+        for (let i = 0; i < this.wordPacks.length; i++) {
+            const thisPack = this.wordPacks[i];
+            if (thisPack.name === packName) {
+                return thisPack;
             }
         }
-        arrayOfWords = newArrayOfWords;
+        return false;
+    }
 
-        //can't have an empty list!
-        if (arrayOfWords.length === 0) {
-            console.log(
-                packName + ".txt is empty. Please add some words, or delete it."
-            );
-            process.exit(1);
-        }
-
-        self.wordPacks.push(new WordPack(packName, arrayOfWords));
-    });
-};
-
-WordPacks.prototype.get = function (packName) {
-    for (var i = 0; i < this.wordPacks.length; i++) {
-        var thisPack = this.wordPacks[i];
-        if (thisPack.name === packName) {
-            return thisPack;
+    getRandomWord(packName) {
+        const thisPack = this.get(packName);
+        if (thisPack) {
+            return thisPack.getRandomWord();
+        } else {
+            console.error(`Wordpack ${packName} does not exist.`);
+            return this.wordPacks[0].getRandomWord();
         }
     }
-    return false;
-};
-
-WordPacks.prototype.getRandomWord = function (packName) {
-    var thisPack = this.get(packName);
-    if (thisPack) {
-        return thisPack.getRandomWord();
-    } else {
-        console.error("Wordpack " + packName + " does not exist.");
-        return this.wordPacks[0].getRandomWord();
-    }
-};
+}
 
 WordPacks.getAllPackNames = (excludeNSFW) => {
-    var names = [];
+    const names = [];
     PACK_NAMES.forEach((packName) => {
         // + for 18+ or 13+
         if (!excludeNSFW || !packName.includes("+")) {
@@ -79,13 +91,15 @@ WordPacks.getAllPackNames = (excludeNSFW) => {
     return names;
 };
 
-function WordPack(name, words) {
-    this.name = name;
-    this.words = words;
+class WordPack {
+    constructor(name, words) {
+        this.name = name;
+        this.words = words;
+    }
+
+    getRandomWord() {
+        return this.words[Math.floor(Math.random() * this.words.length)];
+    }
 }
 
-WordPack.prototype.getRandomWord = function () {
-    return this.words[Math.floor(Math.random() * this.words.length)];
-};
-
-module.exports = WordPacks;
+export default WordPacks;

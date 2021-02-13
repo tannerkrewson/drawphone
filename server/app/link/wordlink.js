@@ -2,12 +2,13 @@
 // Drawphone WordLink
 //
 
-var Link = require("./link");
+import Link from "./link.js";
 
-function WordLink(player, word) {
-    Link.call(this, player, word);
-    this.type = "word";
+class WordLink extends Link {
+    constructor(player, word) {
+        super(player, word);
+        this.type = "word";
+    }
 }
-WordLink.prototype = Object.create(Link.prototype);
 
-module.exports = WordLink;
+export default WordLink;

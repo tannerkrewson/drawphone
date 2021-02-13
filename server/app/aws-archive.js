@@ -1,4 +1,5 @@
-const { S3 } = require("aws-sdk");
+import pkg from "aws-sdk";
+const { S3 } = pkg;
 
 const bucket = new S3({
     accessKeyId: process.env.ACCESS_KEY_ID,
@@ -35,4 +36,4 @@ const sendResultsToAwsArchive = (chains, wordPack) => {
 // random 4 digit, just for fun
 const rand = () => Math.round(Math.random() * 10000);
 
-module.exports = { sendResultsToAwsArchive };
+export { sendResultsToAwsArchive };

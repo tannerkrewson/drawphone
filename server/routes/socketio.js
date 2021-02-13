@@ -1,10 +1,11 @@
-module.exports = (app) => {
-    var dp = app.drawphone;
-    var stripTags = require("striptags");
+import stripTags from "striptags";
 
-    app.io.on("connection", (socket) => {
-        var thisGame;
-        var thisUser;
+export default ({ drawphone, io }) => {
+    const dp = drawphone;
+
+    io.on("connection", (socket) => {
+        let thisGame;
+        let thisUser;
 
         const safeSon = (event, action) =>
             socket.on(event, (...params) => {
@@ -13,9 +14,9 @@ module.exports = (app) => {
                 } catch (e) {}
             });
 
-        safeSon("joinGame", (data) => {
-            thisGame = dp.findGame(data.code);
-            var theName = stripTags(data.name);
+        safeSon("joinGame", ({ code, name }) => {
+            thisGame = dp.findGame(code);
+            const theName = stripTags(name);
             if (!thisGame) {
                 socket.emit("joinGameRes", {
                     success: false,
@@ -43,13 +44,13 @@ module.exports = (app) => {
             }
         });
 
-        safeSon("newGame", (data) => {
+        safeSon("newGame", ({ name }) => {
             if (dp.locked) {
                 sendLockedError(socket, dp.minutesUntilRestart);
                 return;
             }
 
-            var theName = stripTags(data.name);
+            const theName = stripTags(name);
             if (theName.length > 2 && theName.length <= 16) {
                 thisGame = dp.newGame();
                 thisUser = thisGame.addPlayer(theName, socket);
@@ -66,29 +67,32 @@ module.exports = (app) => {
             }
         });
 
-        safeSon("tryStartGame", (data) => {
-            if (!thisUser || !thisGame) return;
+        safeSon(
+            "tryStartGame",
+            ({ timeLimit, wordPackName, showNeighbors }) => {
+                if (!thisUser || !thisGame) return;
 
-            if (dp.locked) {
-                sendLockedError(socket, dp.minutesUntilRestart);
-                return;
+                if (dp.locked) {
+                    sendLockedError(socket, dp.minutesUntilRestart);
+                    return;
+                }
+
+                if (timeLimit !== false && thisUser.isHost) {
+                    thisGame.startNewRound(
+                        timeLimit,
+                        wordPackName,
+                        showNeighbors
+                    );
+                }
             }
+        );
 
-            if (data.timeLimit !== false && thisUser.isHost) {
-                thisGame.startNewRound(
-                    data.timeLimit,
-                    data.wordPackName,
-                    data.showNeighbors
-                );
-            }
-        });
-
-        safeSon("tryReplacePlayer", (data) => {
+        safeSon("tryReplacePlayer", ({ playerToReplace }) => {
             const thisRound = thisGame.currentRound;
 
             if (!thisGame || !thisRound) return;
 
-            const toReplaceId = data.playerToReplace.id;
+            const toReplaceId = playerToReplace.id;
 
             if (thisUser && thisRound.canBeReplaced(toReplaceId)) {
                 thisUser = thisRound.replacePlayer(
@@ -107,8 +111,8 @@ module.exports = (app) => {
         safeSon("kickPlayer", (data) => {
             if (!thisGame || !thisUser) return;
 
-            var idToKick = data.playerToKick.id;
-            var playerToKick = thisGame.getPlayer(idToKick);
+            const idToKick = data.playerToKick.id;
+            const playerToKick = thisGame.getPlayer(idToKick);
             if (thisUser.isHost && playerToKick) {
                 //this will simulate the 'disconnect' event, and run all of the
                 //	methods that were tied into that in the initPlayer function
@@ -116,14 +120,14 @@ module.exports = (app) => {
             }
         });
 
-        safeSon("replacePlayerWithBot", (data) => {
+        safeSon("replacePlayerWithBot", ({ playerToReplaceWithBot }) => {
             const isInGame = thisGame && thisGame.currentRound;
             const isHost = thisUser && thisUser.isHost;
             if (!isInGame || !isHost) return;
 
-            const oldPlayer = data.playerToReplaceWithBot;
+            const oldPlayer = playerToReplaceWithBot;
             const botPlayer = thisGame.newBotPlayer(
-                "👻 The Ghost of " + oldPlayer.name
+                `👻 The Ghost of ${oldPlayer.name}`
             );
             const thisRound = thisGame.currentRound;
 
@@ -164,17 +168,13 @@ const sendLockedError = (socket, minutesUntilRestart) => {
     socket.emit("joinGameRes", {
         success: false,
         error: "Oopsie woopsie",
-        content:
-            "The Drawphone server is pending an update, and will be restarted " +
-            getTimeLeft(minutesUntilRestart) +
-            '. Try again then! <div style="font-size: .75em;margin-top:.8em">' +
-            "If you're the techy type, check the update status " +
-            '<a href="https://github.com/tannerkrewson/drawphone/actions" ' +
-            'target="_blank" rel="noopener noreferrer">here</a>.</div>',
+        content: `The Drawphone server is pending an update, and will be restarted ${getTimeLeft(
+            minutesUntilRestart
+        )}. Try again then! <div style="font-size: .75em;margin-top:.8em">If you're the techy type, check the update status <a href="https://github.com/tannerkrewson/drawphone/actions" target="_blank" rel="noopener noreferrer">here</a>.</div>`,
     });
 };
 
 const getTimeLeft = (minutes) => {
     if (minutes <= 0) return "momentarily";
-    return "in " + minutes + " minute" + (parseInt(minutes) !== 1 ? "s" : "");
+    return `in ${minutes} minute${parseInt(minutes) !== 1 ? "s" : ""}`;
 };

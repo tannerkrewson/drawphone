@@ -1,12 +1,15 @@
-const webpackAssets = require("../../webpack-assets.json");
+import webpackAssets from "../../webpack-assets.json";
+import WordPacks from "../app/words.js";
 
-module.exports = (app) => {
-    var dp = app.drawphone;
-    var allPackNames = require("../app/words").getAllPackNames();
-    var safePackNames = require("../app/words").getAllPackNames(true);
+const { getAllPackNames } = WordPacks;
 
-    app.get("/", (req, res) => {
-        const isSafeForWorkURL = req.headers.host.startsWith("dpk");
+export default (app) => {
+    const dp = app.drawphone;
+    const allPackNames = getAllPackNames();
+    const safePackNames = getAllPackNames(true);
+
+    app.get("/", ({ headers }, res) => {
+        const isSafeForWorkURL = headers.host.startsWith("dpk");
         const wordpacks = isSafeForWorkURL ? safePackNames : allPackNames;
 
         res.render("index", {
@@ -45,13 +48,13 @@ module.exports = (app) => {
     });
 
     app.get("/stats", (req, res) => {
-        var games = [];
+        const games = [];
         let realPlayerCount = 0;
-        for (var game of dp.games) {
+        for (const game of dp.games) {
             const players = game.players.length - game.botCount;
             realPlayerCount += players;
 
-            var strippedGame = {
+            const strippedGame = {
                 players,
                 roundsPlayed: game.currentRoundNum - 1,
                 lastAction: timeSince(game.timeOfLastAction),
@@ -78,12 +81,12 @@ module.exports = (app) => {
         res.render("admin");
     });
 
-    app.post("/lock", (req, res) => {
+    app.post("/lock", ({ body }, res) => {
         if (!process.env.ADMIN_PASSWORD) {
             res.status(501).end();
         }
 
-        if (req.body.password === process.env.ADMIN_PASSWORD) {
+        if (body.password === process.env.ADMIN_PASSWORD) {
             dp.lock();
             res.status(200).end();
         } else {
@@ -114,28 +117,28 @@ module.exports = (app) => {
 
 // https://stackoverflow.com/a/3177838
 function timeSince(date) {
-    var seconds = Math.floor((new Date() - date) / 1000);
+    const seconds = Math.floor((new Date() - date) / 1000);
 
-    var interval = Math.floor(seconds / 31536000);
+    let interval = Math.floor(seconds / 31536000);
 
     if (interval > 1) {
-        return interval + " years";
+        return `${interval} years`;
     }
     interval = Math.floor(seconds / 2592000);
     if (interval > 1) {
-        return interval + " months";
+        return `${interval} months`;
     }
     interval = Math.floor(seconds / 86400);
     if (interval > 1) {
-        return interval + " days";
+        return `${interval} days`;
     }
     interval = Math.floor(seconds / 3600);
     if (interval > 1) {
-        return interval + " hours";
+        return `${interval} hours`;
     }
     interval = Math.floor(seconds / 60);
     if (interval > 1) {
-        return interval + " minutes";
+        return `${interval} minutes`;
     }
-    return Math.floor(seconds) + " seconds";
+    return `${Math.floor(seconds)} seconds`;
 }

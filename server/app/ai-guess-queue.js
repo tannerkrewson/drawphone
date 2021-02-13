@@ -1,5 +1,3 @@
-const PlayerAI = require("./player-ai");
-
 class AIGuessQueue {
     constructor(getRandomWord) {
         this.getRandomWord = getRandomWord;
@@ -32,7 +30,6 @@ class AIGuessQueue {
 
         if (attempts < 3) {
             const nextPlayer = this.workerQueue.shift();
-            console.log("sending work to", nextPlayer.name);
 
             nextPlayer.sendThen(
                 "makeAIGuess",
@@ -69,4 +66,4 @@ class AIGuessQueue {
     workersLeft = () => this.workerQueue.length > 0;
 }
 
-module.exports = AIGuessQueue;
+export default AIGuessQueue;

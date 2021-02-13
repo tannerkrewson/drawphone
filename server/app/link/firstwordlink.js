@@ -2,12 +2,13 @@
 // Drawphone FirstWordLink
 //
 
-var Link = require("./link");
+import Link from "./link.js";
 
-function FirstWordLink(player) {
-    Link.call(this, player, false);
-    this.type = "first-word";
+class FirstWordLink extends Link {
+    constructor(player) {
+        super(player, false);
+        this.type = "first-word";
+    }
 }
-FirstWordLink.prototype = Object.create(Link.prototype);
 
-module.exports = FirstWordLink;
+export default FirstWordLink;

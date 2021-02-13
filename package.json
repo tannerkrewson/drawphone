@@ -8,7 +8,7 @@
         "dev": "run-p start:dev build:dev",
         "start:dev": "nodemon --exec npm run start:prod --ignore public/",
         "build:dev": "webpack --mode development --watch",
-        "start:prod": "node ./server/bin/www",
+        "start:prod": "node --experimental-json-modules ./server/bin/www",
         "build:prod": "webpack --mode production",
         "test": "jest",
         "lint:staged": "pretty-quick --staged"
@@ -66,5 +66,6 @@
         "hooks": {
             "pre-commit": "run-s lint:staged test"
         }
-    }
+    },
+    "type": "module"
 }

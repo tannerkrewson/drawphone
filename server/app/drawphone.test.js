@@ -1,4 +1,4 @@
-const Drawphone = require("./drawphone");
+import Drawphone from "./drawphone.js";
 
 const generateMockSocket = () => ({
     emit: jest.fn(),
@@ -28,13 +28,13 @@ const sendLinks = (players) => {
     });
 };
 
-const advance = (game) => {
+const advance = ({ inProgress, players }) => {
     let iterations = 0;
-    while (game.inProgress) {
-        sendLinks(game.players);
+    while (inProgress) {
+        sendLinks(players);
 
         iterations++;
-        if (iterations > game.players.length * 2) {
+        if (iterations > players.length * 2) {
             throw "This game is never going to end, huh?";
         }
     }
@@ -103,7 +103,7 @@ const testGame = (numPlayers, typeOrder, wordFirst) => {
     const game = dp.newGame();
 
     for (let i = 0; i < numPlayers; i++) {
-        game.addPlayer("player" + i, generateMockSocket());
+        game.addPlayer(`player${i}`, generateMockSocket());
     }
 
     expect(game.inProgress).toBeFalsy();
@@ -231,7 +231,7 @@ test("game with 7 players", () => {
 });
 
 for (let i = 8; i <= 32; i++) {
-    test("game with " + i + " players", () => {
+    test(`game with ${i} players`, () => {
         testGame(i, typeOrderGenerator(i, false));
     });
 }
@@ -253,7 +253,7 @@ test("word first game with 7 players", () => {
 });
 
 for (let i = 8; i <= 32; i++) {
-    test("word first game with " + i + " players", () => {
+    test(`word first game with ${i} players`, () => {
         testGame(i, typeOrderGenerator(i, true), true);
     });
 }

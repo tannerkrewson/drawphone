@@ -15,16 +15,24 @@ var WordPacks = require("./words");
 var words = new WordPacks();
 words.loadAll();
 
+// https://stackoverflow.com/a/33352604
+const arrayFromOneToN = (length, offset = 0) =>
+    Array.from({ length }, (_, i) => i + offset);
+
 // https://stackoverflow.com/a/58326608
 const rotateArray = (arr, count = 1) => {
     return [...arr.slice(count, arr.length), ...arr.slice(0, count)];
 };
 
+// https://stackoverflow.com/a/17428705
+const rotate2dArray = (array) =>
+    array[0].map((_, colIndex) => array.map((row) => row[colIndex]));
+
 // https://math.stackexchange.com/a/4000891 "In the odd prime case..."
 const oddApproxRCLS = (order) => {
     const m = (order - 1) / 2;
 
-    let result = [Array.from({ length: order }, (_, i) => i)];
+    let result = [arrayFromOneToN(order)];
     const last = () => result[result.length - 1];
 
     for (let i = 1; i <= m; i++) {
@@ -40,9 +48,7 @@ const oddApproxRCLS = (order) => {
         result.push(rotateArray(last(), i * direction));
     }
 
-    // rotates the 2d array
-    // https://stackoverflow.com/a/17428705
-    return result[0].map((_, colIndex) => result.map((row) => row[colIndex]));
+    return rotate2dArray(result);
 };
 
 // Use each row for a chain. Columns have repetition. For example:
@@ -54,7 +60,7 @@ const oddApproxRCLS = (order) => {
 // If we used columns for the chains, 2 always comes after 1 and before 3.
 function evenExactRCLS(order) {
     /*
-	generates array of 1 ... order-1
+	arrayFromOneToN generates:
 	ex. order=10: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 	
 	then maps it to this:
@@ -65,7 +71,7 @@ function evenExactRCLS(order) {
 	[8, 6, 4, 2, 0] (evens decreasing)
 
 	*/
-    let diff = Array.from({ length: order }, (_, i) => i + 1).map((n, i) =>
+    let diff = arrayFromOneToN(order, 1).map((n, i) =>
         i % 2 === 1 ? order - i - 1 : n
     );
 

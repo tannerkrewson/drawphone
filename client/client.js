@@ -64,18 +64,18 @@ function showElement(jq) {
 
 // http://stackoverflow.com/questions/20618355/the-simplest-possible-javascript-countdown-timer
 function startTimer(duration, onTick) {
-    var timer = duration;
-    var minutes;
-    var seconds;
+    let timer = duration;
+    let minutes;
+    let seconds;
 
-    var tick = () => {
+    const tick = () => {
         minutes = parseInt(timer / 60, 10);
         seconds = parseInt(timer % 60, 10);
 
-        minutes = minutes < 10 ? "0" + minutes : minutes;
-        seconds = seconds < 10 ? "0" + seconds : seconds;
+        minutes = minutes < 10 ? `0${minutes}` : minutes;
+        seconds = seconds < 10 ? `0${seconds}` : seconds;
 
-        onTick(minutes + ":" + seconds);
+        onTick(`${minutes}:${seconds}`);
 
         if (--timer < 0) {
             timer = duration;
@@ -90,1140 +90,1122 @@ function startTimer(duration, onTick) {
 //  Objects
 //
 
-function Drawphone() {
-    this.screens = [];
+class Drawphone {
+    constructor() {
+        this.screens = [];
 
-    var self = this;
-    this.mainMenu = new MainMenu(
-        () => {
-            //ran when Join Game button is pressed
-            self.joinMenu.show();
-        },
-        () => {
-            //ran when New Game button is pressed
-            self.newMenu.show();
-        }
-    );
+        const self = this;
+        this.mainMenu = new MainMenu(
+            () => {
+                //ran when Join Game button is pressed
+                self.joinMenu.show();
+            },
+            () => {
+                //ran when New Game button is pressed
+                self.newMenu.show();
+            }
+        );
 
-    this.joinMenu = new JoinMenu(() => {
-        //ran when Back button is pressed
-        self.mainMenu.show();
-    });
+        this.joinMenu = new JoinMenu(() => {
+            //ran when Back button is pressed
+            self.mainMenu.show();
+        });
 
-    this.newMenu = new NewMenu(() => {
-        //ran when Back button is pressed
-        self.mainMenu.show();
-    });
+        this.newMenu = new NewMenu(() => {
+            //ran when Back button is pressed
+            self.mainMenu.show();
+        });
 
-    this.lobby = new Lobby();
+        this.lobby = new Lobby();
 
-    this.game = new Game(() => {
-        //ran when the player sends
-        self.waiting.show();
-    });
+        this.game = new Game(() => {
+            //ran when the player sends
+            self.waiting.show();
+        });
 
-    this.results = new Results(() => {
-        //ran when done button on results page is tapped
-        self.lobby.show();
-    });
+        this.results = new Results(() => {
+            //ran when done button on results page is tapped
+            self.lobby.show();
+        });
 
-    this.waiting = new Waiting();
+        this.waiting = new Waiting();
 
-    this.replace = new Replace();
+        this.replace = new Replace();
 
-    this.screens.push(this.mainMenu);
-    this.screens.push(this.joinMenu);
-    this.screens.push(this.newMenu);
-    this.screens.push(this.lobby);
-    this.screens.push(this.game);
-    this.screens.push(this.results);
-    this.screens.push(this.waiting);
-    this.screens.push(this.replace);
-}
-
-Drawphone.prototype.initializeAll = function () {
-    this.screens.forEach((screen) => {
-        screen.initialize();
-    });
-
-    this.attachSocketListeners();
-};
-
-Drawphone.prototype.attachSocketListeners = function () {
-    socket.on("joinGameRes", this.lobby.show.bind(this.lobby));
-
-    socket.on("updatePlayerList", this.lobby.update.bind(this.lobby));
-
-    socket.on("updateSettings", this.lobby.update.bind(this.lobby));
-
-    socket.on("nextLink", this.game.newLink.bind(this.game));
-
-    socket.on("viewResults", this.results.show.bind(this.results));
-
-    socket.on("showWaitingList", this.waiting.show.bind(this.waiting));
-
-    socket.on(
-        "updateWaitingList",
-        this.waiting.updateWaitingList.bind(this.waiting)
-    );
-
-    socket.on("replacePlayer", this.replace.show.bind(this.replace));
-};
-
-Drawphone.prototype.begin = function () {
-    this.mainMenu.show();
-};
-
-function Screen() {
-    this.id = "";
-    this.title = "Loading Drawphone...";
-    this.subtitle = "Just a moment!";
-    this.isLoading = true;
-
-    this.defaultTitle =
-        '<div class="animated-title"><span class="drawphone-d">D</span><span class="drawphone-r">r</span><span class="drawphone-a">a</span><span class="drawphone-w">w</span><span class="drawphone-p">p</span><span class="drawphone-h">h</span><span class="drawphone-o">o</span><span class="drawphone-n">n</span><span class="drawphone-e">e</span></div>';
-    this.defaultSubtitle = "Telephone with pictures";
-}
-
-Screen.prototype.initialize = () => {};
-
-Screen.prototype.show = function () {
-    hideAll();
-    showElement(this.id);
-
-    $("#title").html(this.title);
-    $("#subtitle").text(this.subtitle);
-};
-
-Screen.prototype.setTitle = function (title) {
-    this.title = title;
-    $("#title").html(this.title);
-};
-
-Screen.prototype.setSubtitle = function (subtitle) {
-    this.subtitle = subtitle;
-    $("#subtitle").html(this.subtitle);
-};
-
-Screen.prototype.showTitles = function () {
-    $("#title").html(this.title);
-    $("#subtitle").html(this.subtitle);
-};
-
-Screen.prototype.setDefaultTitles = function () {
-    this.setTitle(this.defaultTitle);
-    this.setSubtitle(this.defaultSubtitle);
-};
-
-Screen.prototype.waitingForResponse = function (isLoading) {
-    this.isLoading = isLoading;
-    hideAll();
-    if (isLoading) {
-        showElement("#loading");
-    } else {
-        showElement(this.id);
+        this.screens.push(this.mainMenu);
+        this.screens.push(this.joinMenu);
+        this.screens.push(this.newMenu);
+        this.screens.push(this.lobby);
+        this.screens.push(this.game);
+        this.screens.push(this.results);
+        this.screens.push(this.waiting);
+        this.screens.push(this.replace);
     }
-};
+
+    initializeAll() {
+        this.screens.forEach((screen) => {
+            screen.initialize();
+        });
+
+        this.attachSocketListeners();
+    }
+
+    attachSocketListeners() {
+        socket.on("joinGameRes", this.lobby.show.bind(this.lobby));
+
+        socket.on("updatePlayerList", this.lobby.update.bind(this.lobby));
+
+        socket.on("updateSettings", this.lobby.update.bind(this.lobby));
+
+        socket.on("nextLink", this.game.newLink.bind(this.game));
+
+        socket.on("viewResults", this.results.show.bind(this.results));
+
+        socket.on("showWaitingList", this.waiting.show.bind(this.waiting));
+
+        socket.on(
+            "updateWaitingList",
+            this.waiting.updateWaitingList.bind(this.waiting)
+        );
+
+        socket.on("replacePlayer", this.replace.show.bind(this.replace));
+    }
+
+    begin() {
+        this.mainMenu.show();
+    }
+}
+
+class Screen {
+    constructor() {
+        this.id = "";
+        this.title = "Loading Drawphone...";
+        this.subtitle = "Just a moment!";
+        this.isLoading = true;
+
+        this.defaultTitle =
+            '<div class="animated-title"><span class="drawphone-d">D</span><span class="drawphone-r">r</span><span class="drawphone-a">a</span><span class="drawphone-w">w</span><span class="drawphone-p">p</span><span class="drawphone-h">h</span><span class="drawphone-o">o</span><span class="drawphone-n">n</span><span class="drawphone-e">e</span></div>';
+        this.defaultSubtitle = "Telephone with pictures";
+    }
+
+    initialize() {}
+
+    show() {
+        hideAll();
+        showElement(this.id);
+
+        $("#title").html(this.title);
+        $("#subtitle").text(this.subtitle);
+    }
+
+    setTitle(title) {
+        this.title = title;
+        $("#title").html(this.title);
+    }
+
+    setSubtitle(subtitle) {
+        this.subtitle = subtitle;
+        $("#subtitle").html(this.subtitle);
+    }
+
+    showTitles() {
+        $("#title").html(this.title);
+        $("#subtitle").html(this.subtitle);
+    }
+
+    setDefaultTitles() {
+        this.setTitle(this.defaultTitle);
+        this.setSubtitle(this.defaultSubtitle);
+    }
+
+    waitingForResponse(isLoading) {
+        this.isLoading = isLoading;
+        hideAll();
+        if (isLoading) {
+            showElement("#loading");
+        } else {
+            showElement(this.id);
+        }
+    }
+}
 
 Screen.gameCode = "";
 
 Screen.getGameCodeHTML = () =>
-    '<span class="gamecode">' + Screen.gameCode + "</span>";
+    `<span class="gamecode">${Screen.gameCode}</span>`;
 
-MainMenu.prototype = Object.create(Screen.prototype);
+class MainMenu extends Screen {
+    constructor(onJoin, onNew) {
+        super();
 
-function MainMenu(onJoin, onNew) {
-    Screen.call(this);
+        this.id = "#mainmenu";
+        this.joinButton = $("#joinbtn");
+        this.newButton = $("#newbtn");
+        this.archiveButton = $("#archivebtn");
+        this.howButton = $("#howbtn");
+        this.onJoin = onJoin;
+        this.onNew = onNew;
 
-    this.id = "#mainmenu";
-    this.joinButton = $("#joinbtn");
-    this.newButton = $("#newbtn");
-    this.archiveButton = $("#archivebtn");
-    this.howButton = $("#howbtn");
-    this.onJoin = onJoin;
-    this.onNew = onNew;
+        this.setDefaultTitles();
+    }
 
-    Screen.prototype.setDefaultTitles.call(this);
-}
+    initialize() {
+        super.initialize();
 
-MainMenu.prototype.initialize = function () {
-    Screen.prototype.initialize.call(this);
-
-    this.joinButton.click(this.onJoin);
-    this.newButton.click(this.onNew);
-    this.archiveButton.click(() => {
-        window.location.href = "/archive";
-    });
-    this.howButton.click(() => {
-        window.location.href = "/how-to-play";
-    });
-};
-
-JoinMenu.prototype = Object.create(Screen.prototype);
-
-function JoinMenu(onBack) {
-    Screen.call(this);
-
-    this.id = "#joinmenu";
-    this.backButton = $("#joinmenu-back");
-    this.goButton = $("#joinmenu-go");
-    this.codeInput = $("#joinincode");
-    this.onBack = onBack;
-
-    Screen.prototype.setDefaultTitles.call(this);
-}
-
-JoinMenu.prototype.initialize = function () {
-    Screen.prototype.initialize.call(this);
-
-    this.backButton.click(this.onBack);
-    this.goButton.click(function () {
-        if (!this.isLoading) {
-            Screen.prototype.waitingForResponse.call(this, true);
-            var code = $("#joinincode").val();
-            var name = $("#joininname").val();
-
-            socket.open();
-            socket.emit("joinGame", {
-                code,
-                name,
-            });
-        }
-    });
-
-    var self = this;
-
-    this.codeInput.on("input", () => {
-        self.codeInput.val(
-            self.codeInput
-                .val()
-                .substring(0, 4)
-                .toLowerCase()
-                .replace(/[^a-z]/g, "")
-        );
-        if (self.codeInput.val()) {
-            self.codeInput.addClass("gamecode-entry");
-        } else {
-            self.codeInput.removeClass("gamecode-entry");
-        }
-    });
-
-    Screen.prototype.setDefaultTitles.call(this);
-};
-
-NewMenu.prototype = Object.create(Screen.prototype);
-
-function NewMenu(onBack) {
-    Screen.call(this);
-
-    this.id = "#newmenu";
-    this.backButton = $("#newmenu-back");
-    this.goButton = $("#newmenu-go");
-    this.onBack = onBack;
-
-    Screen.prototype.setDefaultTitles.call(this);
-}
-
-NewMenu.prototype.initialize = function () {
-    Screen.prototype.initialize.call(this);
-
-    this.backButton.click(this.onBack);
-    this.goButton.click(function () {
-        if (!this.isLoading) {
-            Screen.prototype.waitingForResponse.call(this, true);
-            var name = $("#newinname").val();
-
-            socket.open();
-            socket.emit("newGame", {
-                name,
-            });
-        }
-    });
-};
-
-Lobby.prototype = Object.create(Screen.prototype);
-
-function Lobby() {
-    Screen.call(this);
-
-    this.id = "#lobby";
-    this.leaveButton = $("#lobby-leave");
-    this.startButton = $("#lobby-start");
-    this.gameSettings = $("#lobby-settings");
-    this.wordFirstCheckbox = $("#lobby-settings-wordfirst");
-    this.showNeighborsCheckbox = $("#lobby-settings-showNeighbors");
-    this.timeLimitDisplay = $("#lobby-settings-timelimit");
-    this.timeLimitMinus = $("#timelimit-minus");
-    this.timeLimitPlus = $("#timelimit-plus");
-    this.wordPackDropdown = $("#lobby-settings-wordpack");
-    this.gameSettingsBots = $("#lobby-settings-bots");
-    this.addBotButton = $("#lobby-settings-addbot");
-    this.removeBotButton = $("#lobby-settings-removebot");
-    this.viewPreviousResultsButton = $("#lobby-prevres");
-    this.gameCode = "";
-
-    //this is what the host selects from the dropdowns
-    this.selectedTimeLimit = 0;
-    this.wordPack = false;
-    this.showNeighbors = false;
-
-    this.userList = new UserList($("#lobby-players"));
-}
-
-Lobby.prototype.initialize = function () {
-    Screen.prototype.initialize.call(this);
-
-    this.leaveButton.click(() => {
-        ga("send", "event", "Lobby", "leave");
-        //refresh the page
-        location.reload();
-    });
-
-    this.viewPreviousResultsButton.click(() => {
-        socket.emit("viewPreviousResults", {});
-
-        ga("send", "event", "Lobby", "view previous results");
-    });
-
-    this.wordFirstCheckbox.prop("checked", false);
-    this.showNeighborsCheckbox.prop("checked", false);
-    this.timeLimitDisplay.text("No time limit");
-    this.wordPackDropdown.prop("selectedIndex", 0);
-    this.wordPackDropdown.prop("disabled", false);
-
-    ga("send", "event", "Lobby", "created");
-};
-
-Lobby.prototype.show = function (data) {
-    socket.off("disconnect");
-    socket.on("disconnect", (reason) => {
-        // if the disconnection was initiated by the server
-        // it was likely a kick from the host
-        if (reason === "io server disconnect") {
-            onActualDisconnect();
-        }
-    });
-
-    socket.off("reconnect_failed");
-    socket.on("reconnect_failed", () => {
-        onActualDisconnect();
-    });
-
-    const onActualDisconnect = () => {
-        swal("Connection lost!", "Reloading...", "error");
-        ga("send", "exception", {
-            exDescription: "Socket connection lost",
-            exFatal: false,
+        this.joinButton.click(this.onJoin);
+        this.newButton.click(this.onNew);
+        this.archiveButton.click(() => {
+            window.location.href = "/archive";
         });
-        //refresh the page
-        location.reload();
-    };
+        this.howButton.click(() => {
+            window.location.href = "/how-to-play";
+        });
+    }
+}
 
-    //if this was called by a socket.io event
-    if (data) {
-        if (data.success) {
-            Screen.gameCode = data.game.code;
-            this.selectedTimeLimit = false;
-            this.update({
-                success: true,
-                gameCode: data.game.code,
-                player: data.you,
-                data: {
-                    players: data.game.players,
-                    canViewLastRoundResults: data.game.canViewLastRoundResults,
-                },
-            });
-        } else {
+class JoinMenu extends Screen {
+    constructor(onBack) {
+        super();
+
+        this.id = "#joinmenu";
+        this.backButton = $("#joinmenu-back");
+        this.goButton = $("#joinmenu-go");
+        this.codeInput = $("#joinincode");
+        this.onBack = onBack;
+
+        this.setDefaultTitles();
+    }
+
+    initialize() {
+        super.initialize();
+
+        this.backButton.click(this.onBack);
+        this.goButton.click(function () {
+            if (!this.isLoading) {
+                this.waitingForResponse(true);
+                const code = $("#joinincode").val();
+                const name = $("#joininname").val();
+
+                socket.open();
+                socket.emit("joinGame", {
+                    code,
+                    name,
+                });
+            }
+        });
+
+        const self = this;
+
+        this.codeInput.on("input", () => {
+            self.codeInput.val(
+                self.codeInput
+                    .val()
+                    .substring(0, 4)
+                    .toLowerCase()
+                    .replace(/[^a-z]/g, "")
+            );
+            if (self.codeInput.val()) {
+                self.codeInput.addClass("gamecode-entry");
+            } else {
+                self.codeInput.removeClass("gamecode-entry");
+            }
+        });
+
+        this.setDefaultTitles();
+    }
+}
+
+class NewMenu extends Screen {
+    constructor(onBack) {
+        super();
+
+        this.id = "#newmenu";
+        this.backButton = $("#newmenu-back");
+        this.goButton = $("#newmenu-go");
+        this.onBack = onBack;
+
+        this.setDefaultTitles();
+    }
+
+    initialize() {
+        super.initialize();
+
+        this.backButton.click(this.onBack);
+        this.goButton.click(function () {
+            if (!this.isLoading) {
+                this.waitingForResponse(true);
+                const name = $("#newinname").val();
+
+                socket.open();
+                socket.emit("newGame", {
+                    name,
+                });
+            }
+        });
+    }
+}
+
+class Lobby extends Screen {
+    constructor() {
+        super();
+
+        this.id = "#lobby";
+        this.leaveButton = $("#lobby-leave");
+        this.startButton = $("#lobby-start");
+        this.gameSettings = $("#lobby-settings");
+        this.wordFirstCheckbox = $("#lobby-settings-wordfirst");
+        this.showNeighborsCheckbox = $("#lobby-settings-showNeighbors");
+        this.timeLimitDisplay = $("#lobby-settings-timelimit");
+        this.timeLimitMinus = $("#timelimit-minus");
+        this.timeLimitPlus = $("#timelimit-plus");
+        this.wordPackDropdown = $("#lobby-settings-wordpack");
+        this.gameSettingsBots = $("#lobby-settings-bots");
+        this.addBotButton = $("#lobby-settings-addbot");
+        this.removeBotButton = $("#lobby-settings-removebot");
+        this.viewPreviousResultsButton = $("#lobby-prevres");
+        this.gameCode = "";
+
+        //this is what the host selects from the dropdowns
+        this.selectedTimeLimit = 0;
+        this.wordPack = false;
+        this.showNeighbors = false;
+
+        this.userList = new UserList($("#lobby-players"));
+    }
+
+    initialize() {
+        super.initialize();
+
+        this.leaveButton.click(() => {
+            ga("send", "event", "Lobby", "leave");
+            //refresh the page
+            location.reload();
+        });
+
+        this.viewPreviousResultsButton.click(() => {
+            socket.emit("viewPreviousResults", {});
+
+            ga("send", "event", "Lobby", "view previous results");
+        });
+
+        this.wordFirstCheckbox.prop("checked", false);
+        this.showNeighborsCheckbox.prop("checked", false);
+        this.timeLimitDisplay.text("No time limit");
+        this.wordPackDropdown.prop("selectedIndex", 0);
+        this.wordPackDropdown.prop("disabled", false);
+
+        ga("send", "event", "Lobby", "created");
+    }
+
+    show(data) {
+        socket.off("disconnect");
+        socket.on("disconnect", (reason) => {
+            // if the disconnection was initiated by the server
+            // it was likely a kick from the host
+            if (reason === "io server disconnect") {
+                onActualDisconnect();
+            }
+        });
+
+        socket.off("reconnect_failed");
+        socket.on("reconnect_failed", () => {
+            onActualDisconnect();
+        });
+
+        const onActualDisconnect = () => {
+            swal("Connection lost!", "Reloading...", "error");
             ga("send", "exception", {
-                exDescription: data.error,
+                exDescription: "Socket connection lost",
                 exFatal: false,
             });
+            //refresh the page
+            location.reload();
+        };
 
-            if (data.content) {
-                swal({
-                    title: data.error,
-                    type: "error",
-                    text: data.content,
-                    html: true,
+        //if this was called by a socket.io event
+        if (data) {
+            if (data.success) {
+                Screen.gameCode = data.game.code;
+                this.selectedTimeLimit = false;
+                this.update({
+                    success: true,
+                    gameCode: data.game.code,
+                    player: data.you,
+                    data: {
+                        players: data.game.players,
+                        canViewLastRoundResults:
+                            data.game.canViewLastRoundResults,
+                    },
                 });
             } else {
-                swal(data.error, "", "error");
+                ga("send", "exception", {
+                    exDescription: data.error,
+                    exFatal: false,
+                });
+
+                if (data.content) {
+                    swal({
+                        title: data.error,
+                        type: "error",
+                        text: data.content,
+                        html: true,
+                    });
+                } else {
+                    swal(data.error, "", "error");
+                }
+                this.waitingForResponse(false);
+                return;
             }
-            Screen.prototype.waitingForResponse.call(this, false);
+        }
+
+        this.waitingForResponse(false);
+
+        super.show();
+    }
+
+    update(res) {
+        if (!res.success) {
+            ga("send", "exception", {
+                exDescription: res.error,
+                exFatal: false,
+            });
+            swal("Error updating lobby", res.error, "error");
+
             return;
         }
-    }
 
-    Screen.prototype.waitingForResponse.call(this, false);
-
-    Screen.prototype.show.call(this);
-};
-
-Lobby.prototype.update = function (res) {
-    if (!res.success) {
-        ga("send", "exception", {
-            exDescription: res.error,
-            exFatal: false,
-        });
-        swal("Error updating lobby", res.error, "error");
-
-        return;
-    }
-
-    Screen.gameCode = res.gameCode;
-    if (ROCKETCRAB_MODE) {
-        this.title = "Drawphone";
-    } else {
-        this.title = "Game Code: " + Screen.getGameCodeHTML();
-    }
-
-    this.subtitle = "Waiting for players...";
-    if (res.event === "updatePlayerList" && res.data.players) {
-        this.userList.update(res.data.players);
-    }
-    this.checkIfReadyToStart();
-
-    if (res.player.isHost) {
-        //show the start game button
-        this.startButton.removeClass(HIDDEN);
-        //show the game Settings
-        this.gameSettings.removeClass(HIDDEN);
-        this.gameSettingsBots.removeClass(HIDDEN);
-        for (let setting of this.gameSettings.find(".lobby-setting")) {
-            $(setting).prop("disabled", false);
+        Screen.gameCode = res.gameCode;
+        if (ROCKETCRAB_MODE) {
+            this.title = "Drawphone";
+        } else {
+            this.title = `Game Code: ${Screen.getGameCodeHTML()}`;
         }
 
-        this.initHost();
-    } else {
+        this.subtitle = "Waiting for players...";
+        if (res.event === "updatePlayerList" && res.data.players) {
+            this.userList.update(res.data.players);
+        }
+        this.checkIfReadyToStart();
+
+        if (res.player.isHost) {
+            //show the start game button
+            this.startButton.removeClass(HIDDEN);
+            //show the game Settings
+            this.gameSettings.removeClass(HIDDEN);
+            this.gameSettingsBots.removeClass(HIDDEN);
+            for (let setting of this.gameSettings.find(".lobby-setting")) {
+                $(setting).prop("disabled", false);
+            }
+
+            this.initHost();
+        } else {
+            this.clearHostHandlers();
+
+            this.startButton.addClass(HIDDEN);
+            this.gameSettings.removeClass(HIDDEN);
+            this.gameSettingsBots.addClass(HIDDEN);
+
+            // set settings disabled for players
+            for (let setting of this.gameSettings.find(".lobby-setting")) {
+                $(setting).prop("disabled", true);
+            }
+
+            if (res.data.setting) {
+                this.updateNonHostSettings(res.data.setting);
+            }
+        }
+
+        if (res.data.canViewLastRoundResults) {
+            this.viewPreviousResultsButton.removeClass(HIDDEN);
+        } else {
+            this.viewPreviousResultsButton.addClass(HIDDEN);
+        }
+    }
+
+    updateNonHostSettings({ name, value }) {
+        // update if host changes
+        const settingToUpdate = this.gameSettings.find(
+            `#lobby-settings-${name}`
+        );
+
+        if (["wordfirst", "showNeighbors"].includes(name)) {
+            settingToUpdate.prop("checked", value);
+        } else if (name === "timelimit") {
+            settingToUpdate.text(value);
+        } else {
+            settingToUpdate.prop("value", value);
+        }
+
+        // change wordpack to default (on player screens) if host turns on firstword
+        if (name === "wordfirst" && value === true) {
+            this.gameSettings
+                .find(`#lobby-settings-wordpack`)
+                .val("Select a word pack...");
+        }
+    }
+
+    clearHostHandlers() {
+        this.startButton.off("click");
+        this.wordFirstCheckbox.off("change");
+        this.showNeighborsCheckbox.off("change");
+        this.timeLimitMinus.off("click");
+        this.timeLimitPlus.off("click");
+        this.wordPackDropdown.off("change");
+        this.addBotButton.off("click");
+        this.removeBotButton.off("click");
+    }
+
+    initHost() {
         this.clearHostHandlers();
 
-        this.startButton.addClass(HIDDEN);
-        this.gameSettings.removeClass(HIDDEN);
-        this.gameSettingsBots.addClass(HIDDEN);
+        this.startButton.on("click", () => {
+            const ready = !this.isLoading && this.checkIfReadyToStart();
+            if (this.userList.numberOfPlayers === 1 && ready) {
+                swal(
+                    {
+                        title: "Demo mode",
+                        text:
+                            "Would you like to play Drawphone with just yourself to see how it works?",
+                        type: "info",
+                        showCancelButton: true,
+                    },
+                    () => {
+                        this.start.bind(this)();
+                    }
+                );
+            } else if (ready) {
+                this.start.bind(this)();
+            } else {
+                swal(
+                    "Not ready to start",
+                    "Make sure have selected a word pack, a drawing time limit, and that you have at least four players.",
+                    "error"
+                );
+                ga("send", "event", "Lobby", "disallowed start attempt");
+            }
+        });
 
-        // set settings disabled for players
-        for (let setting of this.gameSettings.find(".lobby-setting")) {
-            $(setting).prop("disabled", true);
-        }
+        const onWordFirstChange = () => {
+            if (this.wordFirstCheckbox.is(":checked")) {
+                this.wordPack = false;
+                this.wordPackDropdown.prop("selectedIndex", 0);
+                this.wordPackDropdown.prop("disabled", true);
+            } else {
+                this.wordPackDropdown.prop("disabled", false);
+            }
 
-        if (res.data.setting) {
-            this.updateNonHostSettings(res.data.setting);
-        }
-    }
+            this.checkIfReadyToStart();
+        };
+        this.wordFirstCheckbox.on("change", () => {
+            onWordFirstChange();
 
-    if (res.data.canViewLastRoundResults) {
-        this.viewPreviousResultsButton.removeClass(HIDDEN);
-    } else {
-        this.viewPreviousResultsButton.addClass(HIDDEN);
-    }
-};
-
-Lobby.prototype.updateNonHostSettings = function ({ name, value }) {
-    // update if host changes
-    const settingToUpdate = this.gameSettings.find(`#lobby-settings-${name}`);
-
-    if (["wordfirst", "showNeighbors"].includes(name)) {
-        settingToUpdate.prop("checked", value);
-    } else if (name === "timelimit") {
-        settingToUpdate.text(value);
-    } else {
-        settingToUpdate.prop("value", value);
-    }
-
-    // change wordpack to default (on player screens) if host turns on firstword
-    if (name === "wordfirst" && value === true) {
-        this.gameSettings
-            .find(`#lobby-settings-wordpack`)
-            .val("Select a word pack...");
-    }
-};
-
-Lobby.prototype.clearHostHandlers = function () {
-    this.startButton.off("click");
-    this.wordFirstCheckbox.off("change");
-    this.showNeighborsCheckbox.off("change");
-    this.timeLimitMinus.off("click");
-    this.timeLimitPlus.off("click");
-    this.wordPackDropdown.off("change");
-    this.addBotButton.off("click");
-    this.removeBotButton.off("click");
-};
-
-Lobby.prototype.initHost = function () {
-    this.clearHostHandlers();
-
-    this.startButton.on("click", () => {
-        var ready = !this.isLoading && this.checkIfReadyToStart();
-        if (this.userList.numberOfPlayers === 1 && ready) {
-            swal(
-                {
-                    title: "Demo mode",
-                    text:
-                        "Would you like to play Drawphone with just yourself to see how it works?",
-                    type: "info",
-                    showCancelButton: true,
-                },
-                () => {
-                    this.start.bind(this)();
-                }
-            );
-        } else if (ready) {
-            this.start.bind(this)();
-        } else {
-            swal(
-                "Not ready to start",
-                "Make sure have selected a word pack, a drawing time limit, and that you have at least four players.",
-                "error"
-            );
-            ga("send", "event", "Lobby", "disallowed start attempt");
-        }
-    });
-
-    const onWordFirstChange = () => {
-        if (this.wordFirstCheckbox.is(":checked")) {
-            this.wordPack = false;
-            this.wordPackDropdown.prop("selectedIndex", 0);
-            this.wordPackDropdown.prop("disabled", true);
-        } else {
-            this.wordPackDropdown.prop("disabled", false);
-        }
-
-        this.checkIfReadyToStart();
-    };
-    this.wordFirstCheckbox.on("change", () => {
+            socket.emit("hostUpdatedSettings", {
+                name: "wordfirst",
+                value: this.wordFirstCheckbox.is(":checked"),
+            });
+        });
         onWordFirstChange();
 
-        socket.emit("hostUpdatedSettings", {
-            name: "wordfirst",
-            value: this.wordFirstCheckbox.is(":checked"),
-        });
-    });
-    onWordFirstChange();
+        this.showNeighborsCheckbox.on("change", () => {
+            this.showNeighbors = !!this.showNeighborsCheckbox.is(":checked");
+            socket.emit("hostUpdatedSettings", {
+                name: "showNeighbors",
+                value: this.showNeighborsCheckbox.is(":checked"),
+            });
 
-    this.showNeighborsCheckbox.on("change", () => {
-        this.showNeighbors = !!this.showNeighborsCheckbox.is(":checked");
-        socket.emit("hostUpdatedSettings", {
-            name: "showNeighbors",
-            value: this.showNeighborsCheckbox.is(":checked"),
+            this.checkIfReadyToStart();
+            ga("send", "event", "Lobby", "show neighbors", this.showNeighbors);
         });
 
-        this.checkIfReadyToStart();
-        ga("send", "event", "Lobby", "show neighbors", this.showNeighbors);
-    });
+        const changeTimeLimit = (modifier) => {
+            const oldTimeLimit = this.selectedTimeLimit;
+            if (oldTimeLimit >= 30) modifier *= 15;
+            if (oldTimeLimit < 30) modifier *= 5;
 
-    const changeTimeLimit = (modifier) => {
-        const oldTimeLimit = this.selectedTimeLimit;
-        if (oldTimeLimit >= 30) modifier *= 15;
-        if (oldTimeLimit < 30) modifier *= 5;
+            this.selectedTimeLimit = Math.max(0, oldTimeLimit + modifier);
 
-        this.selectedTimeLimit = Math.max(0, oldTimeLimit + modifier);
+            const newDisplay =
+                this.selectedTimeLimit === 0
+                    ? "No time limit"
+                    : `${this.selectedTimeLimit} seconds`;
+            this.timeLimitDisplay.text(newDisplay);
 
-        const newDisplay =
-            this.selectedTimeLimit === 0
-                ? "No time limit"
-                : this.selectedTimeLimit + " seconds";
-        this.timeLimitDisplay.text(newDisplay);
+            if (oldTimeLimit === this.selectedTimeLimit) return;
 
-        if (oldTimeLimit === this.selectedTimeLimit) return;
+            this.checkIfReadyToStart();
 
-        this.checkIfReadyToStart();
+            socket.emit("hostUpdatedSettings", {
+                name: "timelimit",
+                value: newDisplay,
+            });
+        };
 
-        socket.emit("hostUpdatedSettings", {
-            name: "timelimit",
-            value: newDisplay,
+        this.timeLimitMinus.on("click", () => changeTimeLimit(-1));
+        this.timeLimitPlus.on("click", () => changeTimeLimit(1));
+
+        changeTimeLimit(0);
+
+        const onWordPackDropdownChange = () => {
+            const selected = this.wordPackDropdown[0].value;
+            this.wordPack =
+                selected === "Select a word pack..." ? false : selected;
+
+            this.checkIfReadyToStart();
+        };
+
+        this.wordPackDropdown.on("change", () => {
+            onWordPackDropdownChange();
+            socket.emit("hostUpdatedSettings", {
+                name: "wordpack",
+                value: this.wordPackDropdown[0].value,
+            });
+
+            ga("send", "event", "Lobby", "word pack change", this.wordPack);
         });
-    };
-
-    this.timeLimitMinus.on("click", () => changeTimeLimit(-1));
-    this.timeLimitPlus.on("click", () => changeTimeLimit(1));
-
-    changeTimeLimit(0);
-
-    const onWordPackDropdownChange = () => {
-        const selected = this.wordPackDropdown[0].value;
-        this.wordPack = selected === "Select a word pack..." ? false : selected;
-
-        this.checkIfReadyToStart();
-    };
-
-    this.wordPackDropdown.on("change", () => {
         onWordPackDropdownChange();
-        socket.emit("hostUpdatedSettings", {
-            name: "wordpack",
-            value: this.wordPackDropdown[0].value,
+
+        this.addBotButton.on("click", () => {
+            swal(
+                "Bad bot",
+                'Warning! The bots are a little janky. They think most drawings are "rain". But, they are real bots that make their best guesses based on the Mobilenet and Doodlenet machine learning models. 🤖',
+                "warning"
+            );
+            socket.emit("addBotPlayer");
         });
 
-        ga("send", "event", "Lobby", "word pack change", this.wordPack);
-    });
-    onWordPackDropdownChange();
-
-    this.addBotButton.on("click", () => {
-        swal(
-            "Bad bot",
-            'Warning! The bots are a little janky. They think most drawings are "rain". But, they are real bots that make their best guesses based on the Mobilenet and Doodlenet machine learning models. 🤖',
-            "warning"
-        );
-        socket.emit("addBotPlayer");
-    });
-
-    this.removeBotButton.on("click", () => socket.emit("removeBotPlayer"));
-};
-
-Lobby.prototype.checkIfReadyToStart = function () {
-    if (
-        this.selectedTimeLimit !== false &&
-        (this.wordPack !== false || this.wordFirstCheckbox.is(":checked")) &&
-        (this.userList.numberOfPlayers >= 4 ||
-            this.userList.numberOfPlayers === 1)
-    ) {
-        //un-grey-out start button
-        this.startButton.removeClass("disabled");
-        return true;
-    } else {
-        this.startButton.addClass("disabled");
-        return false;
+        this.removeBotButton.on("click", () => socket.emit("removeBotPlayer"));
     }
-};
 
-Lobby.prototype.start = function () {
-    Screen.prototype.waitingForResponse.call(this, true);
-    socket.emit("tryStartGame", {
-        timeLimit: this.selectedTimeLimit,
-        wordPackName: this.wordPack,
-        showNeighbors: this.showNeighbors,
-    });
-    ga("send", "event", "Game", "start");
-    ga("send", "event", "Game", "time limit", this.selectedTimeLimit);
-    ga("send", "event", "Game", "word pack", this.wordPack);
-    ga("send", "event", "Game", "number of players", this.userList.realPlayers);
-    ga("send", "event", "Game", "number of bots", this.userList.botPlayers);
-    ga(
-        "send",
-        "event",
-        "Game",
-        "number of total players",
-        this.userList.numberOfPlayers
-    );
-};
+    checkIfReadyToStart() {
+        if (
+            this.selectedTimeLimit !== false &&
+            (this.wordPack !== false ||
+                this.wordFirstCheckbox.is(":checked")) &&
+            (this.userList.numberOfPlayers >= 4 ||
+                this.userList.numberOfPlayers === 1)
+        ) {
+            //un-grey-out start button
+            this.startButton.removeClass("disabled");
+            return true;
+        } else {
+            this.startButton.addClass("disabled");
+            return false;
+        }
+    }
 
-Game.prototype = Object.create(Screen.prototype);
-
-function Game(onWait) {
-    Screen.call(this);
-
-    this.id = "#game";
-    this.onWait = onWait;
-
-    this.wordInput = $("#game-word-in");
-    this.timerDisplay = $("#game-timer");
-
-    this.neighboringPlayers = $("#neighboring-players-container");
-    this.leftPlayer = $("#previous-player");
-    this.youPlayer = $("#you-player");
-    this.rightPlayer = $("#next-player");
-
-    this.canvas;
-
-    this.submitTimer;
-
-    window.addEventListener("resize", this.resizeCanvas.bind(this), false);
+    start() {
+        this.waitingForResponse(true);
+        socket.emit("tryStartGame", {
+            timeLimit: this.selectedTimeLimit,
+            wordPackName: this.wordPack,
+            showNeighbors: this.showNeighbors,
+        });
+        ga("send", "event", "Game", "start");
+        ga("send", "event", "Game", "time limit", this.selectedTimeLimit);
+        ga("send", "event", "Game", "word pack", this.wordPack);
+        ga(
+            "send",
+            "event",
+            "Game",
+            "number of players",
+            this.userList.realPlayers
+        );
+        ga("send", "event", "Game", "number of bots", this.userList.botPlayers);
+        ga(
+            "send",
+            "event",
+            "Game",
+            "number of total players",
+            this.userList.numberOfPlayers
+        );
+    }
 }
 
-Game.prototype.initialize = function () {
-    Screen.prototype.initialize.call(this);
-    var doneButton = $("#game-send");
+class Game extends Screen {
+    constructor(onWait) {
+        super();
 
-    //bind clear canvas to clear drawing button
-    var self = this;
+        this.id = "#game";
+        this.onWait = onWait;
 
-    //if user touches the canvas, it not blank no more
-    $("#game-drawing").on("mousedown touchstart", () => {
-        //if this is their first mark
-        if (self.canvas.isBlank && self.timeLimit > 0 && !self.submitTimer) {
-            //start the timer
-            self.displayTimerInterval = startTimer(
-                self.timeLimit,
-                (timeLeft) => {
-                    self.timerDisplay.text(
-                        timeLeft + " left to finish your drawing"
-                    );
-                }
-            );
-            self.submitTimer = window.setTimeout(() => {
-                //when the time runs out...
-                //we don't care if it is blank
-                self.canvas.isBlank = false;
-                //submit
-                self.onDone();
-                ga(
-                    "send",
-                    "event",
-                    "Drawing",
-                    "timer forced submit",
-                    self.timeLimit
+        this.wordInput = $("#game-word-in");
+        this.timerDisplay = $("#game-timer");
+
+        this.neighboringPlayers = $("#neighboring-players-container");
+        this.leftPlayer = $("#previous-player");
+        this.youPlayer = $("#you-player");
+        this.rightPlayer = $("#next-player");
+
+        this.canvas;
+
+        this.submitTimer;
+
+        window.addEventListener("resize", this.resizeCanvas.bind(this), false);
+    }
+
+    initialize() {
+        super.initialize();
+        const doneButton = $("#game-send");
+
+        //bind clear canvas to clear drawing button
+        const self = this;
+
+        //if user touches the canvas, it not blank no more
+        $("#game-drawing").on("mousedown touchstart", () => {
+            //if this is their first mark
+            if (
+                self.canvas.isBlank &&
+                self.timeLimit > 0 &&
+                !self.submitTimer
+            ) {
+                //start the timer
+                self.displayTimerInterval = startTimer(
+                    self.timeLimit,
+                    (timeLeft) => {
+                        self.timerDisplay.text(
+                            `${timeLeft} left to finish your drawing`
+                        );
+                    }
                 );
-            }, self.timeLimit * 1000);
-        }
-        self.canvas.isBlank = false;
-    });
+                self.submitTimer = window.setTimeout(() => {
+                    //when the time runs out...
+                    //we don't care if it is blank
+                    self.canvas.isBlank = false;
+                    //submit
+                    self.onDone();
+                    ga(
+                        "send",
+                        "event",
+                        "Drawing",
+                        "timer forced submit",
+                        self.timeLimit
+                    );
+                }, self.timeLimit * 1000);
+            }
+            self.canvas.isBlank = false;
+        });
 
-    doneButton.click(() => {
-        self.onDone();
-    });
-
-    //run done when enter key is pressed in word input
-    $("#game-word-in").keypress((e) => {
-        var key = e.which;
-        if (key === 13) {
+        doneButton.click(() => {
             self.onDone();
-        }
-    });
-};
+        });
 
-Game.prototype.show = function () {
-    Screen.prototype.show.call(this);
-
-    if (ROCKETCRAB_MODE) {
-        Screen.prototype.setSubtitle.call(this, "🚀🦀");
-    } else {
-        Screen.prototype.setSubtitle.call(
-            this,
-            "Game code: " + Screen.getGameCodeHTML()
-        );
+        //run done when enter key is pressed in word input
+        $("#game-word-in").keypress(({ which }) => {
+            const key = which;
+            if (key === 13) {
+                self.onDone();
+            }
+        });
     }
 
-    //allow touch events on the canvas
-    $("#game-drawing").css("pointer-events", "auto");
-    this.done = false;
-};
+    show() {
+        super.show();
 
-Game.prototype.showDrawing = function (disallowChanges) {
-    if (!disallowChanges) {
-        this.canvas = getDrawingCanvas();
-    }
-
-    var shouldShowUndoButtons;
-
-    showElement("#game-drawing");
-    this.show();
-
-    if (this.timeLimit > 0) {
-        this.timerDisplay.text("Begin drawing to start the timer.");
-
-        if (this.timeLimit <= 5) {
-            //if the time limit is less than 5 seconds
-            //	don't show the undo button
-            //because players don't really have enough time to try drawing again
-            //	when they only have 5 seconds
-            shouldShowUndoButtons = false;
+        if (ROCKETCRAB_MODE) {
+            this.setSubtitle("🚀🦀");
         } else {
+            this.setSubtitle(`Game code: ${Screen.getGameCodeHTML()}`);
+        }
+
+        //allow touch events on the canvas
+        $("#game-drawing").css("pointer-events", "auto");
+        this.done = false;
+    }
+
+    showDrawing(disallowChanges) {
+        if (!disallowChanges) {
+            this.canvas = getDrawingCanvas();
+        }
+
+        let shouldShowUndoButtons;
+
+        showElement("#game-drawing");
+        this.show();
+
+        if (this.timeLimit > 0) {
+            this.timerDisplay.text("Begin drawing to start the timer.");
+
+            if (this.timeLimit <= 5) {
+                //if the time limit is less than 5 seconds
+                //	don't show the undo button
+                //because players don't really have enough time to try drawing again
+                //	when they only have 5 seconds
+                shouldShowUndoButtons = false;
+            } else {
+                shouldShowUndoButtons = true;
+            }
+        } else {
+            this.timerDisplay.text("No time limit to draw.");
             shouldShowUndoButtons = true;
         }
-    } else {
-        this.timerDisplay.text("No time limit to draw.");
-        shouldShowUndoButtons = true;
+
+        if (disallowChanges) {
+            //lock the canvas so the user can't make any changes
+            $("#game-drawing").css("pointer-events", "none");
+            shouldShowUndoButtons = false;
+        }
+
+        this.showButtons(shouldShowUndoButtons);
     }
 
-    if (disallowChanges) {
-        //lock the canvas so the user can't make any changes
-        $("#game-drawing").css("pointer-events", "none");
-        shouldShowUndoButtons = false;
+    showWord() {
+        showElement("#game-word");
+        this.showButtons(false);
+        this.show();
     }
 
-    this.showButtons(shouldShowUndoButtons);
-};
+    showButtons(showClearButton) {
+        if (showClearButton) {
+            showElement("#game-drawing-redo");
+            showElement("#game-drawing-undo");
+            $("#game-drawing-redo").addClass("disabled");
+            $("#game-drawing-undo").addClass("disabled");
 
-Game.prototype.showWord = function () {
-    showElement("#game-word");
-    this.showButtons(false);
-    this.show();
-};
-
-Game.prototype.showButtons = (showClearButton) => {
-    if (showClearButton) {
-        showElement("#game-drawing-redo");
-        showElement("#game-drawing-undo");
-        $("#game-drawing-redo").addClass("disabled");
-        $("#game-drawing-undo").addClass("disabled");
-
-        showElement("#game-draw-buttons");
-    } else {
-        $("#game-drawing-redo").addClass(HIDDEN);
-        $("#game-drawing-undo").addClass(HIDDEN);
-    }
-    showElement("#game-buttons");
-};
-
-Game.prototype.hideBoth = () => {
-    $("#game-drawing").addClass(HIDDEN);
-    $("#game-word").addClass(HIDDEN);
-    $("#game-buttons").addClass(HIDDEN);
-    $("#game-draw-buttons").addClass(HIDDEN);
-};
-
-Game.prototype.newLink = function (res) {
-    var lastLink = res.data.link;
-    var lastLinkType = lastLink.type;
-    var count = res.data.count;
-    var finalCount = res.data.finalCount;
-
-    var showNeighbors = res.data.showNeighbors;
-    var playerList = res.data.players;
-    var thisPlayer = res.data.thisPlayer;
-
-    var newLinkType =
-        lastLinkType === DRAWING || lastLinkType === FIRST_WORD
-            ? WORD
-            : DRAWING;
-    this.timeLimit = res.data.timeLimit;
-
-    if (lastLinkType === DRAWING) {
-        //show the previous drawing
-        $("#game-word-drawingtoname").attr("src", lastLink.data);
-
-        Screen.prototype.setTitle.call(this, "What is this a drawing of?");
-
-        //show the word creator
-        this.showWord();
-    } else if (lastLinkType === WORD) {
-        Screen.prototype.setTitle.call(
-            this,
-            '<span class="avoidwrap">Please draw:&nbsp;</span><span class="avoidwrap">' +
-                lastLink.data +
-                "</span>"
-        );
-
-        //show drawing creator
-        this.showDrawing();
-
-        //calculate size of canvas dynamically
-        this.resizeCanvas();
-    } else if (lastLinkType === FIRST_WORD) {
-        $("#game-word-drawingtoname").removeAttr("src");
-        Screen.prototype.setTitle.call(this, "What should be drawn?");
-
-        //show the word creator
-        this.showWord();
-    }
-
-    Screen.prototype.setSubtitle.call(
-        this,
-        this.subtitle + " &nbsp; - &nbsp; " + count + "/" + finalCount
-    );
-
-    this.showNeighbors(
-        showNeighbors,
-        playerList,
-        thisPlayer,
-        count,
-        finalCount
-    );
-
-    //this will be ran when the done button is clicked, or
-    //  the enter key is pressed in the word input
-    this.onDone = function () {
-        this.checkIfDone(newLinkType);
-    };
-    Screen.prototype.waitingForResponse.call(this, false);
-};
-
-Game.prototype.checkIfDone = function (newLinkType) {
-    this.done = true;
-
-    //disable the submit timer to prevent duplicate sends
-    clearTimeout(this.submitTimer);
-    clearInterval(this.displayTimerInterval);
-    this.submitTimer = undefined;
-    this.displayTimerInterval = undefined;
-
-    //hide the drawing
-    this.hideBoth();
-
-    var newLink;
-    if (newLinkType === DRAWING) {
-        if (this.canvas.isBlank) {
-            showElement("#game-drawing");
-            showElement("#game-buttons");
             showElement("#game-draw-buttons");
-            swal(
-                "Your picture is blank!",
-                "Please draw a picture, then try again.",
-                "info"
-            );
         } else {
-            // convert canvas to an SVG string, encode it in base64, and send it as a dataurl
-            newLink = "data:image/svg+xml;base64," + btoa(this.canvas.toSVG());
-
-            this.canvas.remove();
-            this.sendLink(newLinkType, newLink);
+            $("#game-drawing-redo").addClass(HIDDEN);
+            $("#game-drawing-undo").addClass(HIDDEN);
         }
-    } else if (newLinkType === WORD) {
-        newLink = $("#game-word-in").val().trim();
-        //check if it is blank
-        if (newLink === "") {
+        showElement("#game-buttons");
+    }
+
+    hideBoth() {
+        $("#game-drawing").addClass(HIDDEN);
+        $("#game-word").addClass(HIDDEN);
+        $("#game-buttons").addClass(HIDDEN);
+        $("#game-draw-buttons").addClass(HIDDEN);
+    }
+
+    newLink({ data }) {
+        const lastLink = data.link;
+        const lastLinkType = lastLink.type;
+        const count = data.count;
+        const finalCount = data.finalCount;
+
+        const showNeighbors = data.showNeighbors;
+        const playerList = data.players;
+        const thisPlayer = data.thisPlayer;
+
+        const newLinkType =
+            lastLinkType === DRAWING || lastLinkType === FIRST_WORD
+                ? WORD
+                : DRAWING;
+        this.timeLimit = data.timeLimit;
+
+        if (lastLinkType === DRAWING) {
+            //show the previous drawing
+            $("#game-word-drawingtoname").attr("src", lastLink.data);
+
+            this.setTitle("What is this a drawing of?");
+
+            //show the word creator
             this.showWord();
-            swal(
-                "Your guess is blank!",
-                "Please enter a guess, then try again.",
-                "info"
+        } else if (lastLinkType === WORD) {
+            this.setTitle(
+                `<span class="avoidwrap">Please draw:&nbsp;</span><span class="avoidwrap">${lastLink.data}</span>`
+            );
+
+            //show drawing creator
+            this.showDrawing();
+
+            //calculate size of canvas dynamically
+            this.resizeCanvas();
+        } else if (lastLinkType === FIRST_WORD) {
+            $("#game-word-drawingtoname").removeAttr("src");
+            this.setTitle("What should be drawn?");
+
+            //show the word creator
+            this.showWord();
+        }
+
+        this.setSubtitle(
+            `${this.subtitle} &nbsp; - &nbsp; ${count}/${finalCount}`
+        );
+
+        this.showNeighbors(
+            showNeighbors,
+            playerList,
+            thisPlayer,
+            count,
+            finalCount
+        );
+
+        //this will be ran when the done button is clicked, or
+        //  the enter key is pressed in the word input
+        this.onDone = function () {
+            this.checkIfDone(newLinkType);
+        };
+        this.waitingForResponse(false);
+    }
+
+    checkIfDone(newLinkType) {
+        this.done = true;
+
+        //disable the submit timer to prevent duplicate sends
+        clearTimeout(this.submitTimer);
+        clearInterval(this.displayTimerInterval);
+        this.submitTimer = undefined;
+        this.displayTimerInterval = undefined;
+
+        //hide the drawing
+        this.hideBoth();
+
+        let newLink;
+        if (newLinkType === DRAWING) {
+            if (this.canvas.isBlank) {
+                showElement("#game-drawing");
+                showElement("#game-buttons");
+                showElement("#game-draw-buttons");
+                swal(
+                    "Your picture is blank!",
+                    "Please draw a picture, then try again.",
+                    "info"
+                );
+            } else {
+                // convert canvas to an SVG string, encode it in base64, and send it as a dataurl
+                newLink = `data:image/svg+xml;base64,${btoa(
+                    this.canvas.toSVG()
+                )}`;
+
+                this.canvas.remove();
+                this.sendLink(newLinkType, newLink);
+            }
+        } else if (newLinkType === WORD) {
+            newLink = $("#game-word-in").val().trim();
+            //check if it is blank
+            if (newLink === "") {
+                this.showWord();
+                swal(
+                    "Your guess is blank!",
+                    "Please enter a guess, then try again.",
+                    "info"
+                );
+            } else {
+                //clear the input
+                $("#game-word-in").val("");
+                this.sendLink(newLinkType, newLink);
+            }
+        }
+    }
+
+    sendLink(type, data) {
+        this.setTitle("Sending...");
+
+        socket.emit("finishedLink", {
+            link: {
+                type,
+                data,
+            },
+        });
+        ga("send", "event", "Link", "submit", type);
+        this.onWait();
+    }
+
+    resizeCanvas() {
+        const container = $("#game-drawing");
+        if (this.canvas) {
+            this.canvas.setHeight(container.width());
+            this.canvas.setWidth(container.width());
+            this.canvas.renderAll();
+        }
+    }
+
+    setTimer() {
+        if (this.timeLimit && !this.timeLimit === 0) {
+            window.setTimeout();
+        }
+    }
+
+    showNeighbors(showNeighbors, playerList, thisPlayer, count, finalCount) {
+        if (!showNeighbors) {
+            this.neighboringPlayers.addClass(HIDDEN);
+            return;
+        }
+
+        this.neighboringPlayers.removeClass(HIDDEN);
+
+        let playerIdx;
+        const numPlayers = playerList.length;
+        for (playerIdx = 0; playerIdx < numPlayers; playerIdx++) {
+            if (playerList[playerIdx].id === thisPlayer.id) {
+                break;
+            }
+        }
+        this.leftPlayer.text(playerList[(playerIdx + 1) % numPlayers].name);
+        this.youPlayer.text(thisPlayer.name);
+        this.rightPlayer.text(
+            playerList[(playerIdx - 1 + numPlayers) % numPlayers].name
+        );
+
+        if (count > 1) {
+            showElement("#previous-player-container");
+            showElement("#previous-player-arrow");
+        }
+
+        if (count === finalCount) {
+            $("#next-player-container").addClass(HIDDEN);
+            $("#next-player-arrow").addClass(HIDDEN);
+        }
+    }
+}
+
+class Results extends Screen {
+    constructor(onDoneViewingResults) {
+        super();
+
+        this.onDoneViewingResults = onDoneViewingResults;
+
+        this.id = "#result";
+    }
+
+    initialize() {
+        const self = this;
+        $("#result-done").on("click", () => {
+            self.onDoneViewingResults();
+        });
+    }
+
+    show({ data }, isArchivePage) {
+        socket.off("disconnect");
+
+        const { chains, roundTime } = data;
+
+        if (roundTime) {
+            ga("send", "event", "Results", "round time per player", roundTime);
+        }
+
+        this.render(chains[0], chains);
+
+        super.show();
+
+        if (!isArchivePage && !data.isViewPreviousResults) {
+            addResultsToStorage(chains);
+        }
+    }
+
+    render(chainToShow, allChains) {
+        const chainNumber = allChains.indexOf(chainToShow);
+
+        this.setTitle(`Results #${chainNumber + 1}`);
+        const subtitle = `${chainToShow.owner.name} should present these results to the group!`;
+        this.setSubtitle(subtitle);
+        this.displayChain(chainToShow);
+        this.displayOtherChainButtons(allChains, chainToShow);
+    }
+
+    displayChain({ links }) {
+        const results = $("#result-content");
+        results.empty();
+
+        for (let i = 0; i < links.length; i++) {
+            const link = links[i];
+            if (i === 0 && link.type === WORD) {
+                results.append(
+                    `<h4>The first word:</h4><h1 class="mb-4">${link.data}</h1>`
+                );
+            } else if (i === 1 && links[0].type === FIRST_WORD) {
+                results.append(
+                    `<h4>${link.player.name} wanted someone to draw:</h4><h1 class="mb-4">${link.data}</h1>`
+                );
+            } else if (link.type === DRAWING) {
+                results.append(
+                    `<h4>${link.player.name} drew:</h4><img class="drawing mb-4" src="${link.data}"></img>`
+                );
+            } else if (link.type === WORD) {
+                results.append(
+                    `<h4>${link.player.name} thought that was:</h4><h1 class="mb-4">${link.data}</h1>`
+                );
+            }
+        }
+
+        let wentFromBox = "";
+        wentFromBox += '<br><div class="well">';
+        const firstIndex = links[0].type === FIRST_WORD ? 1 : 0;
+        wentFromBox += `<h4>You started with:</h4><h1>${links[firstIndex].data}</h1><br>`;
+        wentFromBox += `<h4>and ended up with:</h4><h1>${
+            links[links.length - 1].data
+        }</h1>`;
+        wentFromBox += "</div>";
+        results.append(wentFromBox);
+    }
+
+    displayOtherChainButtons(chainsToList, { id }) {
+        const others = $("#result-others");
+        others.empty();
+
+        if (chainsToList.length > 1) {
+            others.append("<h4>View more results:</h4>");
+        }
+
+        const self = this;
+        for (let i = 0; i < chainsToList.length; i++) {
+            const chain = chainsToList[i];
+
+            const disabled = chain.id === id ? "disabled" : "";
+
+            // "players write first word" chains have the first word at index 1.
+            const buttonLabel = chain.links[0].data || chain.links[1].data;
+
+            const button = $(
+                `<button type="button"${disabled}>${
+                    i + 1
+                }. ${buttonLabel}</button>`
+            );
+            button.addClass("btn btn-default btn-lg");
+            ((thisChain, chainList) => {
+                button.click(() => {
+                    self.render(thisChain, chainList);
+
+                    //jump to top of the page
+                    window.scrollTo(0, 0);
+
+                    ga("send", "event", "Results", "display another chain");
+                });
+            })(chain, chainsToList);
+            others.append(button);
+        }
+    }
+}
+
+class Waiting extends Screen {
+    constructor() {
+        super();
+
+        this.id = "#waiting";
+        this.setTitle("Waiting for other players...");
+        this.userList = new UserList($("#waiting-players"));
+    }
+
+    show() {
+        this.setSubtitle($("subtitle").html());
+        super.show();
+    }
+
+    updateWaitingList({ data, you }) {
+        const { notFinished, disconnected } = data;
+
+        //show/hide the host notice
+        if (you.isHost) {
+            $("#waiting-hostmsg").removeClass(HIDDEN);
+            this.userList.update(
+                notFinished,
+                disconnected,
+                promptKickPlayer,
+                promptReplaceBot
             );
         } else {
-            //clear the input
-            $("#game-word-in").val("");
-            this.sendLink(newLinkType, newLink);
+            $("#waiting-hostmsg").addClass(HIDDEN);
+            this.userList.update(notFinished, disconnected);
         }
     }
-};
-
-Game.prototype.sendLink = function (type, data) {
-    Screen.prototype.setTitle.call(this, "Sending...");
-
-    socket.emit("finishedLink", {
-        link: {
-            type,
-            data,
-        },
-    });
-    ga("send", "event", "Link", "submit", type);
-    this.onWait();
-};
-
-Game.prototype.resizeCanvas = function () {
-    var container = $("#game-drawing");
-    if (this.canvas) {
-        this.canvas.setHeight(container.width());
-        this.canvas.setWidth(container.width());
-        this.canvas.renderAll();
-    }
-};
-
-Game.prototype.setTimer = function () {
-    if (this.timeLimit && !this.timeLimit === 0) {
-        window.setTimeout();
-    }
-};
-
-Game.prototype.showNeighbors = function (
-    showNeighbors,
-    playerList,
-    thisPlayer,
-    count,
-    finalCount
-) {
-    if (!showNeighbors) {
-        this.neighboringPlayers.addClass(HIDDEN);
-        return;
-    }
-
-    this.neighboringPlayers.removeClass(HIDDEN);
-
-    var playerIdx;
-    var numPlayers = playerList.length;
-    for (playerIdx = 0; playerIdx < numPlayers; playerIdx++) {
-        if (playerList[playerIdx].id === thisPlayer.id) {
-            break;
-        }
-    }
-    this.leftPlayer.text(playerList[(playerIdx + 1) % numPlayers].name);
-    this.youPlayer.text(thisPlayer.name);
-    this.rightPlayer.text(
-        playerList[(playerIdx - 1 + numPlayers) % numPlayers].name
-    );
-
-    if (count > 1) {
-        showElement("#previous-player-container");
-        showElement("#previous-player-arrow");
-    }
-
-    if (count === finalCount) {
-        $("#next-player-container").addClass(HIDDEN);
-        $("#next-player-arrow").addClass(HIDDEN);
-    }
-};
-
-Results.prototype = Object.create(Screen.prototype);
-
-function Results(onDoneViewingResults) {
-    Screen.call(this);
-
-    this.onDoneViewingResults = onDoneViewingResults;
-
-    this.id = "#result";
 }
-
-Results.prototype.initialize = function () {
-    var self = this;
-    $("#result-done").on("click", () => {
-        self.onDoneViewingResults();
-    });
-};
-
-Results.prototype.show = function (res, isArchivePage) {
-    socket.off("disconnect");
-
-    const { chains, roundTime } = res.data;
-
-    if (roundTime) {
-        ga("send", "event", "Results", "round time per player", roundTime);
-    }
-
-    this.render(chains[0], chains);
-
-    Screen.prototype.show.call(this);
-
-    if (!isArchivePage && !res.data.isViewPreviousResults) {
-        addResultsToStorage(chains);
-    }
-};
-
-Results.prototype.render = function (chainToShow, allChains) {
-    const chainNumber = allChains.indexOf(chainToShow);
-
-    Screen.prototype.setTitle.call(this, "Results #" + (chainNumber + 1));
-    var subtitle =
-        chainToShow.owner.name + " should present these results to the group!";
-    Screen.prototype.setSubtitle.call(this, subtitle);
-    this.displayChain(chainToShow);
-    this.displayOtherChainButtons(allChains, chainToShow);
-};
-
-Results.prototype.displayChain = (chain) => {
-    var results = $("#result-content");
-    results.empty();
-
-    for (var i = 0; i < chain.links.length; i++) {
-        var link = chain.links[i];
-        if (i === 0 && link.type === WORD) {
-            results.append(
-                '<h4>The first word:</h4><h1 class="mb-4">' +
-                    link.data +
-                    "</h1>"
-            );
-        } else if (i === 1 && chain.links[0].type === FIRST_WORD) {
-            results.append(
-                "<h4>" +
-                    link.player.name +
-                    ' wanted someone to draw:</h4><h1 class="mb-4">' +
-                    link.data +
-                    "</h1>"
-            );
-        } else if (link.type === DRAWING) {
-            results.append(
-                "<h4>" +
-                    link.player.name +
-                    ' drew:</h4><img class="drawing mb-4" src="' +
-                    link.data +
-                    '"></img>'
-            );
-        } else if (link.type === WORD) {
-            results.append(
-                "<h4>" +
-                    link.player.name +
-                    ' thought that was:</h4><h1 class="mb-4">' +
-                    link.data +
-                    "</h1>"
-            );
-        }
-    }
-
-    var wentFromBox = "";
-    wentFromBox += '<br><div class="well">';
-    var firstIndex = chain.links[0].type === FIRST_WORD ? 1 : 0;
-    wentFromBox +=
-        "<h4>You started with:</h4><h1>" +
-        chain.links[firstIndex].data +
-        "</h1><br>";
-    wentFromBox +=
-        "<h4>and ended up with:</h4><h1>" +
-        chain.links[chain.links.length - 1].data +
-        "</h1>";
-    wentFromBox += "</div>";
-    results.append(wentFromBox);
-};
-
-Results.prototype.displayOtherChainButtons = function (
-    chainsToList,
-    chainToIgnore
-) {
-    var others = $("#result-others");
-    others.empty();
-
-    if (chainsToList.length > 1) {
-        others.append("<h4>View more results:</h4>");
-    }
-
-    var self = this;
-    for (var i = 0; i < chainsToList.length; i++) {
-        var chain = chainsToList[i];
-
-        const disabled = chain.id === chainToIgnore.id ? "disabled" : "";
-
-        // "players write first word" chains have the first word at index 1.
-        const buttonLabel = chain.links[0].data || chain.links[1].data;
-
-        var button = $(
-            '<button type="button"' +
-                disabled +
-                ">" +
-                (i + 1) +
-                ". " +
-                buttonLabel +
-                "</button>"
-        );
-        button.addClass("btn btn-default btn-lg");
-        ((thisChain, chainList) => {
-            button.click(() => {
-                self.render(thisChain, chainList);
-
-                //jump to top of the page
-                window.scrollTo(0, 0);
-
-                ga("send", "event", "Results", "display another chain");
-            });
-        })(chain, chainsToList);
-        others.append(button);
-    }
-};
-
-Waiting.prototype = Object.create(Screen.prototype);
-
-function Waiting() {
-    Screen.call(this);
-
-    this.id = "#waiting";
-    Screen.prototype.setTitle.call(this, "Waiting for other players...");
-    this.userList = new UserList($("#waiting-players"));
-}
-
-Waiting.prototype.show = function () {
-    Screen.prototype.setSubtitle.call(this, $("subtitle").html());
-    Screen.prototype.show.call(this);
-};
-
-Waiting.prototype.updateWaitingList = function (res) {
-    const { notFinished, disconnected } = res.data;
-
-    //show/hide the host notice
-    if (res.you.isHost) {
-        $("#waiting-hostmsg").removeClass(HIDDEN);
-        this.userList.update(
-            notFinished,
-            disconnected,
-            promptKickPlayer,
-            promptReplaceBot
-        );
-    } else {
-        $("#waiting-hostmsg").addClass(HIDDEN);
-        this.userList.update(notFinished, disconnected);
-    }
-};
 
 const promptKickPlayer = (tappedPlayer) => {
     //ran when the client taps one of the usernames
 
     swal(
         {
-            title: "Kick " + tappedPlayer.name + "?",
+            title: `Kick ${tappedPlayer.name}?`,
             text:
                 "Someone will have to join this game to replace them. (Or, you could use a bot!)",
             type: "warning",
@@ -1236,7 +1218,7 @@ const promptKickPlayer = (tappedPlayer) => {
             socket.emit("kickPlayer", {
                 playerToKick: tappedPlayer,
             });
-            swal("Done!", tappedPlayer.name + " was kicked.", "success");
+            swal("Done!", `${tappedPlayer.name} was kicked.`, "success");
             ga("send", "event", "User list", "Host kick player");
         }
     );
@@ -1248,7 +1230,7 @@ const promptReplaceBot = (tappedPlayer) => {
 
     swal(
         {
-            title: "Replace " + tappedPlayer.name + " with a bot?",
+            title: `Replace ${tappedPlayer.name} with a bot?`,
             text: "Fair warning, the bots aren't very smart!",
             type: "warning",
             showCancelButton: true,
@@ -1262,7 +1244,7 @@ const promptReplaceBot = (tappedPlayer) => {
             });
             swal(
                 "Done!",
-                tappedPlayer.name + " was replaced with a bot.",
+                `${tappedPlayer.name} was replaced with a bot.`,
                 "success"
             );
             ga("send", "event", "User list", "Host replace player with a bot");
@@ -1271,120 +1253,117 @@ const promptReplaceBot = (tappedPlayer) => {
     ga("send", "event", "User list", "Host tap player");
 };
 
-Replace.prototype = Object.create(Screen.prototype);
-
-function Replace() {
-    Screen.call(this);
-    this.id = "#replace";
-    Screen.prototype.setTitle.call(this, "Choose a player to replace");
-}
-
-Replace.prototype.initialize = function () {
-    // when leave button is clicked, refresh the page
-    $("#replace-leave").on("click", () => location.reload());
-
-    Screen.prototype.initialize.call(this);
-};
-
-Replace.prototype.show = function ({ data }) {
-    const { gameCode, players } = data;
-
-    const choices = $("#replace-choices");
-    choices.empty();
-
-    if (players.length) {
-        players.forEach((player) => {
-            const button = $(
-                '<button type="button">' + player.name + "</button>"
-            );
-
-            button.addClass("btn btn-default btn-lg");
-            button.on("click", () => this.sendChoice(player));
-
-            choices.append(button);
-            choices.append("<br>");
-        });
-    } else {
-        choices.append(
-            "<p>This game is currently full. If you stay on this page, it " +
-                "will automatically update to let you know if someone has " +
-                "left!</p>"
-        );
+class Replace extends Screen {
+    constructor() {
+        super();
+        this.id = "#replace";
+        this.setTitle("Choose a player to replace");
     }
 
-    Screen.gameCode = gameCode;
-    Screen.prototype.setSubtitle.call(this, "Ready to join game...");
-    Screen.prototype.show.call(this);
-};
+    initialize() {
+        // when leave button is clicked, refresh the page
+        $("#replace-leave").on("click", () => location.reload());
 
-Replace.prototype.sendChoice = (playerToReplace) => {
-    socket.emit("tryReplacePlayer", {
-        playerToReplace,
-    });
-    ga("send", "event", "Player replacement", "replace", self.timeLimit);
-};
+        super.initialize();
+    }
 
-function UserList(ul) {
-    this.ul = ul;
-    this.numberOfPlayers = 0;
-    this.realPlayers = 0;
-    this.botPlayers = 0;
-}
+    show({ data }) {
+        const { gameCode, players } = data;
 
-UserList.prototype.update = function (
-    newList,
-    disconnectedList,
-    onKick,
-    onBotReplace
-) {
-    //clear all of the user boxes using jquery
-    this.ul.empty();
+        const choices = $("#replace-choices");
+        choices.empty();
 
-    this.draw(newList, false, onKick);
-    if (disconnectedList) {
-        if (disconnectedList.length > 0) {
-            $("#waiting-disconnectedmsg").removeClass(HIDDEN);
-            this.draw(disconnectedList, true, onBotReplace);
+        if (players.length) {
+            players.forEach((player) => {
+                const button = $(
+                    `<button type="button">${player.name}</button>`
+                );
+
+                button.addClass("btn btn-default btn-lg");
+                button.on("click", () => this.sendChoice(player));
+
+                choices.append(button);
+                choices.append("<br>");
+            });
         } else {
-            $("#waiting-disconnectedmsg").addClass(HIDDEN);
+            choices.append(
+                "<p>This game is currently full. If you stay on this page, it " +
+                    "will automatically update to let you know if someone has " +
+                    "left!</p>"
+            );
+        }
+
+        Screen.gameCode = gameCode;
+        this.setSubtitle("Ready to join game...");
+        super.show();
+    }
+
+    sendChoice(playerToReplace) {
+        socket.emit("tryReplacePlayer", {
+            playerToReplace,
+        });
+        ga("send", "event", "Player replacement", "replace", self.timeLimit);
+    }
+}
+
+class UserList {
+    constructor(ul) {
+        this.ul = ul;
+        this.numberOfPlayers = 0;
+        this.realPlayers = 0;
+        this.botPlayers = 0;
+    }
+
+    update(newList, disconnectedList, onKick, onBotReplace) {
+        //clear all of the user boxes using jquery
+        this.ul.empty();
+
+        this.draw(newList, false, onKick);
+        if (disconnectedList) {
+            if (disconnectedList.length > 0) {
+                $("#waiting-disconnectedmsg").removeClass(HIDDEN);
+                this.draw(disconnectedList, true, onBotReplace);
+            } else {
+                $("#waiting-disconnectedmsg").addClass(HIDDEN);
+            }
         }
     }
-};
 
-UserList.prototype.draw = function (list, makeBoxDark, onClick) {
-    this.numberOfPlayers = 0;
-    this.realPlayers = 0;
-    this.botPlayers = 0;
+    draw(list, makeBoxDark, onClick) {
+        this.numberOfPlayers = 0;
+        this.realPlayers = 0;
+        this.botPlayers = 0;
 
-    list.forEach((player) => {
-        this.numberOfPlayers++;
-        player.isAi ? this.botPlayers++ : this.realPlayers++;
+        list.forEach((player) => {
+            this.numberOfPlayers++;
+            player.isAi ? this.botPlayers++ : this.realPlayers++;
 
-        var listBox = $("<span></span>");
-        var listItem = $("<li>" + player.name + "</li>").appendTo(listBox);
-        listItem.addClass("user");
-        if (makeBoxDark) {
-            listItem.addClass("disconnected");
-        }
-        listBox.addClass("col-xs-6");
-        listBox.addClass("user-container");
+            const listBox = $("<span></span>");
+            const listItem = $(`<li>${player.name}</li>`).appendTo(listBox);
+            listItem.addClass("user");
+            if (makeBoxDark) {
+                listItem.addClass("disconnected");
+            }
+            listBox.addClass("col-xs-6");
+            listBox.addClass("user-container");
 
-        if (onClick) {
-            listBox.on("click", () => onClick(player));
-        }
+            if (onClick) {
+                listBox.on("click", () => onClick(player));
+            }
 
-        listBox.appendTo(this.ul);
-    });
-};
+            listBox.appendTo(this.ul);
+        });
+    }
+}
 
 // https://github.com/abhi06991/Undo-Redo-Fabricjs
 function getDrawingCanvas() {
-    var thisCanvas = new fabric.Canvas("game-drawing-canvas");
+    const thisCanvas = new fabric.Canvas("game-drawing-canvas");
     thisCanvas.isDrawingMode = true;
     thisCanvas.isBlank = true;
     thisCanvas.freeDrawingBrush.width = 4;
 
-    var state = {
+    const state = {
         canvasState: [],
         currentStateIndex: -1,
         undoStatus: false,
@@ -1409,12 +1388,12 @@ function getDrawingCanvas() {
         state.undoButton.removeClass("disabled");
         thisCanvas.isBlank = false;
         if (state.undoStatus == false && state.redoStatus == false) {
-            var jsonData = thisCanvas.toJSON();
-            var canvasAsJson = JSON.stringify(jsonData);
+            const jsonData = thisCanvas.toJSON();
+            const canvasAsJson = JSON.stringify(jsonData);
             if (state.currentStateIndex < state.canvasState.length - 1) {
-                var indexToBeInserted = state.currentStateIndex + 1;
+                const indexToBeInserted = state.currentStateIndex + 1;
                 state.canvasState[indexToBeInserted] = canvasAsJson;
-                var numberOfElementsToRetain = indexToBeInserted + 1;
+                const numberOfElementsToRetain = indexToBeInserted + 1;
                 state.canvasState = state.canvasState.splice(
                     0,
                     numberOfElementsToRetain
@@ -1530,9 +1509,9 @@ function getDrawingCanvas() {
 
         rgb = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
         function hex(x) {
-            return ("0" + parseInt(x).toString(16)).slice(-2);
+            return `0${parseInt(x).toString(16)}`.slice(-2);
         }
-        return "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
+        return `#${hex(rgb[1])}${hex(rgb[2])}${hex(rgb[3])}`;
     };
 
     const recallColor = (index, color) => {
@@ -1601,7 +1580,7 @@ function getDrawingCanvas() {
 var socket = io({ autoConnect: false, reconnectionAttempts: 3 });
 
 //try to join the dev game
-var relativeUrl = window.location.pathname + window.location.search;
+const relativeUrl = window.location.pathname + window.location.search;
 
 if (relativeUrl === "/dev") {
     socket.open();
@@ -1627,7 +1606,7 @@ if (ROCKETCRAB_MODE) {
     });
 }
 
-var drawphone = new Drawphone();
+const drawphone = new Drawphone();
 drawphone.initializeAll();
 drawphone.begin();
 
@@ -1636,15 +1615,15 @@ if (relativeUrl === "/archive") {
 }
 
 async function renderArchive() {
-    var archive = $("#archive");
-    var archiveContent = $("#archive-content");
-    var result = $("#result");
+    const archive = $("#archive");
+    const archiveContent = $("#archive-content");
+    const result = $("#result");
     if (!localStorage) {
         archiveContent.text("This browser does not support local storage.");
         return;
     }
 
-    var resultsList = (await getResultsListFromStorage()).reverse();
+    const resultsList = (await getResultsListFromStorage()).reverse();
 
     if (resultsList.length === 0) {
         archiveContent.text(
@@ -1653,11 +1632,11 @@ async function renderArchive() {
         return;
     }
 
-    var lastDate;
-    for (var i = 0; i < resultsList.length; i++) {
-        var results = resultsList[i];
+    let lastDate;
+    for (let i = 0; i < resultsList.length; i++) {
+        const results = resultsList[i];
 
-        var theDate = new Date(results.date).toLocaleDateString("en-us", {
+        const theDate = new Date(results.date).toLocaleDateString("en-us", {
             weekday: "long",
             year: "numeric",
             month: "long",
@@ -1671,10 +1650,10 @@ async function renderArchive() {
             lastDate = theDate;
         }
 
-        var button = $(
-            '<button type="button">' +
-                getQuickInfoStringOfResults(results) +
-                "</button>"
+        const button = $(
+            `<button type="button">${getQuickInfoStringOfResults(
+                results
+            )}</button>`
         );
         button.addClass("btn btn-default prevresbtn");
 
@@ -1710,41 +1689,41 @@ async function renderArchive() {
 }
 
 function addResultsToStorage(chains) {
-    var db = initArchiveDb();
+    const db = initArchiveDb();
     db.archive.add({ date: new Date(), chains });
 }
 
 function getResultsListFromStorage() {
-    var db = initArchiveDb();
+    const db = initArchiveDb();
     return db.archive.toArray();
 }
 
 function initArchiveDb() {
-    var db = new Dexie("DrawphoneDatabase");
+    const db = new Dexie("DrawphoneDatabase");
     db.version(1).stores({
         archive: "++id,date,chains",
     });
     return db;
 }
 
-function getQuickInfoStringOfResults(results) {
-    var result = "";
-    result += new Date(results.date).toLocaleTimeString("en-us", {
+function getQuickInfoStringOfResults({ date, chains }) {
+    let result = "";
+    result += new Date(date).toLocaleTimeString("en-us", {
         hour: "2-digit",
         minute: "2-digit",
         hour12: true,
     });
     result += ": ";
 
-    var firstChainLinks = results.chains[0].links;
+    const firstChainLinks = chains[0].links;
     result += firstChainLinks[0].data || firstChainLinks[1].data;
     result += " to ";
     result += firstChainLinks[firstChainLinks.length - 1].data;
 
-    if (results.chains.length === 1) return result;
+    if (chains.length === 1) return result;
 
     result += ", ";
-    var secondChainLinks = results.chains[1].links;
+    const secondChainLinks = chains[1].links;
     result += secondChainLinks[0].data || secondChainLinks[1].data;
     result += " to ";
     result += secondChainLinks[secondChainLinks.length - 1].data;

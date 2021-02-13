@@ -30,13 +30,13 @@ const sendLinks = (players) => {
     });
 };
 
-const advance = ({ inProgress, players }) => {
+const advance = (game) => {
     let iterations = 0;
-    while (inProgress) {
-        sendLinks(players);
+    while (game.inProgress) {
+        sendLinks(game.players);
 
         iterations++;
-        if (iterations > players.length * 2) {
+        if (iterations > game.players.length * 2) {
             throw "This game is never going to end, huh?";
         }
     }

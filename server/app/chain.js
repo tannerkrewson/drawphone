@@ -63,8 +63,8 @@ Chain.prototype.sendLastLinkToThen = function (player, finalCount, next) {
         {
             link: this.getLastLink(),
             chainId: this.id,
-            count: count,
-            finalCount: finalCount,
+            count,
+            finalCount,
             timeLimit: this.timeLimit,
             showNeighbors: this.showNeighbors,
             players: this.showNeighbors ? this.playerList : null,

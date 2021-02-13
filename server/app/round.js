@@ -20,9 +20,10 @@ const arrayFromOneToN = (length, offset = 0) =>
     Array.from({ length }, (_, i) => i + offset);
 
 // https://stackoverflow.com/a/58326608
-const rotateArray = (arr, count = 1) => {
-    return [...arr.slice(count, arr.length), ...arr.slice(0, count)];
-};
+const rotateArray = (arr, count = 1) => [
+    ...arr.slice(count, arr.length),
+    ...arr.slice(0, count),
+];
 
 // https://math.stackexchange.com/a/4000891
 // "In the odd prime case..."
@@ -152,7 +153,7 @@ Round.prototype.sendNewChains = function () {
         ? this.players.map((player) => player.getJson())
         : null;
 
-    this.players.forEach(function (player) {
+    this.players.forEach((player) => {
         if (player.isAi) player.setAIGuessQueue(self.aiGuessQueue);
 
         //give each player a chain of their own
@@ -169,13 +170,9 @@ Round.prototype.sendNewChains = function () {
 
         //sends the link, then runs the function when the player sends it back
         //  when the 'finishedLink' event is received
-        thisChain.sendLastLinkToThen(
-            player,
-            self.finalNumOfLinks,
-            function (data) {
-                self.receiveLink(player, data.link, thisChain.id);
-            }
-        );
+        thisChain.sendLastLinkToThen(player, self.finalNumOfLinks, (data) => {
+            self.receiveLink(player, data.link, thisChain.id);
+        });
     });
 };
 
@@ -187,7 +184,7 @@ Round.prototype.sendWordFirstChains = function () {
         ? this.players.map((player) => player.getJson())
         : null;
 
-    this.players.forEach(function (player) {
+    this.players.forEach((player) => {
         if (player.isAi) player.setAIGuessQueue(self.aiGuessQueue);
 
         //give each player a chain of their own
@@ -203,13 +200,9 @@ Round.prototype.sendWordFirstChains = function () {
 
         //sends the link, then runs the function when the player sends it back
         //  when the 'finishedLink' event is received
-        thisChain.sendLastLinkToThen(
-            player,
-            self.finalNumOfLinks,
-            function (data) {
-                self.receiveLink(player, data.link, thisChain.id);
-            }
-        );
+        thisChain.sendLastLinkToThen(player, self.finalNumOfLinks, (data) => {
+            self.receiveLink(player, data.link, thisChain.id);
+        });
     });
 };
 
@@ -266,14 +259,10 @@ Round.prototype.startNextLink = function () {
 
         //sends the link, then runs the function when the player sends it back
         //  when the 'finishedLink' event is received
-        (function (chain, player) {
-            chain.sendLastLinkToThen(
-                player,
-                self.finalNumOfLinks,
-                function (data) {
-                    self.receiveLink(player, data.link, chain.id);
-                }
-            );
+        ((chain, player) => {
+            chain.sendLastLinkToThen(player, self.finalNumOfLinks, (data) => {
+                self.receiveLink(player, data.link, chain.id);
+            });
         })(thisChain, thisPlayer);
     }
 };
@@ -381,7 +370,7 @@ Round.prototype.replacePlayer = function (
                 dpChain.sendLastLinkToThen(
                     newPlayer,
                     this.finalNumOfLinks,
-                    function (data) {
+                    (data) => {
                         self.receiveLink(newPlayer, data.link, dpChain.id);
                     }
                 );
@@ -456,14 +445,14 @@ Round.prototype.getChainByLastSentPlayerId = function (id) {
 };
 
 Round.prototype.sendToAll = function (event, data) {
-    this.players.forEach(function (player) {
+    this.players.forEach((player) => {
         player.send(event, data);
     });
 };
 
 Round.prototype.getAllChains = function () {
     var newChains = [];
-    this.chains.forEach(function (chain) {
+    this.chains.forEach((chain) => {
         newChains.push(chain.getJson());
     });
     return newChains;

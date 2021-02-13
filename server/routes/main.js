@@ -1,11 +1,11 @@
 const webpackAssets = require("../../webpack-assets.json");
 
-module.exports = function (app) {
+module.exports = (app) => {
     var dp = app.drawphone;
     var allPackNames = require("../app/words").getAllPackNames();
     var safePackNames = require("../app/words").getAllPackNames(true);
 
-    app.get("/", function (req, res) {
+    app.get("/", (req, res) => {
         const isSafeForWorkURL = req.headers.host.startsWith("dpk");
         const wordpacks = isSafeForWorkURL ? safePackNames : allPackNames;
 
@@ -16,35 +16,35 @@ module.exports = function (app) {
         });
     });
 
-    app.get("/how-to-play", function (req, res) {
+    app.get("/how-to-play", (req, res) => {
         res.render("howtoplay", {
             js: webpackAssets.main.js,
             css: webpackAssets.main.css,
         });
     });
 
-    app.get("/screenshots", function (req, res) {
+    app.get("/screenshots", (req, res) => {
         res.render("screenshots", {
             js: webpackAssets.main.js,
             css: webpackAssets.main.css,
         });
     });
 
-    app.get("/more-games", function (req, res) {
+    app.get("/more-games", (req, res) => {
         res.render("moregames", {
             js: webpackAssets.main.js,
             css: webpackAssets.main.css,
         });
     });
 
-    app.get("/archive", function (req, res) {
+    app.get("/archive", (req, res) => {
         res.render("archive", {
             js: webpackAssets.main.js,
             css: webpackAssets.main.css,
         });
     });
 
-    app.get("/stats", function (req, res) {
+    app.get("/stats", (req, res) => {
         var games = [];
         let realPlayerCount = 0;
         for (var game of dp.games) {
@@ -70,15 +70,15 @@ module.exports = function (app) {
             totalSocketClients: app.io.engine.clientsCount,
             totalRealPlayers: realPlayerCount,
             lastReboot: timeSince(lastRebootDate),
-            games: games,
+            games,
         });
     });
 
-    app.get("/admin", function (req, res) {
+    app.get("/admin", (req, res) => {
         res.render("admin");
     });
 
-    app.post("/lock", function (req, res) {
+    app.post("/lock", (req, res) => {
         if (!process.env.ADMIN_PASSWORD) {
             res.status(501).end();
         }
@@ -91,7 +91,7 @@ module.exports = function (app) {
         }
     });
 
-    app.post("/new", function (req, res) {
+    app.post("/new", (req, res) => {
         if (dp.locked) {
             // 423 Locked
             return res.status(423).send({ minutes: dp.minutesUntilRestart });
@@ -102,7 +102,7 @@ module.exports = function (app) {
     });
 
     if (app.get("env") === "development") {
-        app.get("/dev", function (req, res) {
+        app.get("/dev", (req, res) => {
             res.render("index", {
                 wordpacks: allPackNames,
                 js: webpackAssets.main.js,

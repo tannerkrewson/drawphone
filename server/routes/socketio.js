@@ -1,4 +1,4 @@
-module.exports = function (app) {
+module.exports = (app) => {
     var dp = app.drawphone;
     var stripTags = require("striptags");
 

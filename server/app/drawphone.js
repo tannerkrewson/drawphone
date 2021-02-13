@@ -26,7 +26,7 @@ Drawphone.prototype.newGame = function (forceCode) {
     }
 
     var self = this;
-    var newGame = new Game(newCode, function () {
+    var newGame = new Game(newCode, () => {
         //will be ran when this game has 0 players left
         self.removeGame(newCode);
     });

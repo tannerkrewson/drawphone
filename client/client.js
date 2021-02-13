@@ -23,10 +23,8 @@ import Dexie from "dexie";
 import ml5 from "ml5";
 
 //prevent page from refreshing when Join game buttons are pressed
-$(function () {
-    $("form").submit(function () {
-        return false;
-    });
+$(() => {
+    $("form").submit(() => false);
 
     // arrow function won't set "this"
     $(".close").on("click", function () {
@@ -66,11 +64,11 @@ function showElement(jq) {
 
 // http://stackoverflow.com/questions/20618355/the-simplest-possible-javascript-countdown-timer
 function startTimer(duration, onTick) {
-    var timer = duration,
-        minutes,
-        seconds;
+    var timer = duration;
+    var minutes;
+    var seconds;
 
-    var tick = function () {
+    var tick = () => {
         minutes = parseInt(timer / 60, 10);
         seconds = parseInt(timer % 60, 10);
 
@@ -97,34 +95,34 @@ function Drawphone() {
 
     var self = this;
     this.mainMenu = new MainMenu(
-        function () {
+        () => {
             //ran when Join Game button is pressed
             self.joinMenu.show();
         },
-        function () {
+        () => {
             //ran when New Game button is pressed
             self.newMenu.show();
         }
     );
 
-    this.joinMenu = new JoinMenu(function () {
+    this.joinMenu = new JoinMenu(() => {
         //ran when Back button is pressed
         self.mainMenu.show();
     });
 
-    this.newMenu = new NewMenu(function () {
+    this.newMenu = new NewMenu(() => {
         //ran when Back button is pressed
         self.mainMenu.show();
     });
 
     this.lobby = new Lobby();
 
-    this.game = new Game(function () {
+    this.game = new Game(() => {
         //ran when the player sends
         self.waiting.show();
     });
 
-    this.results = new Results(function () {
+    this.results = new Results(() => {
         //ran when done button on results page is tapped
         self.lobby.show();
     });
@@ -144,7 +142,7 @@ function Drawphone() {
 }
 
 Drawphone.prototype.initializeAll = function () {
-    this.screens.forEach(function (screen) {
+    this.screens.forEach((screen) => {
         screen.initialize();
     });
 
@@ -187,7 +185,7 @@ function Screen() {
     this.defaultSubtitle = "Telephone with pictures";
 }
 
-Screen.prototype.initialize = function () {};
+Screen.prototype.initialize = () => {};
 
 Screen.prototype.show = function () {
     hideAll();
@@ -229,9 +227,8 @@ Screen.prototype.waitingForResponse = function (isLoading) {
 
 Screen.gameCode = "";
 
-Screen.getGameCodeHTML = function () {
-    return '<span class="gamecode">' + Screen.gameCode + "</span>";
-};
+Screen.getGameCodeHTML = () =>
+    '<span class="gamecode">' + Screen.gameCode + "</span>";
 
 MainMenu.prototype = Object.create(Screen.prototype);
 
@@ -254,10 +251,10 @@ MainMenu.prototype.initialize = function () {
 
     this.joinButton.click(this.onJoin);
     this.newButton.click(this.onNew);
-    this.archiveButton.click(function () {
+    this.archiveButton.click(() => {
         window.location.href = "/archive";
     });
-    this.howButton.click(function () {
+    this.howButton.click(() => {
         window.location.href = "/how-to-play";
     });
 };
@@ -288,15 +285,15 @@ JoinMenu.prototype.initialize = function () {
 
             socket.open();
             socket.emit("joinGame", {
-                code: code,
-                name: name,
+                code,
+                name,
             });
         }
     });
 
     var self = this;
 
-    this.codeInput.on("input", function () {
+    this.codeInput.on("input", () => {
         self.codeInput.val(
             self.codeInput
                 .val()
@@ -338,7 +335,7 @@ NewMenu.prototype.initialize = function () {
 
             socket.open();
             socket.emit("newGame", {
-                name: name,
+                name,
             });
         }
     });
@@ -376,13 +373,13 @@ function Lobby() {
 Lobby.prototype.initialize = function () {
     Screen.prototype.initialize.call(this);
 
-    this.leaveButton.click(function () {
+    this.leaveButton.click(() => {
         ga("send", "event", "Lobby", "leave");
         //refresh the page
         location.reload();
     });
 
-    this.viewPreviousResultsButton.click(function () {
+    this.viewPreviousResultsButton.click(() => {
         socket.emit("viewPreviousResults", {});
 
         ga("send", "event", "Lobby", "view previous results");
@@ -740,19 +737,19 @@ Game.prototype.initialize = function () {
     var self = this;
 
     //if user touches the canvas, it not blank no more
-    $("#game-drawing").on("mousedown touchstart", function () {
+    $("#game-drawing").on("mousedown touchstart", () => {
         //if this is their first mark
         if (self.canvas.isBlank && self.timeLimit > 0 && !self.submitTimer) {
             //start the timer
             self.displayTimerInterval = startTimer(
                 self.timeLimit,
-                function (timeLeft) {
+                (timeLeft) => {
                     self.timerDisplay.text(
                         timeLeft + " left to finish your drawing"
                     );
                 }
             );
-            self.submitTimer = window.setTimeout(function () {
+            self.submitTimer = window.setTimeout(() => {
                 //when the time runs out...
                 //we don't care if it is blank
                 self.canvas.isBlank = false;
@@ -770,12 +767,12 @@ Game.prototype.initialize = function () {
         self.canvas.isBlank = false;
     });
 
-    doneButton.click(function () {
+    doneButton.click(() => {
         self.onDone();
     });
 
     //run done when enter key is pressed in word input
-    $("#game-word-in").keypress(function (e) {
+    $("#game-word-in").keypress((e) => {
         var key = e.which;
         if (key === 13) {
             self.onDone();
@@ -842,7 +839,7 @@ Game.prototype.showWord = function () {
     this.show();
 };
 
-Game.prototype.showButtons = function (showClearButton) {
+Game.prototype.showButtons = (showClearButton) => {
     if (showClearButton) {
         showElement("#game-drawing-redo");
         showElement("#game-drawing-undo");
@@ -857,7 +854,7 @@ Game.prototype.showButtons = function (showClearButton) {
     showElement("#game-buttons");
 };
 
-Game.prototype.hideBoth = function () {
+Game.prototype.hideBoth = () => {
     $("#game-drawing").addClass(HIDDEN);
     $("#game-word").addClass(HIDDEN);
     $("#game-buttons").addClass(HIDDEN);
@@ -983,8 +980,8 @@ Game.prototype.sendLink = function (type, data) {
 
     socket.emit("finishedLink", {
         link: {
-            type: type,
-            data: data,
+            type,
+            data,
         },
     });
     ga("send", "event", "Link", "submit", type);
@@ -1056,7 +1053,7 @@ function Results(onDoneViewingResults) {
 
 Results.prototype.initialize = function () {
     var self = this;
-    $("#result-done").on("click", function () {
+    $("#result-done").on("click", () => {
         self.onDoneViewingResults();
     });
 };
@@ -1090,7 +1087,7 @@ Results.prototype.render = function (chainToShow, allChains) {
     this.displayOtherChainButtons(allChains, chainToShow);
 };
 
-Results.prototype.displayChain = function (chain) {
+Results.prototype.displayChain = (chain) => {
     var results = $("#result-content");
     results.empty();
 
@@ -1174,8 +1171,8 @@ Results.prototype.displayOtherChainButtons = function (
                 "</button>"
         );
         button.addClass("btn btn-default btn-lg");
-        (function (thisChain, chainList) {
-            button.click(function () {
+        ((thisChain, chainList) => {
+            button.click(() => {
                 self.render(thisChain, chainList);
 
                 //jump to top of the page
@@ -1320,9 +1317,9 @@ Replace.prototype.show = function ({ data }) {
     Screen.prototype.show.call(this);
 };
 
-Replace.prototype.sendChoice = function (playerToReplace) {
+Replace.prototype.sendChoice = (playerToReplace) => {
     socket.emit("tryReplacePlayer", {
-        playerToReplace: playerToReplace,
+        playerToReplace,
     });
     ga("send", "event", "Player replacement", "replace", self.timeLimit);
 };
@@ -1404,7 +1401,7 @@ function getDrawingCanvas() {
         brushsize: 4,
         color: "#000000",
     };
-    thisCanvas.on("path:created", function () {
+    thisCanvas.on("path:created", () => {
         updateCanvasState();
     });
 
@@ -1446,7 +1443,7 @@ function getDrawingCanvas() {
                         state.undoStatus = true;
                         thisCanvas.loadFromJSON(
                             state.canvasState[state.currentStateIndex - 1],
-                            function () {
+                            () => {
                                 thisCanvas.renderAll();
                                 state.undoStatus = false;
                                 state.currentStateIndex -= 1;
@@ -1489,7 +1486,7 @@ function getDrawingCanvas() {
                     state.redoStatus = true;
                     thisCanvas.loadFromJSON(
                         state.canvasState[state.currentStateIndex + 1],
-                        function () {
+                        () => {
                             thisCanvas.isBlank = false;
                             thisCanvas.renderAll();
                             state.redoStatus = false;
@@ -1581,7 +1578,7 @@ function getDrawingCanvas() {
     });
     state.brushsizeInput.on("change", changeBrushsize);
 
-    thisCanvas.remove = function () {
+    thisCanvas.remove = () => {
         state.undoButton.off("click");
         state.redoButton.off("click");
         state.colorInput.val("#000000");
@@ -1681,8 +1678,8 @@ async function renderArchive() {
         );
         button.addClass("btn btn-default prevresbtn");
 
-        (function (chains) {
-            button.click(function () {
+        ((chains) => {
+            button.click(() => {
                 drawphone.results.show(
                     {
                         data: { chains },
@@ -1703,7 +1700,7 @@ async function renderArchive() {
         archiveContent.append(button);
     }
 
-    drawphone.results.onDoneViewingResults = function () {
+    drawphone.results.onDoneViewingResults = () => {
         archive.show();
         result.hide();
 

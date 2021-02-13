@@ -107,7 +107,7 @@ Game.prototype.initPlayer = function (newPlayer) {
 
     //when this player disconnects, remove them from this game
     var self = this;
-    newPlayer.socket.on("disconnect", function () {
+    newPlayer.socket.on("disconnect", () => {
         newPlayer.isConnected = false;
         if (self.inProgress) {
             self.currentRound.findReplacementFor(newPlayer, self.code);
@@ -118,7 +118,7 @@ Game.prototype.initPlayer = function (newPlayer) {
         self.sendUpdatedPlayersList();
     });
 
-    newPlayer.socket.on("viewPreviousResults", function () {
+    newPlayer.socket.on("viewPreviousResults", () => {
         if (self.currentRound && self.currentRound.canViewLastRoundResults) {
             newPlayer.send("viewResults", {
                 chains: self.currentRound.getAllChains(),
@@ -196,7 +196,7 @@ Game.prototype.getNextRoundNum = function () {
 
 Game.prototype.getJsonGame = function () {
     var players = [];
-    this.players.forEach(function (player) {
+    this.players.forEach((player) => {
         players.push(player.getJson());
     });
 
@@ -222,10 +222,10 @@ Game.prototype.sendUpdatedPlayersList = function () {
 
 Game.prototype.sendToAll = function (event, data) {
     var self = this;
-    this.players.forEach(function (player) {
+    this.players.forEach((player) => {
         player.socket.emit(event, {
             success: true,
-            event: event,
+            event,
             gameCode: self.code,
             player: player.getJson(),
             data,
@@ -247,7 +247,7 @@ Game.prototype.startNewRound = function (
         timeLimit,
         wordPackName,
         showNeighbors,
-        function () {
+        () => {
             //ran when results are sent
             self.inProgress = false;
             self.sendUpdatedPlayersList(); //this makes sure the View Last Round Results button shows up

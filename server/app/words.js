@@ -22,7 +22,7 @@ WordPacks.prototype.loadAll = function () {
     var self = this;
     //reads each txt file in the words folder
     //the name of the file will be the name of the pack
-    PACK_NAMES.forEach(function (packName) {
+    PACK_NAMES.forEach((packName) => {
         var pathToTxt = __dirname + "/../words/" + packName + ".txt";
         var arrayOfWords = fs.readFileSync(pathToTxt).toString().split(/\r?\n/);
 
@@ -68,9 +68,9 @@ WordPacks.prototype.getRandomWord = function (packName) {
     }
 };
 
-WordPacks.getAllPackNames = function (excludeNSFW) {
+WordPacks.getAllPackNames = (excludeNSFW) => {
     var names = [];
-    PACK_NAMES.forEach(function (packName) {
+    PACK_NAMES.forEach((packName) => {
         // + for 18+ or 13+
         if (!excludeNSFW || !packName.includes("+")) {
             names.push(packName);

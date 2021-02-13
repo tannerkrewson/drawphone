@@ -10,7 +10,7 @@
         "build:dev": "webpack --mode development --watch",
         "start:prod": "node --experimental-json-modules ./server/bin/www",
         "build:prod": "webpack --mode production",
-        "test": "jest",
+        "test": "cross-env NODE_OPTIONS=--experimental-vm-modules npx jest",
         "lint:staged": "pretty-quick --staged"
     },
     "repository": {
@@ -56,6 +56,7 @@
         "webpack-cli": "^4.2.0"
     },
     "devDependencies": {
+        "cross-env": "^7.0.3",
         "husky": "^4.3.0",
         "jest": "^26.6.3",
         "nodemon": "^2.0.6",

@@ -1,3 +1,5 @@
+import { jest } from "@jest/globals";
+
 import Drawphone from "./drawphone.js";
 
 const generateMockSocket = () => ({

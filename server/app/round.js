@@ -51,49 +51,16 @@ const oddApproxRCLS = (order) => {
     return rotate2dArray(result);
 };
 
-// Use each row for a chain. Columns have repetition. For example:
-//   0,4,1,3,2 --> word1
-//   1,0,2,4,3 --> word2
-//   2,1,3,0,4 --> word3
-//   3,2,4,1,0 --> word4
-//   4,3,0,2,1 --> word5
-// If we used columns for the chains, 2 always comes after 1 and before 3.
 function evenExactRCLS(order) {
-    /*
-	arrayFromOneToN generates:
-	ex. order=10: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-	
-	then maps it to this:
-	ex. order=10: [1, 8, 3, 6, 5, 4, 7, 2, 9, 0]
+    let result = [arrayFromOneToN(order)];
+    const last = () => result[result.length - 1];
 
-	unzipped:
-	[1, 3, 5, 7, 9] (odds increasing)
-	[8, 6, 4, 2, 0] (evens decreasing)
+    for (let i = 1; i < order; i++) {
+        const direction = i % 2 === 0 ? -1 : 1;
+        result.push(rotateArray(last(), i * direction));
+    }
 
-	*/
-    let diff = arrayFromOneToN(order, 1).map((n, i) =>
-        i % 2 === 1 ? order - i - 1 : n
-    );
-
-    var L = [];
-    for (var i = 0; i < order; i++) {
-        L.push([]);
-        for (var j = 0; j < order; j++) {
-            L[i].push(0);
-        }
-    }
-    for (var j = 0; j < order; j++) {
-        L[j][0] = j;
-    }
-    for (var j = 1; j < order; j++) {
-        for (var i = 0; i < order; i++) {
-            L[i][j] = L[i][j - 1] - diff[j - 1];
-            if (L[i][j] < 0) {
-                L[i][j] += order;
-            }
-        }
-    }
-    return L;
+    return rotate2dArray(result);
 }
 
 const rowCompleteLatinSquare = (order) =>

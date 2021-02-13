@@ -10,7 +10,8 @@
         "build:dev": "webpack --mode development --watch",
         "start:prod": "node ./server/bin/www",
         "build:prod": "webpack --mode production",
-        "test": "jest"
+        "test": "jest",
+        "lint:staged": "pretty-quick --staged"
     },
     "repository": {
         "type": "git",
@@ -63,7 +64,7 @@
     },
     "husky": {
         "hooks": {
-            "pre-commit": "pretty-quick --staged"
+            "pre-commit": "run-s lint:staged test"
         }
     }
 }

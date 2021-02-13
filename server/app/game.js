@@ -108,25 +108,24 @@ class Game {
         }
 
         //when this player disconnects, remove them from this game
-        const self = this;
         newPlayer.socket.on("disconnect", () => {
             newPlayer.isConnected = false;
-            if (self.inProgress) {
-                self.currentRound.findReplacementFor(newPlayer, self.code);
+            if (this.inProgress) {
+                this.currentRound.findReplacementFor(newPlayer, this.code);
             } else {
-                self.removePlayer(newPlayer.id);
+                this.removePlayer(newPlayer.id);
             }
-            self.onPlayerDisconnect(newPlayer);
-            self.sendUpdatedPlayersList();
+            this.onPlayerDisconnect(newPlayer);
+            this.sendUpdatedPlayersList();
         });
 
         newPlayer.socket.on("viewPreviousResults", () => {
             if (
-                self.currentRound &&
-                self.currentRound.canViewLastRoundResults
+                this.currentRound &&
+                this.currentRound.canViewLastRoundResults
             ) {
                 newPlayer.send("viewResults", {
-                    chains: self.currentRound.getAllChains(),
+                    chains: this.currentRound.getAllChains(),
                     isViewPreviousResults: true,
                 });
             }
@@ -226,12 +225,11 @@ class Game {
     }
 
     sendToAll(event, data) {
-        const self = this;
         this.players.forEach((player) => {
             player.socket.emit(event, {
                 success: true,
                 event,
-                gameCode: self.code,
+                gameCode: this.code,
                 player: player.getJson(),
                 data,
             });
@@ -241,7 +239,6 @@ class Game {
     startNewRound(timeLimit, wordPackName, showNeighbors) {
         this.inProgress = true;
 
-        const self = this;
         this.currentRound = new Round(
             this.getNextRoundNum(),
             this.players,
@@ -250,9 +247,9 @@ class Game {
             showNeighbors,
             () => {
                 //ran when results are sent
-                self.inProgress = false;
-                self.sendUpdatedPlayersList(); //this makes sure the View Last Round Results button shows up
-                self.timeOfLastAction = new Date();
+                this.inProgress = false;
+                this.sendUpdatedPlayersList(); //this makes sure the View Last Round Results button shows up
+                this.timeOfLastAction = new Date();
             }
         );
 

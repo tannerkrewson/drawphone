@@ -27,7 +27,6 @@ class WordPacks {
     }
 
     loadAll() {
-        const self = this;
         //reads each txt file in the words folder
         //the name of the file will be the name of the pack
         PACK_NAMES.forEach((packName) => {
@@ -55,7 +54,7 @@ class WordPacks {
                 process.exit(1);
             }
 
-            self.wordPacks.push(new WordPack(packName, arrayOfWords));
+            this.wordPacks.push(new WordPack(packName, arrayOfWords));
         });
     }
 

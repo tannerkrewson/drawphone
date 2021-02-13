@@ -150,34 +150,33 @@ class Round {
 
     sendNewChains() {
         let currentChainId = 0;
-        const self = this;
 
         const jsonPlayers = this.showNeighbors
             ? this.players.map((player) => player.getJson())
             : null;
 
         this.players.forEach((player) => {
-            if (player.isAi) player.setAIGuessQueue(self.aiGuessQueue);
+            if (player.isAi) player.setAIGuessQueue(this.aiGuessQueue);
 
             //give each player a chain of their own
-            const wordToDraw = words.getRandomWord(self.wordPackName);
+            const wordToDraw = words.getRandomWord(this.wordPackName);
             const thisChain = new Chain(
                 wordToDraw,
                 player,
                 currentChainId++,
-                self.timeLimit,
-                self.showNeighbors,
+                this.timeLimit,
+                this.showNeighbors,
                 jsonPlayers
             );
-            self.chains.push(thisChain);
+            this.chains.push(thisChain);
 
             //sends the link, then runs the function when the player sends it back
             //  when the 'finishedLink' event is received
             thisChain.sendLastLinkToThen(
                 player,
-                self.finalNumOfLinks,
+                this.finalNumOfLinks,
                 ({ link }) => {
-                    self.receiveLink(player, link, thisChain.id);
+                    this.receiveLink(player, link, thisChain.id);
                 }
             );
         });
@@ -185,33 +184,32 @@ class Round {
 
     sendWordFirstChains() {
         let currentChainId = 0;
-        const self = this;
 
         const jsonPlayers = this.showNeighbors
             ? this.players.map((player) => player.getJson())
             : null;
 
         this.players.forEach((player) => {
-            if (player.isAi) player.setAIGuessQueue(self.aiGuessQueue);
+            if (player.isAi) player.setAIGuessQueue(this.aiGuessQueue);
 
             //give each player a chain of their own
             const thisChain = new Chain(
                 false,
                 player,
                 currentChainId++,
-                self.timeLimit,
-                self.showNeighbors,
+                this.timeLimit,
+                this.showNeighbors,
                 jsonPlayers
             );
-            self.chains.push(thisChain);
+            this.chains.push(thisChain);
 
             //sends the link, then runs the function when the player sends it back
             //  when the 'finishedLink' event is received
             thisChain.sendLastLinkToThen(
                 player,
-                self.finalNumOfLinks,
+                this.finalNumOfLinks,
                 ({ link }) => {
-                    self.receiveLink(player, link, thisChain.id);
+                    this.receiveLink(player, link, thisChain.id);
                 }
             );
         });
@@ -262,7 +260,6 @@ class Round {
 
         //distribute the chains to each player
         //  players and chains will have the same length
-        const self = this;
         for (let i = 0; i < this.players.length; i++) {
             const thisChain = this.chains[this.linkOrder[this.roundNumber][i]];
             const thisPlayer = this.players[i];
@@ -274,9 +271,9 @@ class Round {
             ((chain, player) => {
                 chain.sendLastLinkToThen(
                     player,
-                    self.finalNumOfLinks,
+                    this.finalNumOfLinks,
                     ({ link }) => {
-                        self.receiveLink(player, link, chain.id);
+                        this.receiveLink(player, link, chain.id);
                     }
                 );
             })(thisChain, thisPlayer);
@@ -379,12 +376,11 @@ class Round {
                     newPlayer.socket.emit("showWaitingList", {});
                 } else {
                     //send them the link they need to finish
-                    const self = this;
                     dpChain.sendLastLinkToThen(
                         newPlayer,
                         this.finalNumOfLinks,
                         ({ link }) => {
-                            self.receiveLink(newPlayer, link, dpChain.id);
+                            this.receiveLink(newPlayer, link, dpChain.id);
                         }
                     );
                 }

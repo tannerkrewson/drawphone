@@ -26,10 +26,9 @@ class Drawphone {
             newCode = this.generateCode();
         }
 
-        const self = this;
         const newGame = new Game(newCode, () => {
             //will be ran when this game has 0 players left
-            self.removeGame(newCode);
+            this.removeGame(newCode);
         });
         this.games.push(newGame);
         return newGame;

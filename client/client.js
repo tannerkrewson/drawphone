@@ -94,38 +94,37 @@ class Drawphone {
     constructor() {
         this.screens = [];
 
-        const self = this;
         this.mainMenu = new MainMenu(
             () => {
                 //ran when Join Game button is pressed
-                self.joinMenu.show();
+                this.joinMenu.show();
             },
             () => {
                 //ran when New Game button is pressed
-                self.newMenu.show();
+                this.newMenu.show();
             }
         );
 
         this.joinMenu = new JoinMenu(() => {
             //ran when Back button is pressed
-            self.mainMenu.show();
+            this.mainMenu.show();
         });
 
         this.newMenu = new NewMenu(() => {
             //ran when Back button is pressed
-            self.mainMenu.show();
+            this.mainMenu.show();
         });
 
         this.lobby = new Lobby();
 
         this.game = new Game(() => {
             //ran when the player sends
-            self.waiting.show();
+            this.waiting.show();
         });
 
         this.results = new Results(() => {
             //ran when done button on results page is tapped
-            self.lobby.show();
+            this.lobby.show();
         });
 
         this.waiting = new Waiting();
@@ -294,20 +293,18 @@ class JoinMenu extends Screen {
             }
         });
 
-        const self = this;
-
         this.codeInput.on("input", () => {
-            self.codeInput.val(
-                self.codeInput
+            this.codeInput.val(
+                this.codeInput
                     .val()
                     .substring(0, 4)
                     .toLowerCase()
                     .replace(/[^a-z]/g, "")
             );
-            if (self.codeInput.val()) {
-                self.codeInput.addClass("gamecode-entry");
+            if (this.codeInput.val()) {
+                this.codeInput.addClass("gamecode-entry");
             } else {
-                self.codeInput.removeClass("gamecode-entry");
+                this.codeInput.removeClass("gamecode-entry");
             }
         });
 
@@ -748,52 +745,51 @@ class Game extends Screen {
         const doneButton = $("#game-send");
 
         //bind clear canvas to clear drawing button
-        const self = this;
 
         //if user touches the canvas, it not blank no more
         $("#game-drawing").on("mousedown touchstart", () => {
             //if this is their first mark
             if (
-                self.canvas.isBlank &&
-                self.timeLimit > 0 &&
-                !self.submitTimer
+                this.canvas.isBlank &&
+                this.timeLimit > 0 &&
+                !this.submitTimer
             ) {
                 //start the timer
-                self.displayTimerInterval = startTimer(
-                    self.timeLimit,
+                this.displayTimerInterval = startTimer(
+                    this.timeLimit,
                     (timeLeft) => {
-                        self.timerDisplay.text(
+                        this.timerDisplay.text(
                             `${timeLeft} left to finish your drawing`
                         );
                     }
                 );
-                self.submitTimer = window.setTimeout(() => {
+                this.submitTimer = window.setTimeout(() => {
                     //when the time runs out...
                     //we don't care if it is blank
-                    self.canvas.isBlank = false;
+                    this.canvas.isBlank = false;
                     //submit
-                    self.onDone();
+                    this.onDone();
                     ga(
                         "send",
                         "event",
                         "Drawing",
                         "timer forced submit",
-                        self.timeLimit
+                        this.timeLimit
                     );
-                }, self.timeLimit * 1000);
+                }, this.timeLimit * 1000);
             }
-            self.canvas.isBlank = false;
+            this.canvas.isBlank = false;
         });
 
         doneButton.click(() => {
-            self.onDone();
+            this.onDone();
         });
 
         //run done when enter key is pressed in word input
         $("#game-word-in").keypress(({ which }) => {
             const key = which;
             if (key === 13) {
-                self.onDone();
+                this.onDone();
             }
         });
     }
@@ -1059,9 +1055,8 @@ class Results extends Screen {
     }
 
     initialize() {
-        const self = this;
         $("#result-done").on("click", () => {
-            self.onDoneViewingResults();
+            this.onDoneViewingResults();
         });
     }
 
@@ -1137,7 +1132,6 @@ class Results extends Screen {
             others.append("<h4>View more results:</h4>");
         }
 
-        const self = this;
         for (let i = 0; i < chainsToList.length; i++) {
             const chain = chainsToList[i];
 
@@ -1154,7 +1148,7 @@ class Results extends Screen {
             button.addClass("btn btn-default btn-lg");
             ((thisChain, chainList) => {
                 button.click(() => {
-                    self.render(thisChain, chainList);
+                    this.render(thisChain, chainList);
 
                     //jump to top of the page
                     window.scrollTo(0, 0);
@@ -1302,7 +1296,7 @@ class Replace extends Screen {
         socket.emit("tryReplacePlayer", {
             playerToReplace,
         });
-        ga("send", "event", "Player replacement", "replace", self.timeLimit);
+        ga("send", "event", "Player replacement", "replace", this.timeLimit);
     }
 }
 

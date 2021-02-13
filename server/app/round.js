@@ -24,10 +24,6 @@ const rotateArray = (arr, count = 1) => {
     return [...arr.slice(count, arr.length), ...arr.slice(0, count)];
 };
 
-// https://stackoverflow.com/a/17428705
-const rotate2dArray = (array) =>
-    array[0].map((_, colIndex) => array.map((row) => row[colIndex]));
-
 // https://math.stackexchange.com/a/4000891 "In the odd prime case..."
 const oddApproxRCLS = (order) => {
     const m = (order - 1) / 2;
@@ -48,9 +44,11 @@ const oddApproxRCLS = (order) => {
         result.push(rotateArray(last(), i * direction));
     }
 
-    return rotate2dArray(result);
+    return result;
 };
 
+// https://math.stackexchange.com/a/4000891
+// "It is easy to solve the problem when n is even. First..."
 function evenExactRCLS(order) {
     let result = [arrayFromOneToN(order)];
     const last = () => result[result.length - 1];
@@ -60,7 +58,7 @@ function evenExactRCLS(order) {
         result.push(rotateArray(last(), i * direction));
     }
 
-    return rotate2dArray(result);
+    return result;
 }
 
 const rowCompleteLatinSquare = (order) =>
@@ -255,7 +253,7 @@ Round.prototype.startNextLink = function () {
     //  players and chains will have the same length
     var self = this;
     for (var i = 0; i < this.players.length; i++) {
-        var thisChain = this.chains[this.linkOrder[i][this.roundNumber]];
+        var thisChain = this.chains[this.linkOrder[this.roundNumber][i]];
         var thisPlayer = this.players[i];
 
         thisChain.lastPlayerSentTo = thisPlayer.getJson();

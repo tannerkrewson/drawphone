@@ -8,11 +8,10 @@ const [username, password] = (process.env.SHUTTERSTOCK_API_TOKEN || "").split(
     ":"
 );
 class PlayerAI extends Player {
-    #lastCallback;
-    isAi = true;
-
     constructor(name, socket, id) {
         super(name, {}, id);
+
+        this.isAi = true;
 
         this.socket = {
             once: this.once.bind(this),
@@ -23,7 +22,7 @@ class PlayerAI extends Player {
 
     once(event, callback) {
         if (event === "finishedLink") {
-            this.#lastCallback = callback;
+            this.lastCallback = callback;
         }
     }
 
@@ -45,15 +44,15 @@ class PlayerAI extends Player {
                 (await PlayerAI.getRandomImage()) ||
                 "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Error.svg/497px-Error.svg.png";
 
-            this.#lastCallback({ link: { data: image, type: "drawing" } });
+            this.lastCallback({ link: { data: image, type: "drawing" } });
         } else if (linkType === "drawing") {
             link.type = "word";
             this.aiGuessQueue.addWork({
                 drawingToGuess: linkContent,
-                next: this.#lastCallback,
+                next: this.lastCallback,
             });
         } else if (linkType === "first-word") {
-            this.#lastCallback({
+            this.lastCallback({
                 link: { data: this.aiGuessQueue.getRandomWord(), type: "word" },
             });
         }
@@ -63,8 +62,8 @@ class PlayerAI extends Player {
         this.aiGuessQueue = aiGuessQueue;
     }
 
-    static findImageOnShutterstock = async (word) =>
-        got("https://api.shutterstock.com/v2/images/search", {
+    static async findImageOnShutterstock(word) {
+        return got("https://api.shutterstock.com/v2/images/search", {
             username,
             password,
             searchParams: {
@@ -78,9 +77,10 @@ class PlayerAI extends Player {
             .json()
             .then((res) => res.data[0].assets.preview.url)
             .catch(() => false);
+    }
 
-    static findImageOn123RF = async (word) =>
-        got("https://www.123rfapis.com/", {
+    static async findImageOn123RF(word) {
+        return got("https://www.123rfapis.com/", {
             searchParams: {
                 method: "search",
                 keyword: word,
@@ -92,11 +92,15 @@ class PlayerAI extends Player {
             .json()
             .then((res) => res[0].images["123RF"].image[0].link_image)
             .catch(() => false);
+    }
 
-    static getRandomImage = () =>
-        "https://picsum.photos/seed/" +
-        crypto.randomBytes(20).toString("hex") +
-        "/500/500";
+    static async getRandomImage() {
+        return (
+            "https://picsum.photos/seed/" +
+            crypto.randomBytes(20).toString("hex") +
+            "/500/500"
+        );
+    }
 }
 
 export default PlayerAI;

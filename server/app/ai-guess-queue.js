@@ -61,9 +61,13 @@ class AIGuessQueue {
         this.workerQueue = [];
     }
 
-    workLeft = () => this.workQueue.length > 0;
+    workLeft() {
+        return this.workQueue.length > 0;
+    }
 
-    workersLeft = () => this.workerQueue.length > 0;
+    workersLeft() {
+        return this.workerQueue.length > 0;
+    }
 }
 
 export default AIGuessQueue;

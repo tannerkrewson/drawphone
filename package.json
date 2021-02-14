@@ -12,7 +12,7 @@
         "build:prod": "webpack --mode production",
         "test": "cross-env NODE_OPTIONS=--experimental-vm-modules npx jest",
         "format": "prettier --write **/*.{js,ts,tsx,json,yml,md}",
-        "lint": "eslint . --ext ts --ext tsx --ext js"
+        "lint": "eslint . --ext js"
     },
     "repository": {
         "type": "git",

@@ -11,7 +11,9 @@ export default ({ drawphone, io }) => {
             socket.on(event, (...params) => {
                 try {
                     action(...params);
-                } catch (e) {}
+                } catch (e) {
+                    console.error(e);
+                }
             });
 
         safeSon("joinGame", ({ code, name }) => {

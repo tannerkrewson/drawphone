@@ -71,7 +71,7 @@ export default ({ drawphone, io }) => {
 
         safeSon(
             "tryStartGame",
-            ({ timeLimit, wordPackName, showNeighbors }) => {
+            ({ timeLimit, wordPackName, showNeighbors, turnLimit }) => {
                 if (!thisUser || !thisGame) return;
 
                 if (dp.locked) {
@@ -83,7 +83,8 @@ export default ({ drawphone, io }) => {
                     thisGame.startNewRound(
                         timeLimit,
                         wordPackName,
-                        showNeighbors
+                        showNeighbors,
+                        turnLimit
                     );
                 }
             }

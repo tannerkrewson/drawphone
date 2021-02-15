@@ -236,15 +236,15 @@ class Game {
         });
     }
 
-    startNewRound(timeLimit, wordPackName, showNeighbors) {
+    startNewRound(timeLimit, wordPackName, showNeighbors, turnLimit) {
         this.inProgress = true;
-
         this.currentRound = new Round(
             this.getNextRoundNum(),
             this.players,
             timeLimit,
             wordPackName,
             showNeighbors,
+            turnLimit,
             () => {
                 //ran when results are sent
                 this.inProgress = false;

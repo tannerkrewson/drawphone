@@ -93,14 +93,19 @@ const allPassesFromUniquePlayers = (chains) => {
         // TODO: add test for odd and first word cases
         if (
             chains[0].links[0].type !== "first-word" &&
-            chains.length % 2 === 0
+            chains[0].links.length % 2 === 0
         ) {
             expect(noDuplicates(idsOfPlayersChainWasReceivedFrom)).toBeTruthy();
         }
     });
 };
 
-const testGame = (numPlayers, typeOrder, wordFirst) => {
+const testGame = ({
+    numPlayers,
+    typeOrder,
+    wordFirst,
+    turnLimit = numPlayers,
+}) => {
     const dp = new Drawphone();
     const game = dp.newGame();
 
@@ -114,7 +119,8 @@ const testGame = (numPlayers, typeOrder, wordFirst) => {
     game.startNewRound(
         0,
         wordFirst ? false : "Simple words (recommended)",
-        false
+        false,
+        turnLimit
     );
 
     expect(game.currentRound.getListOfNotFinishedPlayers().length).toBe(
@@ -124,7 +130,7 @@ const testGame = (numPlayers, typeOrder, wordFirst) => {
 
     advance(game);
 
-    allChainsValid(game.currentRound.chains, typeOrder);
+    allChainsValid(game.currentRound.chains, typeOrder, turnLimit);
 
     allChainsUnique(game.currentRound.chains);
 
@@ -193,72 +199,91 @@ test("pre-game", () => {
     expect(game.inProgress).toBeTruthy();
 });
 
-const fourFive = ["word", "drawing", "word", "drawing", "word"];
-const sixSeven = [
-    "word",
-    "drawing",
-    "word",
-    "drawing",
-    "word",
-    "drawing",
-    "word",
-];
-const fwFour = ["first-word", "word", "drawing", "word"];
-const fwFiveSix = ["first-word", "word", "drawing", "word", "drawing", "word"];
-const fwSeven = [
-    "first-word",
-    "word",
-    "drawing",
-    "word",
-    "drawing",
-    "word",
-    "drawing",
-    "word",
-];
+describe("type order generator", () => {
+    describe("random word", () => {
+        const fourFive = ["word", "drawing", "word", "drawing", "word"];
+        const sixSeven = [...fourFive, "drawing", "word"];
 
-test("game with 4 players", () => {
-    testGame(4, fourFive);
-});
-
-test("game with 5 players", () => {
-    testGame(5, fourFive);
-});
-
-test("game with 6 players", () => {
-    testGame(6, sixSeven);
-});
-
-test("game with 7 players", () => {
-    testGame(7, sixSeven);
-});
-
-for (let i = 8; i <= 32; i++) {
-    test(`game with ${i} players`, () => {
-        testGame(i, typeOrderGenerator(i, false));
+        test("4 players", () => {
+            expect(typeOrderGenerator(4, false)).toEqual(fourFive);
+        });
+        test("5 players", () => {
+            expect(typeOrderGenerator(5, false)).toEqual(fourFive);
+        });
+        test("6 players", () => {
+            expect(typeOrderGenerator(6, false)).toEqual(sixSeven);
+        });
+        test("7 players", () => {
+            expect(typeOrderGenerator(7, false)).toEqual(sixSeven);
+        });
     });
-}
 
-test("word first game with 4 players", () => {
-    testGame(4, fwFour, true);
-});
+    describe("word first", () => {
+        const fwFour = ["first-word", "word", "drawing", "word"];
+        const fwFiveSix = [...fwFour, "drawing", "word"];
+        const fwSeven = [...fwFiveSix, "drawing", "word"];
 
-test("word first game with 5 players", () => {
-    testGame(5, fwFiveSix, true);
-});
-
-test("word first game with 6 players", () => {
-    testGame(6, fwFiveSix, true);
-});
-
-test("word first game with 7 players", () => {
-    testGame(7, fwSeven, true);
-});
-
-for (let i = 8; i <= 32; i++) {
-    test(`word first game with ${i} players`, () => {
-        testGame(i, typeOrderGenerator(i, true), true);
+        test("4 players", () => {
+            expect(typeOrderGenerator(4, true)).toEqual(fwFour);
+        });
+        test("5 players", () => {
+            expect(typeOrderGenerator(5, true)).toEqual(fwFiveSix);
+        });
+        test("6 players", () => {
+            expect(typeOrderGenerator(6, true)).toEqual(fwFiveSix);
+        });
+        test("7 players", () => {
+            expect(typeOrderGenerator(7, true)).toEqual(fwSeven);
+        });
     });
-}
+});
+
+const [MIN_PLAYERS, MAX_PLAYERS] = [4, 16];
+
+const testMultipleGames = ({ turnLimit, wordFirst, shortCircuit }) => {
+    const testFunc = shortCircuit ? test.only : test;
+    for (let i = MIN_PLAYERS; i <= (shortCircuit || MAX_PLAYERS); i++) {
+        testFunc(`${i} players`, () => {
+            const thisTurnLimit = turnLimit || i;
+            testGame({
+                numPlayers: i,
+                typeOrder: typeOrderGenerator(thisTurnLimit, false),
+                wordFirst,
+                turnLimit: thisTurnLimit,
+            });
+        });
+    }
+};
+
+describe("random word game", () => {
+    describe("max turns", () => {
+        testMultipleGames({ wordFirst: false });
+    });
+
+    describe("turn limited to 4", () => {
+        testMultipleGames({ wordFirst: false, turnLimit: 4 });
+    });
+
+    describe("turn limited to 5", () => {
+        testMultipleGames({ wordFirst: false, turnLimit: 5 });
+    });
+});
+
+/*
+describe("word first game", () => {
+    describe("max turns", () => {
+        testMultipleGames({ wordFirst: true, shortCircuit: 5 });
+    });
+
+    describe("turn limited to 4", () => {
+        testMultipleGames({ wordFirst: true, turnLimit: 4, shortCircuit: 5 });
+    });
+
+    describe("turn limited to 5", () => {
+        testMultipleGames({ wordFirst: true, turnLimit: 5, shortCircuit: 5 });
+    });
+});
+*/
 
 afterAll(() => {
     console.log(

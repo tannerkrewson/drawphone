@@ -75,6 +75,7 @@ class Round {
         timeLimit,
         wordPackName,
         showNeighbors,
+        turnLimit,
         onResults
     ) {
         this.number = number;
@@ -90,6 +91,7 @@ class Round {
         this.potentialPlayers = [];
         this.canViewLastRoundResults = false;
         this.isWordFirstGame = !this.wordPackName;
+        this.turnLimit = this.validTurnLimit(turnLimit);
 
         this.startTime;
 
@@ -109,7 +111,7 @@ class Round {
     }
 
     start() {
-        this.finalNumOfLinks = this.players.length;
+        this.finalNumOfLinks = this.turnLimit;
         this.aiGuessQueue.reset();
 
         // demo mode
@@ -476,6 +478,17 @@ class Round {
             (this.wordPackName.includes("Simple") ||
                 this.wordPackName.includes("Advanced"));
         return isEnabled && isNoBots && isAllowedWordPack;
+    }
+
+    validTurnLimit(enteredTurnLimit) {
+        if (
+            !enteredTurnLimit ||
+            enteredTurnLimit > this.players.length ||
+            enteredTurnLimit < 4
+        ) {
+            return this.players.length;
+        }
+        return enteredTurnLimit;
     }
 }
 

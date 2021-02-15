@@ -1,6 +1,7 @@
 import swal from "bootstrap-sweetalert";
 
 import { HIDDEN } from "../../shared/enums.js";
+import { getNewTurnLimit } from "../../shared/util.js";
 import Screen from "./screen.js";
 import UserList from "../userlist.js";
 
@@ -19,6 +20,10 @@ class Lobby extends Screen {
         this.timeLimitDisplay = $("#lobby-settings-timelimit");
         this.timeLimitMinus = $("#timelimit-minus");
         this.timeLimitPlus = $("#timelimit-plus");
+        this.turnLimitDisplay = $("#lobby-settings-turnlimit");
+        this.turnLimitMinus = $("#turnlimit-minus");
+        this.turnLimitPlus = $("#turnlimit-plus");
+        this.gameTimeDisplay = $("#lobby-settings-gametime");
         this.wordPackDropdown = $("#lobby-settings-wordpack");
         this.gameSettingsBots = $("#lobby-settings-bots");
         this.addBotButton = $("#lobby-settings-addbot");
@@ -26,8 +31,9 @@ class Lobby extends Screen {
         this.viewPreviousResultsButton = $("#lobby-prevres");
         this.gameCode = "";
 
-        //this is what the host selects from the dropdowns
+        //these is what the host selects from the Options
         this.selectedTimeLimit = 0;
+        this.selectedTurnLimit = -1;
         this.wordPack = false;
         this.showNeighbors = false;
 
@@ -52,6 +58,8 @@ class Lobby extends Screen {
         this.wordFirstCheckbox.prop("checked", false);
         this.showNeighborsCheckbox.prop("checked", false);
         this.timeLimitDisplay.text("No time limit");
+        this.turnLimitDisplay.text("N/A");
+        this.gameTimeDisplay.text("");
         this.wordPackDropdown.prop("selectedIndex", 0);
         this.wordPackDropdown.prop("disabled", false);
 
@@ -158,7 +166,9 @@ class Lobby extends Screen {
                 $(setting).prop("disabled", false);
             }
 
-            this.initHost();
+            if (res.data.players) {
+                this.initHost(res.data.players.length);
+            }
         } else {
             this.clearHostHandlers();
 
@@ -191,7 +201,7 @@ class Lobby extends Screen {
 
         if (["wordfirst", "showNeighbors"].includes(name)) {
             settingToUpdate.prop("checked", value);
-        } else if (name === "timelimit") {
+        } else if (["timelimit", "turnlimit", "gametime"].includes(name)) {
             settingToUpdate.text(value);
         } else {
             settingToUpdate.prop("value", value);
@@ -211,12 +221,14 @@ class Lobby extends Screen {
         this.showNeighborsCheckbox.off("change");
         this.timeLimitMinus.off("click");
         this.timeLimitPlus.off("click");
+        this.turnLimitMinus.off("click");
+        this.turnLimitPlus.off("click");
         this.wordPackDropdown.off("change");
         this.addBotButton.off("click");
         this.removeBotButton.off("click");
     }
 
-    initHost() {
+    initHost(numPlayers) {
         this.clearHostHandlers();
 
         this.startButton.on("click", () => {
@@ -246,6 +258,50 @@ class Lobby extends Screen {
             }
         });
 
+        const changeTurnLimit = (modifier) => {
+            const oldTurnLimit = this.selectedTurnLimit;
+
+            const {
+                newTurnLimit,
+                isMax,
+                isTurnLimitUnchanged,
+            } = getNewTurnLimit(modifier, oldTurnLimit, numPlayers);
+
+            this.selectedTurnLimit = newTurnLimit;
+
+            const isTurnLimitValid = this.selectedTurnLimit <= numPlayers;
+
+            const newDisplay = isTurnLimitValid
+                ? `${this.selectedTurnLimit} turns${isMax ? " (max)" : ""}`
+                : "N/A";
+
+            const gameTimeText = isTurnLimitValid
+                ? `(round will take about ${this.selectedTurnLimit} minutes)`
+                : "";
+
+            this.turnLimitDisplay.text(newDisplay);
+            this.gameTimeDisplay.text(gameTimeText);
+
+            if (isTurnLimitUnchanged) return;
+
+            this.checkIfReadyToStart();
+
+            this.socket.emit("hostUpdatedSettings", {
+                name: "turnlimit",
+                value: newDisplay,
+            });
+
+            this.socket.emit("hostUpdatedSettings", {
+                name: "gametime",
+                value: gameTimeText,
+            });
+        };
+
+        this.turnLimitMinus.on("click", () => changeTurnLimit(-1));
+        this.turnLimitPlus.on("click", () => changeTurnLimit(1));
+
+        changeTurnLimit(0);
+
         const onWordFirstChange = () => {
             if (this.wordFirstCheckbox.is(":checked")) {
                 this.wordPack = false;
@@ -260,9 +316,13 @@ class Lobby extends Screen {
         this.wordFirstCheckbox.on("change", () => {
             onWordFirstChange();
 
+            const isChecked = this.wordFirstCheckbox.is(":checked");
+
+            changeTurnLimit(isChecked ? -1 : 1);
+
             this.socket.emit("hostUpdatedSettings", {
                 name: "wordfirst",
-                value: this.wordFirstCheckbox.is(":checked"),
+                value: isChecked,
             });
         });
         onWordFirstChange();
@@ -362,9 +422,11 @@ class Lobby extends Screen {
             timeLimit: this.selectedTimeLimit,
             wordPackName: this.wordPack,
             showNeighbors: this.showNeighbors,
+            turnLimit: this.selectedTurnLimit,
         });
         ga("send", "event", "Game", "start");
         ga("send", "event", "Game", "time limit", this.selectedTimeLimit);
+        ga("send", "event", "Game", "turn limit", this.selectedTurnLimit);
         ga("send", "event", "Game", "word pack", this.wordPack);
         ga(
             "send",

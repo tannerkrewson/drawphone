@@ -6,7 +6,7 @@
     "scripts": {
         "start": "run-s build:prod start:prod",
         "dev": "run-p start:dev build:dev",
-        "start:dev": "nodemon --exec npm run start:prod --ignore public/",
+        "start:dev": "nodemon --exec npm run start:prod --ignore server/public/ --delay 2",
         "build:dev": "webpack --mode development --watch",
         "start:prod": "node --experimental-json-modules ./server/bin/www",
         "build:prod": "webpack --mode production",

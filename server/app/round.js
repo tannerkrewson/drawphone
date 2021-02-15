@@ -50,7 +50,7 @@ const oddApproxRCLS = (numPlayers, numTurns) => {
 };
 
 // https://math.stackexchange.com/a/4000891
-// "It is easy to solve the problem when n is even. First..."
+// "It is easy to solve the problem when n is even. First..."d
 function evenExactRCLS(numPlayers, numTurns) {
     let result = [arrayFromOneToN(numPlayers)];
     const last = () => result[result.length - 1];

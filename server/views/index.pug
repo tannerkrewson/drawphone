@@ -66,12 +66,18 @@ block content
           option(disabled='', selected='') Select a word pack...
           for item in wordpacks
             option #{item}
-        label Time limit:
+        label Drawing time limit:
         .btn-toolbar.mb-3
           button#timelimit-minus.lobby-setting.btn.btn-default -
           span#lobby-settings-timelimit Loading...
           button#timelimit-plus.lobby-setting.btn.btn-default +
-        .checkboxes.mb-3
+        label Number of turns:
+        .btn-toolbar
+          button#turnlimit-minus.lobby-setting.btn.btn-default -
+          span#lobby-settings-turnlimit Loading...
+          button#turnlimit-plus.lobby-setting.btn.btn-default +
+        .mb-3#lobby-settings-gametime Loading...
+        .checkboxes.mb-2
           .custom-control.custom-switch
             input#lobby-settings-wordfirst.custom-control-input.lobby-setting(type='checkbox')
             label.custom-control-label(for='lobby-settings-wordfirst') Players write first word

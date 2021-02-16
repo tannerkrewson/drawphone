@@ -167,7 +167,9 @@ class Lobby extends Screen {
             }
 
             if (res.data.players) {
-                this.initHost(res.data.players.length);
+                this.prevNumPlayers = this.numPlayers;
+                this.numPlayers = res.data.players.length;
+                this.initHost();
             }
         } else {
             this.clearHostHandlers();
@@ -260,12 +262,19 @@ class Lobby extends Screen {
 
         const changeTurnLimit = (modifier) => {
             const oldTurnLimit = this.selectedTurnLimit;
+            const isWordFirst = this.wordFirstCheckbox.is(":checked");
 
             const {
                 newTurnLimit,
                 isMax,
                 isTurnLimitUnchanged,
-            } = getNewTurnLimit(modifier, oldTurnLimit, numPlayers);
+            } = getNewTurnLimit({
+                modifier,
+                oldTurnLimit,
+                numPlayers: this.numPlayers,
+                prevNumPlayers: this.prevNumPlayers,
+                isWordFirst,
+            });
 
             this.selectedTurnLimit = newTurnLimit;
 
@@ -315,14 +324,11 @@ class Lobby extends Screen {
         };
         this.wordFirstCheckbox.on("change", () => {
             onWordFirstChange();
-
-            const isChecked = this.wordFirstCheckbox.is(":checked");
-
-            changeTurnLimit(isChecked ? -1 : 1);
+            changeTurnLimit(0);
 
             this.socket.emit("hostUpdatedSettings", {
                 name: "wordfirst",
-                value: isChecked,
+                value: this.wordFirstCheckbox.is(":checked"),
             });
         });
         onWordFirstChange();

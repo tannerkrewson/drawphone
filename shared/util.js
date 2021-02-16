@@ -1,11 +1,21 @@
-export const getNewTurnLimit = (modifier, prevTurnLimit, numPlayers) => {
-    const maxTurns = Math.floor(numPlayers / 2) * 2;
+export const getNewTurnLimit = ({
+    modifier,
+    prevTurnLimit,
+    numPlayers,
+    prevNumPlayers,
+    isWordFirst,
+}) => {
+    const offset = isWordFirst ? 1 : 0;
+    const minTurns = 4 - offset;
+    const maxTurns = Math.floor((numPlayers + offset) / 2) * 2 - offset;
 
     const prevTurnLimitWasMax =
-        modifier === 0 && numPlayers - prevTurnLimit <= 2;
+        numPlayers !== prevNumPlayers &&
+        modifier === 0 &&
+        numPlayers - prevTurnLimit <= 2;
 
     const newTurnLimit = Math.max(
-        4,
+        minTurns,
         prevTurnLimitWasMax
             ? maxTurns
             : Math.min(maxTurns, prevTurnLimit + modifier * 2)

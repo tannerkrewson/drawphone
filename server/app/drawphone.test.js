@@ -240,14 +240,16 @@ describe("type order generator", () => {
 
 const [MIN_PLAYERS, MAX_PLAYERS] = [4, 16];
 
-const testMultipleGames = ({ turnLimit, wordFirst, shortCircuit }) => {
-    const testFunc = shortCircuit ? test.only : test;
-    for (let i = MIN_PLAYERS; i <= (shortCircuit || MAX_PLAYERS); i++) {
-        testFunc(`${i} players`, () => {
+const testMultipleGames = ({ turnLimit, wordFirst }) => {
+    for (let i = MIN_PLAYERS; i <= MAX_PLAYERS; i++) {
+        test(`${i} players`, () => {
             const thisTurnLimit = turnLimit || i;
             testGame({
                 numPlayers: i,
-                typeOrder: typeOrderGenerator(thisTurnLimit, false),
+                typeOrder: typeOrderGenerator(
+                    Math.min(i, thisTurnLimit),
+                    wordFirst
+                ),
                 wordFirst,
                 turnLimit: thisTurnLimit,
             });
@@ -269,7 +271,6 @@ describe("random word game", () => {
     });
 });
 
-/*
 describe("word first game", () => {
     describe("max turns", () => {
         testMultipleGames({ wordFirst: true, shortCircuit: 5 });
@@ -283,7 +284,15 @@ describe("word first game", () => {
         testMultipleGames({ wordFirst: true, turnLimit: 5, shortCircuit: 5 });
     });
 });
-*/
+
+test.skip("debug test", () => {
+    testGame({
+        numPlayers: 4,
+        typeOrder: typeOrderGenerator(4, true),
+        wordFirst: true,
+        turnLimit: 5,
+    });
+});
 
 afterAll(() => {
     console.log(

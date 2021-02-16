@@ -11,6 +11,7 @@ import DrawingLink from "./link/drawinglink.js";
 import WordLink from "./link/wordlink.js";
 import { sendResultsToAwsArchive } from "./aws-archive.js";
 import WordPacks from "./words.js";
+import { getNewTurnLimit } from "../../shared/util.js";
 
 const words = new WordPacks();
 words.loadAll();
@@ -481,14 +482,13 @@ class Round {
     }
 
     validTurnLimit(enteredTurnLimit) {
-        if (
-            !enteredTurnLimit ||
-            enteredTurnLimit > this.players.length ||
-            enteredTurnLimit < 4
-        ) {
-            return this.players.length;
-        }
-        return enteredTurnLimit;
+        return getNewTurnLimit({
+            modifier: 0,
+            prevTurnLimit: enteredTurnLimit,
+            numPlayers: this.players.length,
+            prevNumPlayers: this.players.length,
+            isWordFirst: this.isWordFirstGame,
+        }).newTurnLimit;
     }
 }
 

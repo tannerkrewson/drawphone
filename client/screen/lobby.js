@@ -33,7 +33,7 @@ class Lobby extends Screen {
 
         //these is what the host selects from the Options
         this.selectedTimeLimit = 0;
-        this.selectedTurnLimit = -1;
+        this.selectedTurnLimit;
         this.wordPack = false;
         this.showNeighbors = false;
 
@@ -230,7 +230,7 @@ class Lobby extends Screen {
         this.removeBotButton.off("click");
     }
 
-    initHost(numPlayers) {
+    initHost() {
         this.clearHostHandlers();
 
         this.startButton.on("click", () => {
@@ -270,7 +270,7 @@ class Lobby extends Screen {
                 isTurnLimitUnchanged,
             } = getNewTurnLimit({
                 modifier,
-                oldTurnLimit,
+                prevTurnLimit: oldTurnLimit,
                 numPlayers: this.numPlayers,
                 prevNumPlayers: this.prevNumPlayers,
                 isWordFirst,
@@ -278,7 +278,7 @@ class Lobby extends Screen {
 
             this.selectedTurnLimit = newTurnLimit;
 
-            const isTurnLimitValid = this.selectedTurnLimit <= numPlayers;
+            const isTurnLimitValid = this.selectedTurnLimit <= this.numPlayers;
 
             const newDisplay = isTurnLimitValid
                 ? `${this.selectedTurnLimit} turns${isMax ? " (max)" : ""}`

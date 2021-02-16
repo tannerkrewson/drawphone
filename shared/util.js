@@ -9,6 +9,14 @@ export const getNewTurnLimit = ({
     const minTurns = 4 - offset;
     const maxTurns = Math.floor((numPlayers + offset) / 2) * 2 - offset;
 
+    if (!prevTurnLimit) {
+        return {
+            newTurnLimit: minTurns,
+            isMax: true,
+            isTurnLimitUnchanged: false,
+        };
+    }
+
     const prevTurnLimitWasMax =
         numPlayers !== prevNumPlayers &&
         modifier === 0 &&

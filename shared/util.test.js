@@ -117,3 +117,13 @@ test("getNewTurnLimit works with word first", () => {
     setNewTurnLimit(state, 0);
     expect(state.currentTurnLimit).toBe(8);
 });
+
+test.skip("getNewTurnLimit debug test", () => {
+    getNewTurnLimit({
+        modifier: 0,
+        prevTurnLimit: 4,
+        numPlayers: 6,
+        prevNumPlayers: 5,
+        isWordFirst: false,
+    });
+});

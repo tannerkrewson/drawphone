@@ -291,6 +291,8 @@ class Lobby extends Screen {
             this.turnLimitDisplay.text(newDisplay);
             this.gameTimeDisplay.text(gameTimeText);
 
+            this.prevNumPlayers = this.numPlayers;
+
             if (isTurnLimitUnchanged) return;
 
             this.checkIfReadyToStart();

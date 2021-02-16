@@ -118,6 +118,58 @@ test("getNewTurnLimit works with word first", () => {
     expect(state.currentTurnLimit).toBe(8);
 });
 
+test("getNewTurnLimit works with word first from 4 to 3 with 7 players", () => {
+    let state = {
+        currentTurnLimit: 4,
+        numPlayers: 7,
+        isWordFirst: false,
+    };
+
+    state.isWordFirst = true;
+    setNewTurnLimit(state, 0);
+    expect(state.currentTurnLimit).toBe(3);
+});
+
+test("getNewTurnLimit works for server-side turn limit validation", () => {
+    let state;
+
+    state = {
+        currentTurnLimit: 5,
+        numPlayers: 5,
+        prevNumPlayers: 5,
+        isWordFirst: false,
+    };
+    setNewTurnLimit(state, 0);
+    expect(state.currentTurnLimit).toBe(4);
+
+    state = {
+        currentTurnLimit: 5,
+        numPlayers: 6,
+        prevNumPlayers: 6,
+        isWordFirst: false,
+    };
+    setNewTurnLimit(state, 0);
+    expect(state.currentTurnLimit).toBe(6);
+
+    state = {
+        currentTurnLimit: 5,
+        numPlayers: 5,
+        prevNumPlayers: 5,
+        isWordFirst: true,
+    };
+    setNewTurnLimit(state, 0);
+    expect(state.currentTurnLimit).toBe(5);
+
+    state = {
+        currentTurnLimit: 6,
+        numPlayers: 6,
+        prevNumPlayers: 6,
+        isWordFirst: true,
+    };
+    setNewTurnLimit(state, 0);
+    expect(state.currentTurnLimit).toBe(5);
+});
+
 test.skip("getNewTurnLimit debug test", () => {
     getNewTurnLimit({
         modifier: 0,

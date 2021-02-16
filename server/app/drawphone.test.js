@@ -263,33 +263,45 @@ describe("random word game", () => {
     });
 
     describe("turn limited to 4", () => {
-        testMultipleGames({ wordFirst: false, turnLimit: 4 });
+        testMultipleGames({
+            wordFirst: false,
+            turnLimit: 4,
+        });
     });
 
-    describe("turn limited to 5", () => {
-        testMultipleGames({ wordFirst: false, turnLimit: 5 });
+    describe("turn limited to 6", () => {
+        testMultipleGames({
+            wordFirst: false,
+            turnLimit: 6,
+        });
     });
 });
 
 describe("word first game", () => {
     describe("max turns", () => {
-        testMultipleGames({ wordFirst: true, shortCircuit: 5 });
+        testMultipleGames({ wordFirst: true });
     });
 
-    describe("turn limited to 4", () => {
-        testMultipleGames({ wordFirst: true, turnLimit: 4, shortCircuit: 5 });
+    describe("turn limited to 3", () => {
+        testMultipleGames({
+            wordFirst: true,
+            turnLimit: 3,
+        });
     });
 
     describe("turn limited to 5", () => {
-        testMultipleGames({ wordFirst: true, turnLimit: 5, shortCircuit: 5 });
+        testMultipleGames({
+            wordFirst: true,
+            turnLimit: 5,
+        });
     });
 });
 
 test.skip("debug test", () => {
     testGame({
-        numPlayers: 4,
-        typeOrder: typeOrderGenerator(4, true),
-        wordFirst: true,
+        numPlayers: 6,
+        typeOrder: typeOrderGenerator(6, false),
+        wordFirst: false,
         turnLimit: 5,
     });
 });

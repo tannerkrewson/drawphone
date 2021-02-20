@@ -112,12 +112,13 @@ class Round {
     }
 
     start() {
-        this.finalNumOfLinks = this.turnLimit;
         this.aiGuessQueue.reset();
 
         // demo mode
         if (this.players.length === 1) {
             this.finalNumOfLinks = 6;
+        } else {
+            this.finalNumOfLinks = this.turnLimit;
         }
 
         //each player will have to complete one link for how many players there are
@@ -143,10 +144,16 @@ class Round {
         } else {
             this.sendWordFirstChains();
         }
-        this.linkOrder = rowCompleteLatinSquare(
-            this.chains.length,
-            this.chains.length
-        );
+
+        // demo mode
+        if (this.players.length === 1) {
+            this.linkOrder = [[0], [0], [0], [0], [0]];
+        } else {
+            this.linkOrder = rowCompleteLatinSquare(
+                this.players.length,
+                this.finalNumOfLinks
+            );
+        }
 
         this.startTime = Date.now();
     }
@@ -264,7 +271,9 @@ class Round {
         //distribute the chains to each player
         //  players and chains will have the same length
         for (let i = 0; i < this.players.length; i++) {
-            const thisChain = this.chains[this.linkOrder[this.roundNumber][i]];
+            const thisRoundsLinkOrder = this.linkOrder[this.roundNumber];
+            const thisChainIndex = thisRoundsLinkOrder[i];
+            const thisChain = this.chains[thisChainIndex];
             const thisPlayer = this.players[i];
 
             thisChain.lastPlayerSentTo = thisPlayer.getJson();

@@ -275,6 +275,16 @@ describe("random word game", () => {
             turnLimit: 6,
         });
     });
+
+    describe.skip("demo", () => {
+        test(`1 player`, () => {
+            testGame({
+                numPlayers: 1,
+                typeOrder: typeOrderGenerator(6, false),
+                wordFirst: true,
+            });
+        });
+    });
 });
 
 describe("word first game", () => {
@@ -293,6 +303,16 @@ describe("word first game", () => {
         testMultipleGames({
             wordFirst: true,
             turnLimit: 5,
+        });
+    });
+
+    describe.skip("demo", () => {
+        test(`1 player`, () => {
+            testGame({
+                numPlayers: 1,
+                typeOrder: typeOrderGenerator(6, true),
+                wordFirst: true,
+            });
         });
     });
 });

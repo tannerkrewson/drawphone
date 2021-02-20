@@ -270,25 +270,47 @@ class Round {
 
         //distribute the chains to each player
         //  players and chains will have the same length
+
         for (let i = 0; i < this.players.length; i++) {
-            const thisRoundsLinkOrder = this.linkOrder[this.roundNumber];
-            const thisChainIndex = thisRoundsLinkOrder[i];
-            const thisChain = this.chains[thisChainIndex];
-            const thisPlayer = this.players[i];
+            try {
+                const thisRoundsLinkOrder = this.linkOrder[this.roundNumber];
+                const thisChainIndex = thisRoundsLinkOrder[i];
+                const thisChain = this.chains[thisChainIndex];
+                const thisPlayer = this.players[i];
 
-            thisChain.lastPlayerSentTo = thisPlayer.getJson();
+                thisChain.lastPlayerSentTo = thisPlayer.getJson();
 
-            //sends the link, then runs the function when the player sends it back
-            //  when the 'finishedLink' event is received
-            ((chain, player) => {
-                chain.sendLastLinkToThen(
-                    player,
-                    this.finalNumOfLinks,
-                    ({ link }) => {
-                        this.receiveLink(player, link, chain.id);
-                    }
-                );
-            })(thisChain, thisPlayer);
+                //sends the link, then runs the function when the player sends it back
+                //  when the 'finishedLink' event is received
+                ((chain, player) => {
+                    chain.sendLastLinkToThen(
+                        player,
+                        this.finalNumOfLinks,
+                        ({ link }) => {
+                            this.receiveLink(player, link, chain.id);
+                        }
+                    );
+                })(thisChain, thisPlayer);
+            } catch (error) {
+                console.error(error);
+                const {
+                    roundNumber,
+                    linkOrder,
+                    shouldHaveThisManyLinks,
+                    turnLimit,
+                    finalNumOfLinks,
+                } = this;
+                console.log({
+                    roundNumber,
+                    linkOrder,
+                    shouldHaveThisManyLinks,
+                    turnLimit,
+                    numPlayers: this.players.length,
+                    finalNumOfLinks,
+                    i,
+                });
+                this.viewResults();
+            }
         }
     }
 

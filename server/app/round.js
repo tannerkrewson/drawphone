@@ -502,8 +502,8 @@ class Round {
     }
 
     shouldArchiveResultsToAws() {
-        const isEnabled =
-            process.env.ACCESS_KEY_ID && process.env.SECRET_ACCESS_KEY;
+        const isEnabled = false;
+        //process.env.ACCESS_KEY_ID && process.env.SECRET_ACCESS_KEY;
         const isNoBots = this.players.reduce((acc, { isAi }) => acc && !isAi);
         const isAllowedWordPack =
             this.wordPackName &&

@@ -37,7 +37,7 @@ block content
               input#joinincode.form-control(type='text', placeholder='abcd', autocomplete='off')
             label Name:
             .form-group
-              input#joininname.form-control(type='text', placeholder='Use your real name!', maxlength=16)
+              input#joininname.form-control(type='text', placeholder='Use your real name!', minlength=3, maxlength=16)
           .btn-toolbar
             button#joinmenu-back.btn.btn-default.btn-lg.mr-2(type='button') Back
             button#joinmenu-go.btn.btn-default.btn-lg(type='submit') Join
@@ -47,7 +47,7 @@ block content
           .input-container
             label Name:
             .form-group
-              input#newinname.form-control(type='text', placeholder='Use your real name!', maxlength=16)
+              input#newinname.form-control(type='text', placeholder='Use your real name!', minlength=3, maxlength=16)
           .btn-toolbar 
             button#newmenu-back.btn.btn-default.btn-lg.mr-2(type='button') Back
             button#newmenu-go.btn.btn-default.btn-lg(type='submit') Start

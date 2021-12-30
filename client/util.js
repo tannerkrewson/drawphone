@@ -53,8 +53,7 @@ export const promptKickPlayer = (tappedPlayer, socket) => {
     swal(
         {
             title: `Kick ${tappedPlayer.name}?`,
-            text:
-                "Someone will have to join this game to replace them. (Or, you could use a bot!)",
+            text: "Someone will have to join this game to replace them. (Or, you could use a bot!)",
             type: "warning",
             showCancelButton: true,
             confirmButtonClass: "btn-danger",

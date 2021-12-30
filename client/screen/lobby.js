@@ -239,8 +239,7 @@ class Lobby extends Screen {
                 swal(
                     {
                         title: "Demo mode",
-                        text:
-                            "Would you like to play Drawphone with just yourself to see how it works?",
+                        text: "Would you like to play Drawphone with just yourself to see how it works?",
                         type: "info",
                         showCancelButton: true,
                     },
@@ -264,17 +263,14 @@ class Lobby extends Screen {
             const oldTurnLimit = this.selectedTurnLimit;
             const isWordFirst = this.wordFirstCheckbox.is(":checked");
 
-            const {
-                newTurnLimit,
-                isMax,
-                isTurnLimitUnchanged,
-            } = getNewTurnLimit({
-                modifier,
-                prevTurnLimit: oldTurnLimit,
-                numPlayers: this.numPlayers,
-                prevNumPlayers: this.prevNumPlayers,
-                isWordFirst,
-            });
+            const { newTurnLimit, isMax, isTurnLimitUnchanged } =
+                getNewTurnLimit({
+                    modifier,
+                    prevTurnLimit: oldTurnLimit,
+                    numPlayers: this.numPlayers,
+                    prevNumPlayers: this.prevNumPlayers,
+                    isWordFirst,
+                });
 
             this.selectedTurnLimit = newTurnLimit;
 

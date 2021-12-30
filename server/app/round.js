@@ -147,7 +147,7 @@ class Round {
 
         // demo mode
         if (this.players.length === 1) {
-            this.linkOrder = [[0], [0], [0], [0], [0]];
+            this.linkOrder = [[0], [0], [0], [0], [0], [0]];
         } else {
             this.linkOrder = rowCompleteLatinSquare(
                 this.players.length,
@@ -384,9 +384,8 @@ class Round {
                 newPlayer.id = this.disconnectedPlayers[i].id;
 
                 //replace 'em
-                const playerToReplaceIndex = this.getPlayerIndexById(
-                    playerToReplaceId
-                );
+                const playerToReplaceIndex =
+                    this.getPlayerIndexById(playerToReplaceId);
                 this.players[playerToReplaceIndex] = newPlayer;
 
                 //delete 'em from disconnectedPlayers

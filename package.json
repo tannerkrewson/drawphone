@@ -68,7 +68,7 @@
     },
     "husky": {
         "hooks": {
-            "pre-commit": "run-s format lint test"
+            "pre-commit": "run-s --npm-path npm format lint test"
         }
     },
     "lint-staged": {

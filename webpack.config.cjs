@@ -30,6 +30,13 @@ module.exports = (_, { mode }) => ({
                 test: /\.(jpe?g|svg|png|gif|ico|eot|ttf|woff2|map?)(\?v=\d+\.\d+\.\d+)?$/i,
                 type: 'asset/resource',
             },
+            {
+                test: /\.svg$/,
+                loader: "file-loader",
+                options: {
+                    name: "[name].[ext]",
+                },
+            },
         ],
     },
 });

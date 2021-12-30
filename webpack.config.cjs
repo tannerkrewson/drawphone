@@ -8,12 +8,12 @@ const OUTPUT_DIR = path.resolve(__dirname, "server/public");
 module.exports = (_, { mode }) => ({
     entry: "./client/client.js",
     output: {
-        filename: "[name].[hash].js",
+        filename: "[name].[fullhash].js",
         path: OUTPUT_DIR,
         publicPath: "",
     },
     plugins: [
-        new MiniCssExtractPlugin({ filename: "[name].[hash].css" }),
+        new MiniCssExtractPlugin({ filename: "[name].[fullhash].css" }),
         new webpack.ProvidePlugin({
             $: "jquery",
             jQuery: "jquery",
@@ -27,15 +27,8 @@ module.exports = (_, { mode }) => ({
                 use: [MiniCssExtractPlugin.loader, "css-loader"],
             },
             {
-                test: /\.woff($|\?)|\.woff2($|\?)|\.ttf($|\?)|\.eot($|\?)|\.svg($|\?)/,
-                loader: "url-loader",
-            },
-            {
-                test: /\.svg$/,
-                loader: "file-loader",
-                options: {
-                    name: "[name].[ext]",
-                },
+                test: /\.(jpe?g|svg|png|gif|ico|eot|ttf|woff2|map?)(\?v=\d+\.\d+\.\d+)?$/i,
+                type: 'asset/resource',
             },
         ],
     },

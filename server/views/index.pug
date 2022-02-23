@@ -15,8 +15,8 @@ block content
   div#mainmenu.d-none
     include announcements.pug
     .btn-toolbar.mt-3
-      a.btn.btn-default.btn-lg.mr-2(href="https://rocketcrab.com/join",type='button') Join Party
-      a.btn.btn-default.btn-lg(href="https://rocketcrab.com/transfer/drawphone",type='button') Start Party
+      button.btn.btn-default.btn-lg.mr-2(id="joinbtn", type='button') Join Party
+      button.btn.btn-default.btn-lg(id="newbtn", type='button') Start Party
     .mt-3.mb-3
       |Powered by 
       img.rocketsvg.ml-1(src='https://rocketcrab.com/rocket.svg' alt='' width='16')

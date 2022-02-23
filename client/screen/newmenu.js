@@ -18,7 +18,7 @@ class NewMenu extends Screen {
         super.initialize(props);
 
         this.backButton.click(this.onBack);
-        this.goButton.click(function () {
+        this.goButton.click(() => {
             if (!this.isLoading) {
                 this.waitingForResponse(true);
                 const name = $("#newinname").val();

@@ -1,4 +1,4 @@
-import webpackAssets from "../../webpack-assets.json";
+import webpackAssets from "../../webpack-assets.json" assert { type: "json" };
 import WordPacks from "../app/words.js";
 
 const { getAllPackNames } = WordPacks;

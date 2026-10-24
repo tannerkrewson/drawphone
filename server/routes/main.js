@@ -1,5 +1,8 @@
-import webpackAssets from "../../webpack-assets.json" assert { type: "json" };
+import { createRequire } from "module";
 import WordPacks from "../app/words.js";
+
+const require = createRequire(import.meta.url);
+const webpackAssets = require("../../webpack-assets.json");
 
 const { getAllPackNames } = WordPacks;
 

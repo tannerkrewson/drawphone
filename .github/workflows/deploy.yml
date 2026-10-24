@@ -1,40 +1,39 @@
-name: CD
+name: Build deployment image off-host
 
 on:
     push:
         branches:
             - prod
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: drawphone-offhost-image
+    cancel-in-progress: false
 
 jobs:
     build:
         runs-on: ubuntu-latest
-
+        timeout-minutes: 30
         steps:
-            #- uses: CamiloGarciaLaRotta/watermelon-http-client@v1
-            #  id: request
-            #  with:
-            #      url: "https://drawphone.tannerkrewson.com/lock"
-            #      method: post
-            #      headers: '{"Content-Type": "application/json" }'
-            #      data: '{ "password": "${{ secrets.ADMIN_PASSWORD }}" }'
-
-            #- name: Print the response code of the lock
-            #  run: echo ${{ steps.request.outputs.status }}
-            #  shell: bash
-
-            #- name: Wait 15 minutes for in-progress games to finish up (wait 14m + 1m for deploy)
-            #  uses: jakejarvis/wait-action@v0.1.0
-            #  with:
-            #      time: "14m"
-
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v4
+            - name: Install Podman
+              run: |
+                  if ! command -v podman >/dev/null; then
+                      sudo apt-get update
+                      sudo apt-get install -y podman
+                  fi
+            - name: Build committed source with the pinned herokuish image
+              run: bash scripts/build-image.sh "$RUNNER_TEMP/drawphone-image"
+            - uses: actions/upload-artifact@v4
               with:
-                  ref: "prod"
-                  fetch-depth: "0"
+                  name: drawphone-image-${{ github.sha }}
+                  path: ${{ runner.temp }}/drawphone-image/
+                  compression-level: 0
+                  retention-days: 7
 
-            - name: Push to dokku
-              uses: dokku/github-action@v1
-              with:
-                  git_remote_url: 'ssh://dokku@134.209.222.77:22/drawphone'
-                  ssh_private_key: ${{ secrets.PRIVATE_KEY }}
-                  branch: prod
+# Intentionally no git push/SSH/deployment step: the shared production host must
+# never compile the application. Download the artifact and run deploy-image.sh
+# from an authorized admin machine only during the coordinator's exclusive slot.

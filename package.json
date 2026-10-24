@@ -4,11 +4,12 @@
     "description": "Telephone with pictures",
     "private": true,
     "scripts": {
-        "start": "run-s build:prod start:prod",
+        "start": "npm run start:prod",
+        "heroku-postbuild": "npm run build:prod",
         "dev": "run-p start:dev build:dev",
         "start:dev": "nodemon --exec npm run start:prod --ignore server/public/ --delay 2",
         "build:dev": "webpack --mode development --watch",
-        "start:prod": "node --experimental-json-modules ./server/bin/www",
+        "start:prod": "node ./server/bin/www.js",
         "build:prod": "webpack --mode production",
         "test": "cross-env NODE_OPTIONS=--experimental-vm-modules npx jest",
         "format": "prettier --write **/*.{js,ts,tsx,json,yml,md}",
@@ -78,7 +79,7 @@
     },
     "type": "module",
     "engines": {
-        "node": "16.x",
-        "npm": "8.x"
+        "node": "22.23.4",
+        "npm": "10.9.9"
     }
 }

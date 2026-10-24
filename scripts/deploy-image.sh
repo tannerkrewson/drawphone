@@ -3,6 +3,7 @@
 set -euo pipefail
 artifacts=$(realpath "${1:?Usage: scripts/deploy-image.sh ARTIFACT_DIRECTORY [root@host]}")
 host=${2:-root@134.209.222.77}
+ssh_options=(-o BatchMode=yes -o StrictHostKeyChecking=yes)
 (cd "$artifacts" && sha256sum -c image.tar.sha256)
 image=$(<"$artifacts/image.tag")
 expected=$(<"$artifacts/image.id")
@@ -11,10 +12,14 @@ revision=$(<"$artifacts/source.commit")
 [[ $expected =~ ^sha256:[a-f0-9]{64}$ && $revision =~ ^[a-f0-9]{40}$ ]]
 archive_sha=$(sha256sum "$artifacts/image.tar" | cut -d ' ' -f 1)
 remote="/var/tmp/drawphone-image-${revision}-$(date -u +%Y%m%dT%H%M%SZ).tar"
-# Headroom for archive, loaded layers and a brief overlapping web container.
-ssh "$host" 'test "$(df -B1 --output=avail /var/lib/docker | tail -1)" -gt 6442450944 && test "$(awk '\''/MemAvailable:/ {print $2}'\'' /proc/meminfo)" -gt 409600'
-scp "$artifacts/image.tar" "$host:$remote"
-ssh "$host" bash -s -- "$remote" "$archive_sha" "$image" "$expected" "$revision" <<'REMOTE'
+# The uncompressed Docker archive bounds new image-layer bytes conservatively.
+# Allow archive + a full second copy of layers + 2 GiB reserve, at least 6 GiB.
+archive_bytes=$(stat -c %s "$artifacts/image.tar")
+required=$((archive_bytes * 2 + 2147483648))
+(( required >= 6442450944 )) || required=6442450944
+ssh "${ssh_options[@]}" "$host" "test \"\$(df -B1 --output=avail /var/lib/docker | tail -1)\" -gt $required && test \"\$(awk '/MemAvailable:/ {print \$2}' /proc/meminfo)\" -gt 409600"
+scp "${ssh_options[@]}" "$artifacts/image.tar" "$host:$remote"
+ssh "${ssh_options[@]}" "$host" bash -s -- "$remote" "$archive_sha" "$image" "$expected" "$revision" <<'REMOTE'
 set -euo pipefail
 archive=$1; checksum=$2; image=$3; expected=$4; revision=$5
 printf '%s  %s\n' "$checksum" "$archive" | sha256sum -c -
@@ -32,7 +37,11 @@ test "$(docker image inspect --format '{{.Id}}' "$rollback")" = "$old"
 printf '%s\n' "$old" > "$backup/old-image.id"
 printf '%s\n' "$rollback" > "$backup/rollback.tag"
 printf '%s\n' "$revision" > "$backup/new-source.commit"
+# Recheck after transfer, before expanding layers, and again after import.
+test "$(df -B1 --output=avail /var/lib/docker | tail -1)" -gt "$(($(stat -c %s "$archive") + 2147483648))"
 docker load -i "$archive"
+test "$(df -B1 --output=avail /var/lib/docker | tail -1)" -gt 2147483648
+test "$(awk '/MemAvailable:/ {print $2}' /proc/meminfo)" -gt 409600
 test "$(docker image inspect --format '{{.Id}}' "$image")" = "$expected"
 test "$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$image")" = "$revision"
 # Documented Dokku 0.36.3 path: replaces app deploy ref with a FROM-only Dockerfile.

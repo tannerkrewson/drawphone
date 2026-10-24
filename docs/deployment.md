@@ -11,7 +11,7 @@ Webpack runs exactly once through `heroku-postbuild` before pruning. Assets and 
 ## Build and verify (off-host only)
 
 1. Review and commit the scoped patch on the production-based security branch.
-2. `bash scripts/build-image.sh /tmp/drawphone-release-UNIQUE`
+2. `bash scripts/build-image.sh "$HOME/.cache/drawphone-cve-build/release-UNIQUE"` (disk-backed storage only; the default is a revision-named directory there). Never place multi-GB archives or build working files in RAM-backed `/tmp`. The script rejects tmpfs output, checks local memory, and stops its own running build on a handled abort before releasing the shared lock. Use a sufficiently long harness timeout; after any unhandled crash, inspect the named container before starting another build.
 3. Inspect `image.id`, `image.tag`, `source.commit`, and validate `image.tar.sha256`. Smoke-test the exact resulting image with `/start web`, runtime configuration containing no secrets, and a local port before proceeding.
 4. The `prod` GitHub workflow performs this build and uploads the directory as an artifact. It **does not deploy or use SSH secrets**. The old direct git-push-to-Dokku action was removed to prevent accidental droplet compilation. Download/unpack the artifact and use the same deployment script below. A manual-dispatch workflow is discoverable only once present on the repository default branch; until then use the local script or the `prod` push build. No new credentials or registry are needed. GitHub requires Actions artifact-download access; production deployment uses the admin's existing root SSH access, not the old `PRIVATE_KEY` action secret.
 
@@ -19,11 +19,12 @@ Webpack runs exactly once through `heroku-postbuild` before pruning. Assets and 
 
 Do not run this concurrently with other app deployments. Recheck other apps, available memory/disk, and the existing running image immediately before the slot. No host upgrades, pruning, unrelated restarts or firewall changes.
 
-`bash scripts/deploy-image.sh /tmp/drawphone-release-UNIQUE root@134.209.222.77`
+`bash scripts/deploy-image.sh "$HOME/.cache/drawphone-cve-build/release-UNIQUE" root@134.209.222.77`
 
 The script:
 
-- checks the local archive checksum and minimum host headroom (6 GiB disk, 400 MiB available RAM; these are gates, not guarantees);
+- checks the local archive checksum and host headroom (at least twice the uncompressed archive size plus a 2 GiB reserve, minimum 6 GiB disk; 400 MiB available RAM); rechecks disk after transfer and both disk and memory after loading; these are gates, not guarantees;
+- requires strict SSH host verification and existing non-interactive admin credentials; no host-key bypass;
 - transfers a uniquely named archive and verifies its SHA-256 again on the host;
 - requires an existing `prod` ref, creates and verifies a full source Git bundle in a private `/root/drawphone-preimage-TIMESTAMP` directory;
 - protects the actual old running image with `dokku/drawphone:rollback-TIMESTAMP` and verifies its image ID;

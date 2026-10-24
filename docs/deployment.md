@@ -26,7 +26,9 @@ The script:
 - checks the local archive checksum and host headroom (at least twice the uncompressed archive size plus a 2 GiB reserve, minimum 6 GiB disk; 400 MiB available RAM); rechecks disk after transfer and both disk and memory after loading; these are gates, not guarantees;
 - requires strict SSH host verification and existing non-interactive admin credentials; no host-key bypass;
 - transfers a uniquely named archive and verifies its SHA-256 again on the host;
-- requires an existing `prod` ref, creates and verifies a full source Git bundle in a private `/root/drawphone-preimage-TIMESTAMP` directory;
+- launches the long import/deploy in a transient `systemd-run` service, with a private `/root/drawphone-deploy-TIMESTAMP/output.log` and atomic `exit` marker; SSH/tool interruption does not terminate the deployment; always reconcile this job and actual containers before retrying;
+- records the original effective app port/proxy reports, explicitly pins those same mappings before import and verifies them afterward; never infer public routing from image `EXPOSE` (Drawphone's observed original mappings are `http:80:5000 https:443:5000`, with app `PORT=5000`; the script reads them afresh);
+- requires an existing `prod` ref, creates and verifies a full source Git bundle in that private job directory;
 - protects the actual old running image with `dokku/drawphone:rollback-TIMESTAMP` and verifies its image ID;
 - uses `docker load`, then verifies the exact loaded image ID and source label;
 - invokes `dokku git:from-image drawphone UNIQUE_IMAGE_TAG`;
@@ -38,4 +40,6 @@ Official Dokku 0.36.3 [image deployment documentation](https://github.com/dokku/
 
 Find the actual `drawphone.web.1` container. Verify image ID/source label, Node `v22.23.4`, npm `10.9.9` (use `/app/.heroku/node/bin` PATH), logs, public HTTP/assets, a disposable game creation, and a WebSocket handshake. Brotli `1.1.0` is the expected patched backport string. Verify other apps' existing containers remain healthy without creating games on them. Existing in-memory games disconnect on the one-app restart. Never report deployment success based solely on image build/import.
 
-If deployment fails, the script attempts restoration using the protected image. If post-deploy health fails, explicitly restore with `dokku git:from-image drawphone dokku/drawphone:rollback-TIMESTAMP`, then verify actual service health. **The old image restores Node 16 and the vulnerability.** Stop escalation and report. The source bundle is for history recovery, not a reason to force-push or run an unplanned source build. Retain rollback and backup until separately authorized to remove them.
+Use a tool timeout of at least 700 seconds when invoking the script. If polling times out or SSH disconnects, inspect the printed job path, its `exit` marker/log, transient systemd unit and actual containers; do not rerun speculatively. The remote job continues independently. Successful completion is not health proof.
+
+If deployment fails or original port preservation fails, the script attempts restoration using the protected image. If post-deploy health fails, explicitly restore with `dokku git:from-image drawphone dokku/drawphone:rollback-TIMESTAMP`, then verify actual service health. **The old image restores Node 16 and the vulnerability.** Stop escalation and report. The source bundle is for history recovery, not a reason to force-push or run an unplanned source build. Retain rollback and backup until separately authorized to remove them.

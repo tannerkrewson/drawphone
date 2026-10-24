@@ -31,7 +31,7 @@ The script:
 - requires an existing `prod` ref, creates and verifies a full source Git bundle in that private job directory;
 - protects the actual old running image with `dokku/drawphone:rollback-TIMESTAMP` and verifies its image ID;
 - uses `docker load`, then verifies the exact loaded image ID and source label;
-- invokes `dokku git:from-image drawphone UNIQUE_IMAGE_TAG`;
+- invokes `dokku git:from-image drawphone UNIQUE_IMAGE_TAG`, then re-verifies the rollback tag is still addressable (retagging it from the preserved old image ID if needed); a live deployment without a usable rollback fails the job with a critical warning;
 - removes only its successfully consumed archive, never images or other apps' files.
 
 Official Dokku 0.36.3 [image deployment documentation](https://github.com/dokku/dokku/blob/v0.36.3/docs/deployment/methods/image.md) and its `plugins/git/git-from-image` implementation specify a generated Dockerfile with `FROM IMAGE`. This **replaces the app's deploy branch contents**, hence the bundle backup. It performs a tiny FROM/label-only image build, **not application compilation**. Local images skip a registry pull. The GitHub source repository remains unchanged. Dokku's scheduler detects the herokuish-based image, uses its `/start` and generated `Procfile`, and retains app configuration, routing and scale. Do not assume `GIT_REV` is the application commit after importing; use the image revision label and recorded `source.commit`.
@@ -39,6 +39,8 @@ Official Dokku 0.36.3 [image deployment documentation](https://github.com/dokku/
 ## Mandatory post-deploy verification
 
 Find the actual `drawphone.web.1` container. Verify image ID/source label, Node `v22.23.4`, npm `10.9.9` (use `/app/.heroku/node/bin` PATH), logs, public HTTP/assets, a disposable game creation, and a WebSocket handshake. Brotli `1.1.0` is the expected patched backport string. Verify other apps' existing containers remain healthy without creating games on them. Existing in-memory games disconnect on the one-app restart. Never report deployment success based solely on image build/import.
+
+Benign warnings such as "bad revision HEAD" or an openresty include warning may appear during Dokku operations; judge success by the job exit marker, container state and health checks, not by warning text.
 
 Use a tool timeout of at least 700 seconds when invoking the script. If polling times out or SSH disconnects, inspect the printed job path, its `exit` marker/log, transient systemd unit and actual containers; do not rerun speculatively. The remote job continues independently. Successful completion is not health proof.
 

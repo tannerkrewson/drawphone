@@ -73,7 +73,17 @@ if [[ $(dokku ports:report drawphone --ports-map) != "$mapping" ]]; then
     dokku git:from-image drawphone "$rollback"
     exit 1
 fi
-printf 'New image: %s\nRollback reference: %s\nSource backup/job: %s\n' "$expected" "$rollback" "$job"
+# Dokku image tagging may remove/retag app images; rollback must remain addressable.
+if [[ $(docker image inspect --format '{{.Id}}' "$rollback" 2>/dev/null || true) != "$old" ]]; then
+    if docker image inspect --format '{{.Id}}' "$old" >/dev/null 2>&1; then
+        docker tag "$old" "$rollback"
+    fi
+    if [[ $(docker image inspect --format '{{.Id}}' "$rollback" 2>/dev/null || true) != "$old" ]]; then
+        echo 'CRITICAL: new deployment is live but the rollback image is no longer addressable.' >&2
+        exit 1
+    fi
+fi
+printf 'New image: %s\nVerified rollback: %s -> %s\nSource backup/job: %s\n' "$expected" "$rollback" "$old" "$job"
 rm -- "$archive"
 REMOTE
 chmod 700 "$job/run.sh"

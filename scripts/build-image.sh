@@ -25,7 +25,8 @@ podman commit --format docker \
     --change 'EXPOSE 5000' \
     --change "LABEL org.opencontainers.image.revision=$revision" \
     "$name" "$image"
-podman image inspect --format '{{.Id}}' "$image" > "$out/image.id"
+id=$(podman image inspect --format '{{.Id}}' "$image")
+printf 'sha256:%s\n' "${id#sha256:}" > "$out/image.id"
 printf '%s\n' "$image" > "$out/image.tag"
 printf '%s\n' "$revision" > "$out/source.commit"
 podman save --format docker-archive -o "$out/image.tar" "$image"

@@ -453,48 +453,6 @@ span.avoidwrap {
 .chain-export {
     width: 600px;
     padding: 36px;
-    background: #f8f2e7;
-    color: #23323c;
-    color-scheme: light;
     text-align: center;
     overflow-wrap: anywhere;
-}
-
-.chain-export header {
-    padding-bottom: 16px;
-    margin-bottom: 28px;
-    border-bottom: 2px solid #ae6b46;
-}
-
-.chain-export header h1 {
-    font-size: 3rem;
-    margin: 0 0 4px;
-}
-
-.chain-export header p {
-    margin: 0;
-    color: #55544e;
-}
-
-.chain-export h4 {
-    font-size: 1.1rem;
-    color: #55544e;
-}
-
-.chain-export .drawing {
-    outline: none;
-    border: 1px solid #d8c9b8;
-    border-radius: 10px;
-}
-
-.chain-export .well {
-    color: #23323c;
-    background: #efe2d0;
-    border: 0;
-    box-shadow: none;
-    margin-bottom: 0;
-}
-
-.chain-export .well h1:last-child {
-    margin-bottom: 0;
 }

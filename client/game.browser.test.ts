@@ -279,6 +279,15 @@ async function checkExport(doc: Document) {
     canvas.height = image.naturalHeight;
     const context = canvas.getContext("2d")!;
     context.drawImage(image, 0, 0);
+    const dark = doc.documentElement.dataset.theme === "dark";
+    expect([...context.getImageData(0, 0, 1, 1).data]).toEqual(
+        dark ? [23, 25, 29, 255] : [255, 255, 255, 255],
+    );
+    for (const x of [272, 300]) {
+        const { data } = context.getImageData(x, 48, 26, 30);
+        expect(data.some((red, i) => i % 4 === 0 && (dark ? red > 200 : red < 60))).toBe(true);
+    }
+
     const { data } = context.getImageData(160, 220, 280, 500);
     expect(
         data.some((red, i) => i % 4 === 0 && red < 20 && data[i + 1] < 20 && data[i + 2] < 20),

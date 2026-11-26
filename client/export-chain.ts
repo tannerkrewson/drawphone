@@ -5,12 +5,9 @@ export async function exportChain(content: HTMLElement, number: number, owner: s
 
     const poster = document.createElement("article");
     poster.className = "chain-export";
-    const header = document.createElement("header");
-    const title = document.createElement("h1");
-    title.textContent = "Drawphone";
-    const credit = document.createElement("p");
-    credit.textContent = `Chain ${number} · ${owner}`;
-    header.append(title, credit);
+    const template = document.querySelector<HTMLTemplateElement>("#result-export-header")!;
+    const header = template.content.cloneNode(true) as DocumentFragment;
+    header.querySelector("p")!.textContent = `Chain ${number} · ${owner}`;
 
     const chain = content.cloneNode(true) as HTMLElement;
     chain.removeAttribute("id");
@@ -31,7 +28,11 @@ export async function exportChain(content: HTMLElement, number: number, owner: s
             }
         }
         const { snapdom } = await import("@zumer/snapdom");
-        const capture = await snapdom(poster, { dpr: 1, embedFonts: true });
+        const capture = await snapdom(poster, {
+            dpr: 1,
+            embedFonts: true,
+            backgroundColor: getComputedStyle(document.body).backgroundColor,
+        });
         return await capture.toBlob({ format: "png" });
     } finally {
         staging.remove();

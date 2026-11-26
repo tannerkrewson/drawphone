@@ -17,4 +17,4 @@ Run `npm run format`, `npm run lint`, `npm run typecheck`, and `npm test` to che
 
 ## Hosting
 
-GitHub Pages publishes `dist/` from `main`. The four pages are the landing page, how to play, the results archive, and `drawphone.html`. Nova loads that last page as one self-contained HTML file. Nova handles players, shared state, and drawing files during a round. The results archive uses IndexedDB on the device where you played.
+GitHub Pages publishes `dist/` from `main` when the `DRAWPHONE_PAGES_ENABLED` repository variable is set to `true`. The four pages are the landing page, how to play, the results archive, and `drawphone.html`. Nova loads that last page as one self-contained HTML file. Nova handles players, shared state, and drawing files during a round. The results archive uses IndexedDB on the device where you played.

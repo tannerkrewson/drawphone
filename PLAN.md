@@ -1,10 +1,10 @@
 # Drawphone production cutover
 
-The static Nova port is on `docs/plan`, based on `origin/prod`. Dokku serves
-the current version until the GitHub Pages and rocketcrab cutover.
+Dokku serves the current version until the GitHub Pages and rocketcrab cutover.
+The Pages workflow is gated by the `DRAWPHONE_PAGES_ENABLED` repository variable.
 
-- Fast-forward GitHub's `prod` to the implementation, rename it to `main`,
-  and set `main` as the default. GitHub Actions is already the Pages source.
+- Set `DRAWPHONE_PAGES_ENABLED` to `true` when ready to publish and run
+  the workflow on `main`.
 - Publish Pages and verify that `drawphone.html` returns
   `Access-Control-Allow-Origin: *`. Set the custom domain in GitHub Pages
   settings and point `drawphone.tannerkrewson.com` to GitHub Pages in
@@ -17,8 +17,6 @@ the current version until the GitHub Pages and rocketcrab cutover.
 - Verify that rocketcrab launches a round and that the public archive still
   opens at `/archive`. Stop the Dokku app, then delete or redirect the
   `dpk` DNS record.
-- Delete GitHub branches `dev`, `ai`, `security/node22-brotli`, `es5-to-es6`,
-  `tape`, and every `dependabot/*` branch once the cutover is verified.
 
 ## Deferred
 

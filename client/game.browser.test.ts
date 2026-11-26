@@ -181,6 +181,9 @@ async function play(wordFirst: boolean, reloadDrawing: boolean) {
 
     documents.forEach((doc, index) => {
         expect(element(doc, "title").textContent).toMatch(/^Please draw: /);
+        for (const id of ["game-send", "game-drawing-undo", "game-drawing-redo"]) {
+            expect(element(doc, id).getClientRects().length).toBeGreaterThan(0);
+        }
         pointStroke(doc, 20 * index);
     });
     if (reloadDrawing) {

@@ -25,12 +25,12 @@ jobs:
             - run: npm test
             - run: npm run build
             - uses: actions/upload-pages-artifact@v5
-              if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+              if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.DRAWPHONE_PAGES_ENABLED == 'true'
               with:
                   path: dist
 
     deploy:
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.DRAWPHONE_PAGES_ENABLED == 'true'
         needs: build
         runs-on: ubuntu-latest
         concurrency: github-pages

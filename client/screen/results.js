@@ -16,9 +16,6 @@ class Results extends Screen {
         const preview = $("#result-export-preview").get(0);
         const image = $("#result-export-image").get(0);
         const download = $("#result-export-download").get(0);
-        const embedded = window.top !== window;
-        $("#result-export-help").toggleClass("d-none", !embedded);
-        $(download).toggleClass("d-none", embedded);
         $("#result-export-close").on("click", () => preview.close());
         preview.addEventListener("close", () => {
             URL.revokeObjectURL(image.src);

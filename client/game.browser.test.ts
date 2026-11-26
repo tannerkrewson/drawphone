@@ -270,6 +270,10 @@ async function checkExport(doc: Document) {
     expect(image.naturalHeight).toBeGreaterThan(600);
     const blob = await (await fetch(image.src)).blob();
     expect(blob.type).toBe("image/png");
+    const download = element<HTMLAnchorElement>(doc, "result-export-download");
+    expect(download.getClientRects().length).toBeGreaterThan(0);
+    expect(download.href).toBe(image.src);
+    expect(download.download).toMatch(/^drawphone-chain-\d+\.png$/);
     const canvas = doc.createElement("canvas");
     canvas.width = image.naturalWidth;
     canvas.height = image.naturalHeight;

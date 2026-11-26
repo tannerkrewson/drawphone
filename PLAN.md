@@ -26,6 +26,3 @@ The Pages workflow is gated by the `DRAWPHONE_PAGES_ENABLED` repository variable
   the Drawphone site itself.
 - The current player's name labels the seat in live results, including
   for links submitted before the replacement joined.
-- Nova's game iframe blocks page-triggered downloads. Drawphone shows a PNG
-  preview players can save from the browser. An explicit user-initiated export
-  API in Nova could offer a direct download inside parties.

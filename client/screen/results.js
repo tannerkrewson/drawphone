@@ -1,4 +1,5 @@
 import { DRAWING, WORD, FIRST_WORD } from "../../shared/enums.js";
+import { exportChain } from "../export-chain";
 import Screen from "./screen.js";
 
 /* global $, ga */
@@ -11,6 +12,38 @@ class Results extends Screen {
 
         this.id = "#result";
         this.showDrawing = showDrawing;
+        this.exportButton = $("#result-export");
+        const preview = $("#result-export-preview").get(0);
+        const image = $("#result-export-image").get(0);
+        const download = $("#result-export-download").get(0);
+        const embedded = window.top !== window;
+        $("#result-export-help").toggleClass("d-none", !embedded);
+        $(download).toggleClass("d-none", embedded);
+        $("#result-export-close").on("click", () => preview.close());
+        preview.addEventListener("close", () => {
+            URL.revokeObjectURL(image.src);
+            image.removeAttribute("src");
+            download.removeAttribute("href");
+        });
+        this.exportButton.on("click", async () => {
+            const { number, owner } = this.chain;
+            this.exporting = true;
+            this.exportButton.prop("disabled", true).text("Making image...");
+            $("#result-export-status").text("");
+            try {
+                const blob = await exportChain($("#result-content").get(0), number, owner);
+                const url = URL.createObjectURL(blob);
+                image.src = url;
+                download.href = url;
+                download.download = `drawphone-chain-${number}.png`;
+                preview.showModal();
+            } catch {
+                $("#result-export-status").text("Could not make the image. Try again.");
+            } finally {
+                this.exporting = false;
+                this.exportButton.text("Export chain as image").prop("disabled", !this.chain.ready);
+            }
+        });
 
         $("#result-done").on("click", () => {
             this.onDoneViewingResults();
@@ -29,13 +62,21 @@ class Results extends Screen {
         this.setTitle(`Results #${chainNumber + 1}`);
         const subtitle = `${chainToShow.owner.name} should present these results to the group!`;
         this.setSubtitle(subtitle);
-        this.displayChain(chainToShow);
+        const chain = { number: chainNumber + 1, owner: chainToShow.owner.name, ready: false };
+        this.chain = chain;
+        this.exportButton.prop("disabled", true);
+        $("#result-export-status").text("");
+        Promise.allSettled(this.displayChain(chainToShow)).then(() => {
+            chain.ready = true;
+            if (this.chain === chain && !this.exporting) this.exportButton.prop("disabled", false);
+        });
         this.displayOtherChainButtons(allChains, chainToShow);
     }
 
     displayChain({ links }) {
         const results = $("#result-content");
         results.empty();
+        const drawings = [];
 
         const firstIndex = links[0].type === FIRST_WORD ? 1 : 0;
         for (let i = firstIndex; i < links.length; i++) {
@@ -61,7 +102,7 @@ class Results extends Screen {
                     .get(0);
                 if (link.ref) {
                     const status = $("<p role='status'>").appendTo(results).get(0);
-                    this.showDrawing(image, status, link);
+                    drawings.push(this.showDrawing(image, status, link));
                 } else if (
                     typeof link.data === "string" &&
                     /^data:image\/svg\+xml[;,]/.test(link.data)
@@ -81,6 +122,7 @@ class Results extends Screen {
             .append("<br>")
             .append($("<h4>").text("and ended up with:"), $("<h1>").text(links.at(-1).data))
             .appendTo(results);
+        return drawings;
     }
 
     displayOtherChainButtons(chainsToList, { id }) {

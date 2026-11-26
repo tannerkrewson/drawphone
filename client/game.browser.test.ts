@@ -261,8 +261,31 @@ async function play(wordFirst: boolean, reloadDrawing: boolean) {
     return { leader: documents[0], state };
 }
 
+async function checkExport(doc: Document) {
+    const button = element<HTMLButtonElement>(doc, "result-export");
+    await expect.poll(() => button.disabled).toBe(false);
+    button.click();
+    const image = element<HTMLImageElement>(doc, "result-export-image");
+    await expect.poll(() => image.naturalWidth, { timeout: 10000 }).toBe(600);
+    expect(image.naturalHeight).toBeGreaterThan(600);
+    const blob = await (await fetch(image.src)).blob();
+    expect(blob.type).toBe("image/png");
+    const canvas = doc.createElement("canvas");
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    const context = canvas.getContext("2d")!;
+    context.drawImage(image, 0, 0);
+    const { data } = context.getImageData(160, 220, 280, 500);
+    expect(
+        data.some((red, i) => i % 4 === 0 && red < 20 && data[i + 1] < 20 && data[i + 2] < 20),
+    ).toBe(true);
+    expect(element<HTMLDialogElement>(doc, "result-export-preview").open).toBe(true);
+    element(doc, "result-export-close").click();
+}
+
 test("three players finish a word-pack game, reload a draft and reopen new and old results", async () => {
     const { leader, state } = await play(false, true);
+    await checkExport(leader);
     const oldDrawing =
         "data:image/svg+xml;base64," +
         btoa(

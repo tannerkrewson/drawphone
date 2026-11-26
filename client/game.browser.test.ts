@@ -316,3 +316,42 @@ test("solo demo only starts after confirmation", async () => {
     demo.querySelector<HTMLButtonElement>('[value="start"]')!.click();
     await expect.poll(() => session.state().phase).toBe("round");
 });
+
+test("footer theme persists and keeps the drawing canvas white", async () => {
+    const session = await party(1);
+    const [leader] = session.documents;
+    const picker = element<HTMLSelectElement>(leader, "drawphone-theme");
+    const storage = window.localStorage;
+    const previous = storage.getItem("drawphone:theme");
+    const select = (value: string) => {
+        picker.value = value;
+        picker.dispatchEvent(new Event("change"));
+    };
+
+    try {
+        select("auto");
+        const systemDark = leader.defaultView!.matchMedia("(prefers-color-scheme: dark)").matches;
+        expect(leader.documentElement.dataset.theme).toBe(systemDark ? "dark" : "light");
+        select("light");
+        expect(leader.documentElement.dataset.theme).toBe("light");
+        select("dark");
+        session.start();
+        await session.reload(0);
+        const reloaded = session.documents[0];
+        expect(reloaded.documentElement.dataset.theme).toBe("dark");
+        expect(element<HTMLSelectElement>(reloaded, "drawphone-theme").value).toBe("dark");
+        element(reloaded, "lobby-settings-wordfirst").click();
+        element(reloaded, "lobby-start").click();
+        element(reloaded, "demo-confirm")
+            .querySelector<HTMLButtonElement>('[value="start"]')!
+            .click();
+        answer(reloaded, "A phone");
+        const canvas = reloaded.querySelector(".lower-canvas")!;
+        expect(reloaded.defaultView!.getComputedStyle(canvas).backgroundColor).toBe(
+            "rgb(255, 255, 255)",
+        );
+    } finally {
+        if (previous === null) storage.removeItem("drawphone:theme");
+        else storage.setItem("drawphone:theme", previous);
+    }
+});

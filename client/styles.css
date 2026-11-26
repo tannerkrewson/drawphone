@@ -373,3 +373,61 @@ span.avoidwrap {
 .phone-icon {
     transform: scaleX(-1);
 }
+
+.footer-theme {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+}
+
+#drawphone-theme {
+    width: auto;
+}
+
+.drawing {
+    background-color: #fff;
+}
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --theme-bg: #17191d;
+    --theme-surface: #24272c;
+    --theme-raised: #363b43;
+    --theme-border: #686e78;
+    --theme-text: #f0f1f3;
+}
+
+[data-theme="dark"] body {
+    background-color: var(--theme-bg);
+    color: var(--theme-text);
+}
+
+[data-theme="dark"] a:not(.btn) {
+    color: #9bc2ff;
+}
+
+[data-theme="dark"] :is(.pencil-icon, .phone-icon) {
+    filter: invert(1);
+}
+
+[data-theme="dark"] :is(.btn-default, .form-control, .input-group-text, .well, dialog) {
+    color: var(--theme-text);
+    background-color: var(--theme-surface);
+    border-color: var(--theme-border);
+}
+
+[data-theme="dark"] :is(.btn-default:hover, .form-control:disabled, .disconnected) {
+    background-color: var(--theme-raised);
+}
+
+[data-theme="dark"] :is(hr, .user, #lobby-settings) {
+    border-color: var(--theme-border);
+}
+
+[data-theme="dark"] .form-control::placeholder {
+    color: #b5bac3;
+}
+
+[data-theme="dark"] .text-danger {
+    color: #ffa7ac !important;
+}

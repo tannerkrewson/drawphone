@@ -1,5 +1,6 @@
 import Screen from "./screen.js";
 import UserList from "../userlist.js";
+import { getNewTurnLimit } from "../../shared/util.js";
 import WordPacks from "../../server/app/words.js";
 
 /* global $, ga */
@@ -31,7 +32,9 @@ class Lobby extends Screen {
         $("#timelimit-plus").on("click", () => change("time", 1));
         $("#turnlimit-minus").on("click", () => change("turns", -1));
         $("#turnlimit-plus").on("click", () => change("turns", 1));
-        this.startButton.on("click", async () => {
+        const demo = $("#demo-confirm").get(0);
+        const start = async () => {
+            if (this.startButton.prop("disabled")) return;
             const { time, turns, wordFirst, pack } = this.settings;
             const playerCount = this.playerCount;
             if (!(await emit("start"))) return;
@@ -41,6 +44,15 @@ class Lobby extends Screen {
             ga("send", "event", "Game", "word pack", wordFirst ? false : pack);
             ga("send", "event", "Game", "number of players", playerCount);
             ga("send", "event", "Game", "number of total players", playerCount);
+        };
+        this.startButton.on("click", () => {
+            if (this.playerCount !== 1) return start();
+            demo.showModal();
+        });
+        demo.querySelector("form").addEventListener("submit", (event) => {
+            event.preventDefault();
+            demo.close();
+            if (event.submitter.value === "start") start();
         });
     }
 
@@ -58,23 +70,46 @@ class Lobby extends Screen {
                     : "Waiting for the party leader..."
                 : "Waiting for the party...",
         );
-        $("#lobby-settings").toggleClass("d-none", !leader || !started);
+        $("#lobby-settings").toggleClass("d-none", !started || !settings);
+        $(".lobby-setting").prop("disabled", !leader);
         $("#lobby-prevres").toggleClass("d-none", !previous);
         this.startButton
             .toggleClass("d-none", !leader || !started)
-            .text(previous ? "Play Again" : "Start Game")
-            .prop("disabled", !players.length || twoWordFirst || saving);
+            .prop(
+                "disabled",
+                !leader ||
+                    !players.length ||
+                    twoWordFirst ||
+                    saving ||
+                    (!settings?.wordFirst && !settings?.pack),
+            );
 
         if (!settings) return;
-        this.wordPackDropdown.empty();
+        this.wordPackDropdown
+            .empty()
+            .append($("<option disabled value=''>").text("Select a word pack..."));
         for (const name of WordPacks.getAllPackNames(!settings.mature)) {
             $("<option>").text(name).appendTo(this.wordPackDropdown);
         }
-        this.wordPackDropdown.val(settings.pack).prop("disabled", settings.wordFirst);
+        this.wordPackDropdown
+            .val(settings.pack ?? "")
+            .prop("disabled", !leader || settings.wordFirst);
         this.wordFirstCheckbox.prop("checked", settings.wordFirst);
         this.matureCheckbox.prop("checked", settings.mature);
-        $("#lobby-settings-turnlimit").text(players.length === 1 ? "Demo" : settings.turns);
-        $("#turnlimit-minus, #turnlimit-plus").prop("disabled", players.length <= 3);
+        const validTurns = players.length > 1 && settings.turns <= players.length;
+        const { isMax } = getNewTurnLimit({
+            modifier: 0,
+            prevTurnLimit: settings.turns,
+            numPlayers: players.length,
+            isWordFirst: settings.wordFirst,
+        });
+        $("#lobby-settings-turnlimit").text(
+            validTurns ? `${settings.turns} turns${isMax ? " (max)" : ""}` : "N/A",
+        );
+        $("#lobby-settings-gametime").text(
+            validTurns ? `(round will take about ${settings.turns} minutes)` : "",
+        );
+        $("#turnlimit-minus, #turnlimit-plus").prop("disabled", !leader || players.length <= 3);
         $("#lobby-settings-timelimit").text(
             settings.time === 0 ? "No time limit" : `${settings.time} seconds`,
         );

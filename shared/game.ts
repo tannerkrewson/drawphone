@@ -11,7 +11,7 @@ words.loadAll();
 export const DEFAULT_PACK = WordPacks.getAllPackNames(true)[0];
 
 export type Settings = {
-    pack: string;
+    pack: string | null;
     wordFirst: boolean;
     mature: boolean;
     time: number;
@@ -93,7 +93,7 @@ function advance(state: State, round: Round, previousTurn: number) {
                 chain.push(
                     position % 2 === 1
                         ? [seat, null]
-                        : [seat, words.getRandomWord(state.settings.pack), true],
+                        : [seat, words.getRandomWord(state.settings.pack ?? DEFAULT_PACK), true],
                 );
             }
         }
@@ -137,7 +137,7 @@ export const game: GameDefinition<State> = {
         const state: State = {
             phase: "lobby",
             unseated: players.map(seatablePlayer),
-            settings: { pack: DEFAULT_PACK, wordFirst: false, mature: false, time: 0, turns: 4 },
+            settings: { pack: null, wordFirst: false, mature: false, time: 0, turns: 4 },
             round: null,
         };
         turnSetting(state);
@@ -161,12 +161,13 @@ export const game: GameDefinition<State> = {
                 case "mature":
                     if (typeof value !== "boolean") break;
                     settings.mature = value;
-                    if (!WordPacks.getAllPackNames(!value).includes(settings.pack))
-                        settings.pack = DEFAULT_PACK;
+                    if (settings.pack && !WordPacks.getAllPackNames(!value).includes(settings.pack))
+                        settings.pack = null;
                     return;
                 case "wordFirst":
                     if (typeof value !== "boolean") break;
                     settings.wordFirst = value;
+                    if (value) settings.pack = null;
                     turnSetting(state);
                     return;
                 case "time":
@@ -192,6 +193,7 @@ export const game: GameDefinition<State> = {
                 throw new Error("Players write first word needs three players or solo demo mode.");
             }
             const { wordFirst, turns, pack } = state.settings;
+            if (!wordFirst && !pack) throw new Error("Select a word pack first.");
             const offset = wordFirst ? 0 : 1;
             const turnCount = getRoundLength(count, turns, wordFirst) - offset;
             const seats = shuffle(players.map((player) => ({ ...player })));

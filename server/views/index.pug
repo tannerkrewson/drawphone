@@ -34,6 +34,7 @@ block content
           button#turnlimit-minus.lobby-setting.btn.btn-default -
           span#lobby-settings-turnlimit Loading...
           button#turnlimit-plus.lobby-setting.btn.btn-default +
+        p.mb-3#lobby-settings-gametime
         .checkboxes.mb-2
           .custom-control.custom-switch
             input#lobby-settings-wordfirst.custom-control-input.lobby-setting(type='checkbox')
@@ -43,6 +44,13 @@ block content
             label.custom-control-label(for='lobby-settings-mature') Include 13+ and 18+ word packs
     .btn-toolbar.mb-4
       button#lobby-start.btn.btn-default.btn-lg.d-none(type='button') Start Game
+    dialog#demo-confirm(aria-labelledby='demo-title')
+      form(method='dialog')
+        h5#demo-title Demo mode
+        p Would you like to play Drawphone with just yourself to see how it works?
+        .btn-toolbar
+          button.btn.btn-default.mr-2(value='cancel' autofocus) Cancel
+          button.btn.btn-default(value='start') Start Game
   div#game.d-none
     div#game-drawing.d-none
       h5#game-timer

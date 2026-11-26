@@ -20,11 +20,12 @@ type Client = {
     render: (state: State) => void;
 };
 
-async function party() {
+async function party(playerCount = players.length) {
+    const members = players.slice(0, playerCount);
     let definition: GameDefinition<State>;
     let state: State;
     const leaderId = players[0].id;
-    const context = { players, leaderId };
+    const context = { players: members, leaderId };
     const clients = new Map<number, Client>();
     const files = new Map<string, Blob>();
     let failNextUpload = false;
@@ -32,7 +33,7 @@ async function party() {
 
     Object.assign(window, {
         drawphoneTestNova(index: number): Nova<State> {
-            const actor = players[index];
+            const actor = members[index];
             const client = { started: () => {}, render: (_state: State) => {} };
             clients.set(index, client);
             const noop = () => () => {};
@@ -44,7 +45,7 @@ async function party() {
                     ready[index]();
                 },
                 player: actor,
-                players: [actor, ...players.filter((player) => player !== actor)],
+                players: [actor, ...members.filter((player) => player !== actor)],
                 leaderId,
                 connectionStatus: "connected",
                 onConnectionChange: noop,
@@ -109,7 +110,7 @@ async function party() {
         return loaded;
     }
 
-    const documents = await Promise.all(players.map((_, index) => open(index)));
+    const documents = await Promise.all(members.map((_, index) => open(index)));
     return {
         documents,
         failUpload() {
@@ -168,8 +169,25 @@ async function play(wordFirst: boolean, reloadDrawing: boolean) {
     expect(element(leader, "lobby-players").textContent).toContain(players[0].name);
     expect(element(leader, "lobby-players").querySelector("img")).toBeNull();
     session.start();
-    expect(element(documents[1], "lobby-settings").classList.contains("d-none")).toBe(true);
-    if (wordFirst) element(leader, "lobby-settings-wordfirst").click();
+    const guest = documents[1];
+    const leaderPack = element<HTMLSelectElement>(leader, "lobby-settings-wordpack");
+    const guestPack = element<HTMLSelectElement>(guest, "lobby-settings-wordpack");
+    expect(element(guest, "lobby-settings").getClientRects().length).toBeGreaterThan(0);
+    expect(leaderPack.value).toBe("");
+    expect(element<HTMLButtonElement>(leader, "lobby-start").disabled).toBe(true);
+    expect(guestPack.disabled).toBe(true);
+    expect(element(guest, "lobby-settings-turnlimit").textContent).toBe("2 turns (max)");
+    expect(element(guest, "lobby-settings-gametime").textContent).toBe(
+        "(round will take about 2 minutes)",
+    );
+    if (wordFirst) {
+        element(leader, "lobby-settings-wordfirst").click();
+        expect(element<HTMLInputElement>(guest, "lobby-settings-wordfirst").checked).toBe(true);
+    } else {
+        leaderPack.value = "Animals";
+        leaderPack.dispatchEvent(new Event("change"));
+        expect(guestPack.value).toBe("Animals");
+    }
     element(leader, "lobby-start").click();
 
     if (wordFirst) {
@@ -271,6 +289,7 @@ test("three players finish a word-pack game, reload a draft and reopen new and o
     element(leader, "lobby-prevres").click();
     expect(element(leader, "title").textContent).toBe("Results #1");
     element(leader, "result-done").click();
+    expect(element(leader, "lobby-start").textContent).toBe("Start Game");
     const previousRound = state().round?.id;
     element(leader, "lobby-start").click();
     await expect.poll(() => state().phase).toBe("round");
@@ -281,3 +300,19 @@ test("three players finish a word-pack game, reload a draft and reopen new and o
 test("three players finish a players-write-first game", async () => {
     await play(true, false);
 }, 20000);
+
+test("solo demo only starts after confirmation", async () => {
+    const session = await party(1);
+    const [leader] = session.documents;
+    session.start();
+    element(leader, "lobby-settings-wordfirst").click();
+    const start = element(leader, "lobby-start");
+    const demo = element<HTMLDialogElement>(leader, "demo-confirm");
+    start.click();
+    expect(demo.open).toBe(true);
+    demo.querySelector<HTMLButtonElement>('[value="cancel"]')!.click();
+    expect(session.state().phase).toBe("lobby");
+    start.click();
+    demo.querySelector<HTMLButtonElement>('[value="start"]')!.click();
+    await expect.poll(() => session.state().phase).toBe("round");
+});

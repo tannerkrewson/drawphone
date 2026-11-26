@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { game, isDrawingTurn } from "../../shared/game";
+import { DEFAULT_PACK, game, isDrawingTurn } from "../../shared/game";
 import { rowCompleteLatinSquare } from "./round.js";
 
 function roundGame(count, wordFirst, max = true) {
@@ -10,6 +10,7 @@ function roundGame(count, wordFirst, max = true) {
     const context = { players, actor: players[0], leaderId: players[0].id };
     const state = game.createInitialState(context);
     game.actions.settings(state, context, { key: "wordFirst", value: wordFirst });
+    if (!wordFirst) game.actions.settings(state, context, { key: "pack", value: DEFAULT_PACK });
     if (max) {
         for (let i = 0; i < count / 2; i++)
             game.actions.settings(state, context, { key: "turns", value: 1 });

@@ -96,6 +96,7 @@ async function party(playerCount = players.length) {
 
     function open(index: number) {
         const frame = document.createElement("iframe");
+        frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-downloads");
         frame.width = "390";
         frame.height = "900";
         frame.srcdoc = source.replace(
@@ -373,6 +374,7 @@ test("solo demo only starts after confirmation", async () => {
     start.click();
     expect(demo.open).toBe(true);
     demo.querySelector<HTMLButtonElement>('[value="cancel"]')!.click();
+    expect(demo.open).toBe(false);
     expect(session.state().phase).toBe("lobby");
     start.click();
     demo.querySelector<HTMLButtonElement>('[value="start"]')!.click();
@@ -448,10 +450,15 @@ test("the host can choose a late joiner to fill a vacant seat", async () => {
     )!;
     expect(replacement.querySelector("#waiting-vacant-players button")).toBeNull();
     replace.click();
+    const dialog = element<HTMLDialogElement>(leader, "replace-seat");
+    expect(dialog.open).toBe(true);
+    dialog.querySelector<HTMLButtonElement>('[value="cancel"]')!.click();
+    expect(dialog.open).toBe(false);
+    replace.click();
     const picker = element<HTMLSelectElement>(leader, "replace-seat-player");
     picker.value = "replacement";
     picker.dispatchEvent(new Event("change"));
-    element(leader, "replace-seat").querySelector<HTMLButtonElement>('[value="replace"]')!.click();
+    dialog.querySelector<HTMLButtonElement>('[value="replace"]')!.click();
     await expect
         .poll(() => element(replacement, "title").textContent)
         .toBe("What should be drawn?");

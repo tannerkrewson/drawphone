@@ -44,12 +44,11 @@ block content
     .btn-toolbar.mb-4
       button#lobby-start.btn.btn-default.btn-lg.d-none(type='button') Start Game
     dialog#demo-confirm(aria-labelledby='demo-title')
-      form(method='dialog')
-        h5#demo-title Demo mode
-        p Would you like to play Drawphone with just yourself to see how it works?
-        .btn-toolbar
-          button.btn.btn-default.mr-2(value='cancel' autofocus) Cancel
-          button.btn.btn-default(value='start') Start Game
+      h5#demo-title Demo mode
+      p Would you like to play Drawphone with just yourself to see how it works?
+      .btn-toolbar
+        button.btn.btn-default.mr-2(type='button' value='cancel' autofocus) Cancel
+        button.btn.btn-default(type='button' value='start') Start Game
   div#game.d-none
     div#game-drawing.d-none
       h5#game-timer
@@ -98,10 +97,9 @@ block content
           ul#waiting-vacant-players.list-unstyled.row
         p#waiting-next-round.d-none Waiting for an open seat. You can also join the next round.
     dialog#replace-seat(aria-labelledby='replace-seat-title')
-      form(method='dialog')
-        h5#replace-seat-title
-        label(for='replace-seat-player') Choose a player
-        select#replace-seat-player.form-control.mb-3
-        .btn-toolbar
-          button.btn.btn-default.mr-2(value='cancel') Cancel
-          button.btn.btn-default(value='replace') Replace
+      h5#replace-seat-title
+      label(for='replace-seat-player') Choose a player
+      select#replace-seat-player.form-control.mb-3
+      .btn-toolbar
+        button.btn.btn-default.mr-2(type='button' value='cancel') Cancel
+        button.btn.btn-default(type='button' value='replace') Replace

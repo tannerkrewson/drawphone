@@ -49,10 +49,10 @@ class Lobby extends Screen {
             if (this.playerCount !== 1) return start();
             demo.showModal();
         });
-        demo.querySelector("form").addEventListener("submit", (event) => {
-            event.preventDefault();
+        $("#demo-confirm button[value='cancel']").on("click", () => demo.close());
+        $("#demo-confirm button[value='start']").on("click", () => {
             demo.close();
-            if (event.submitter.value === "start") start();
+            start();
         });
     }
 

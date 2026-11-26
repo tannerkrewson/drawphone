@@ -17,13 +17,11 @@ class Waiting extends Screen {
         this.replacement.on("change", () =>
             this.replaceButton.prop("disabled", !this.replacement.val()),
         );
-        this.replaceDialog.querySelector("form").addEventListener("submit", (event) => {
-            event.preventDefault();
+        $("#replace-seat button[value='cancel']").on("click", () => this.replaceDialog.close());
+        this.replaceButton.on("click", () => {
             const playerId = this.replacement.val();
             this.replaceDialog.close();
-            if (event.submitter.value === "replace" && playerId) {
-                this.onReplace?.(this.selectedSeat, playerId);
-            }
+            if (playerId) this.onReplace?.(this.selectedSeat, playerId);
         });
     }
 

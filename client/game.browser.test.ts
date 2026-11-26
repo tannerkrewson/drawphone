@@ -346,10 +346,21 @@ test("footer theme persists and keeps the drawing canvas white", async () => {
             .querySelector<HTMLButtonElement>('[value="start"]')!
             .click();
         answer(reloaded, "A phone");
-        const canvas = reloaded.querySelector(".lower-canvas")!;
-        expect(reloaded.defaultView!.getComputedStyle(canvas).backgroundColor).toBe(
-            "rgb(255, 255, 255)",
-        );
+        pointStroke(reloaded, 0);
+        const lower = reloaded.querySelector<HTMLCanvasElement>(".lower-canvas")!;
+        const upper = reloaded.querySelector<HTMLCanvasElement>(".upper-canvas")!;
+        const colors = (canvas: HTMLCanvasElement) =>
+            reloaded.defaultView!.getComputedStyle(canvas).backgroundColor;
+        expect(colors(lower)).toBe("rgb(255, 255, 255)");
+        expect(colors(upper)).toBe("rgba(0, 0, 0, 0)");
+        await expect
+            .poll(() => {
+                const { data } = lower
+                    .getContext("2d")!
+                    .getImageData(0, 0, lower.width, lower.height);
+                return data.some((value, index) => index % 4 === 3 && value > 0);
+            })
+            .toBe(true);
     } finally {
         if (previous === null) storage.removeItem("drawphone:theme");
         else storage.setItem("drawphone:theme", previous);

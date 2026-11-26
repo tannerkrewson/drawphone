@@ -384,7 +384,8 @@ span.avoidwrap {
     width: auto;
 }
 
-.drawing {
+/* Fabric copies the drawing class to the transparent input canvas. */
+.drawing:not(.upper-canvas) {
     background-color: #fff;
 }
 

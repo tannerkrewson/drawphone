@@ -107,7 +107,7 @@ function fillSeats(state: State) {
         if (seats.some(({ id }) => id === player.id)) continue;
         const vacant = seats.findIndex(({ id }) => id === null);
         if (vacant < 0) return;
-        seats[vacant] = player;
+        seats[vacant] = { ...player };
     }
 }
 
@@ -175,7 +175,7 @@ export const game: GameDefinition<State> = {
             const { wordFirst, turns, pack } = state.settings;
             const offset = wordFirst ? 0 : 1;
             const turnCount = getRoundLength(count, turns, wordFirst) - offset;
-            const seats = shuffle([...state.players]);
+            const seats = shuffle(state.players.map((player) => ({ ...player })));
             const startedAt = Date.now();
             state.round = {
                 id: startedAt.toString(36) + Math.random().toString(36).slice(2),

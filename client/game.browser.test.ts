@@ -264,6 +264,12 @@ async function play(wordFirst: boolean, reloadDrawing: boolean) {
 async function checkExport(doc: Document) {
     const button = element<HTMLButtonElement>(doc, "result-export");
     await expect.poll(() => button.disabled).toBe(false);
+    expect(button.textContent?.trim()).toBe("Save these results!");
+    expect(button.querySelector("img")).not.toBeNull();
+    expect(
+        button.compareDocumentPosition(element(doc, "result-others")) &
+            Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     button.click();
     const image = element<HTMLImageElement>(doc, "result-export-image");
     await expect.poll(() => image.naturalWidth, { timeout: 10000 }).toBe(600);

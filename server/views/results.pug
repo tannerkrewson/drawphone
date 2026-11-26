@@ -1,9 +1,10 @@
 #result.d-none
-  .btn-toolbar.mb-3
-    button#result-export.btn.btn-default(type='button') Export chain as image
-  p#result-export-status.text-danger(role='alert')
   #result-content
-  br
+  .btn-toolbar.mb-3
+    button#result-export.btn.btn-default(type='button')
+      img.result-export-icon.mr-2(src=icon('image') alt='' width='16')
+      span Save these results!
+  p#result-export-status.text-danger(role='alert')
   #result-others.btn-group-vertical
   br
   br

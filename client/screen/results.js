@@ -13,6 +13,7 @@ class Results extends Screen {
         this.id = "#result";
         this.showDrawing = showDrawing;
         this.exportButton = $("#result-export");
+        const exportLabel = this.exportButton.find("span");
         const preview = $("#result-export-preview").get(0);
         const image = $("#result-export-image").get(0);
         const download = $("#result-export-download").get(0);
@@ -25,7 +26,8 @@ class Results extends Screen {
         this.exportButton.on("click", async () => {
             const { number, owner } = this.chain;
             this.exporting = true;
-            this.exportButton.prop("disabled", true).text("Making image...");
+            this.exportButton.prop("disabled", true);
+            exportLabel.text("Making image...");
             $("#result-export-status").text("");
             try {
                 const blob = await exportChain($("#result-content").get(0), number, owner);
@@ -38,7 +40,8 @@ class Results extends Screen {
                 $("#result-export-status").text("Could not make the image. Try again.");
             } finally {
                 this.exporting = false;
-                this.exportButton.text("Export chain as image").prop("disabled", !this.chain.ready);
+                exportLabel.text("Save these results!");
+                this.exportButton.prop("disabled", !this.chain.ready);
             }
         });
 

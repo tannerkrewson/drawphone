@@ -407,7 +407,7 @@ span.avoidwrap {
     color: #9bc2ff;
 }
 
-[data-theme="dark"] :is(.pencil-icon, .phone-icon, .host-icon) {
+[data-theme="dark"] :is(.pencil-icon, .phone-icon, .host-icon, .result-export-icon) {
     filter: invert(1);
 }
 

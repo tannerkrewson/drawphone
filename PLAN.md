@@ -18,27 +18,35 @@
 - **Git hook:** the old husky pre-commit hook fails because Prettier finds no
   `**/*.ts` files. Use `--no-verify` until lefthook replaces it in step 4.
 
-## Blocked: Nova shared-file limits
+## Nova shared-file limits
 
-Nova's shared-file limits are set in
-`~/code/rocketcrab/packages/protocol/src/limits.ts`. Today they are 256 KiB
-per file, 32 files and 1 MiB in total per session.
+From `~/code/rocketcrab/packages/protocol/src/limits.ts`:
 
-- **How the budget works:** it's live. Removing a ref from state frees its
-  space, and uploads still waiting to be referenced count against it.
-- **Why it's too small:** a round keeps n × (drawings per chain) drawings
-  referenced at once. That's about n²/2 at the maximum turns, for example
-  648 drawings for 36 players × 36 turns.
-- **Ask Tanner for:**
-  - `gameFilesMax` raised to about 1,024–4,096.
-  - `gameFilesTotalBytes` raised to about 4 MiB, or 8 MiB to keep full
-    quality at 64 players × 64 turns.
-  - 256 KiB per file kept.
-  - Optionally, the limits exposed to games at runtime.
-- **What's blocked:** only `maxPlayers: 64` and supporting large games. Until
-  the limits change, build step 6 against the current values. Seven players can use their full turn range within 32 refs, including pending uploads. Keep them as
-  constants in one module that the budget math reads, so only those
-  constants change later.
+- **One budget:** all of a game's files together share
+  `gameFilesTotalBytes`, 2 MiB (the same as a game's HTML). There is no
+  per-file or file-count limit.
+- **What counts:** each file costs its size plus a 37-byte header and its
+  MIME type. While an upload is in flight, Nova reserves room for the
+  longest MIME type (127 bytes), so budget 164 bytes of overhead per file.
+- **Live accounting:** removing a ref from state frees its space. An upload
+  counts as soon as it's stored, and is dropped if no state references it
+  within 10 seconds.
+- **Upload rate:** each player averages 256 KiB/s; after a large upload the
+  next one waits. Drawings are far below that.
+
+What it means for Drawphone: a round references its drawings plus at most
+one pending upload per player, so each drawing gets
+`floor(2 MiB ÷ (drawings + players)) − 164` bytes. At full turn ranges that
+is about 85 KB for 6 players, 3 KB for 36 and 830 bytes for 64.
+
+- **Decision for Tanner:** 830 bytes of gzipped SVG is only a few strokes.
+  Either accept it for very large parties (the ink meter makes it visible),
+  or change how large parties play (for example, a turn range that doesn't
+  grow with the player count) before shipping `maxPlayers: 64`. Nova's 2 MiB
+  is what a reload must download, the same as the game itself, so raising it
+  isn't the fix.
+- Keep the limit and overhead as constants in one module, with a comment
+  pointing at `limits.ts`. Nova doesn't expose them to games at runtime.
 
 ## 1. Branches
 
@@ -144,7 +152,7 @@ Remove:
 ### Game logic
 
 - Add a new `.ts` module that calls `nova.defineGame` with title
-  `Drawphone`, `apiVersion: 1` and `maxPlayers: 64` (see Blocked). It needs:
+  `Drawphone`, `apiVersion: 1` and `maxPlayers: 64` (see Nova shared-file limits). It needs:
   - a lobby phase for settings, the rounds, and a results phase with play
     again
   - leader-only settings: word pack, time limit, turn limit, "Players write
@@ -202,7 +210,7 @@ Remove:
      `pathToString(optimizePath(path.path, 1))` from `svg-path-commander/util`.
      Use the full-precision path array from the Fabric object. Already-rounded
      `d` strings stop the `T` shorthand from working.
-  2. Gzip it with fflate's `gzipSync`.
+  2. Gzip it with the browser's `CompressionStream("gzip")`.
   3. Check the size against the budget.
   4. Call `nova.files.put(new Blob([bytes], { type: "application/gzip" }))`.
   5. Dispatch the submit action with the ref. It must land within 10
@@ -210,17 +218,18 @@ Remove:
   6. If the upload or dispatch fails, keep the drawing on screen, show the
      reason and offer a retry.
 - **Ink limit:**
-  - Keep a running encoded size.
-  - When the next stroke would go over the budget, stop accepting strokes
-    and tell the player the canvas is full.
+  - After each stroke, measure the gzipped size of the optimized SVG.
+  - If a stroke takes the drawing over the budget, remove that stroke, stop
+    accepting new ones and tell the player the canvas is full.
   - Show a meter once 80% is used.
-- **Budget** (computed by the handler when each round starts): the smaller of
-  the per-file limit and 0.9 × the total-byte limit ÷ (drawings this round +
-  players). This needs drawings + players ≤ the file-count limit.
+- **Budget:** the handler computes it when each round starts, with the
+  formula in "Nova shared-file limits", and stores it in state.
 - **Display:**
-  1. `nova.files.get(ref)`, then `gunzipSync`, then an `image/svg+xml` Blob,
-     then `URL.createObjectURL`, then `<img>`.
-  2. Only request what's on screen, so Nova's priority fetch loads it first.
+  1. `nova.files.get(ref)`, then `DecompressionStream("gzip")`, then an
+     `image/svg+xml` Blob, then `URL.createObjectURL`, then `<img>`.
+  2. Only request what's on screen. Nova copies every referenced file to
+     every device in the background and fetches one directly when a `get`
+     waits on it, so the current turn's drawing never queues behind results.
   3. Show a placeholder while loading and a clear error if it fails.
   4. Revoke the URLs when a round resets.
 - **Archive and rounds:**

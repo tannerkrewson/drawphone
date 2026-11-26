@@ -88,7 +88,7 @@ test("ink never shrinks when every drawing uses its full limit", () => {
     }
 });
 
-test("only the leader can skip a vacant seat and a new player takes that seat", () => {
+test("only the leader can skip or replace a vacant seat", () => {
     const { state, context, round } = roundGame(3, true);
     const departed = round.seats[1];
     game.playerLeft(state, context, departed);
@@ -103,5 +103,36 @@ test("only the leader can skip a vacant seat and a new player takes that seat", 
     expect(round.chains[1][0][2]).toBe(true);
     const replacement = { id: "new", name: "New player" };
     game.playerJoined(state, context, replacement);
+    expect(round.seats[1].id).toBeNull();
+    const payload = { id: round.id, seat: 1, playerId: replacement.id };
+    expect(() =>
+        game.actions.replace(state, { ...context, actor: context.players[2] }, payload),
+    ).toThrow("leader");
+    game.actions.replace(state, context, payload);
     expect(round.seats[1]).toEqual(replacement);
+    expect(state.unseated).toEqual([]);
+    expect(() => game.actions.replace(state, context, payload)).toThrow("no longer vacant");
+});
+
+test("returning players reclaim their own vacant seat ahead of new arrivals", () => {
+    const { state, context, round } = roundGame(4, true);
+    const [first, second] = round.seats.slice(1, 3);
+    const firstPlayer = { ...first };
+    const secondPlayer = { ...second };
+    game.playerLeft(state, context, firstPlayer);
+    game.playerLeft(state, context, secondPlayer);
+    const newcomer = { id: "new", name: second.name };
+    game.playerJoined(state, context, newcomer);
+    expect(state.unseated).toEqual([newcomer]);
+    const payload = { id: round.id, seat: 2 };
+    game.actions.skip(state, context, payload);
+    game.playerJoined(state, context, secondPlayer);
+    expect(round.seats[1].id).toBeNull();
+    expect(round.seats[2]).toEqual(secondPlayer);
+    expect(state.unseated).toEqual([newcomer]);
+
+    game.actions.replace(state, context, { ...payload, seat: 1, playerId: newcomer.id });
+    game.playerJoined(state, context, firstPlayer);
+    expect(round.seats[1]).toEqual(newcomer);
+    expect(state.unseated).toEqual([firstPlayer]);
 });

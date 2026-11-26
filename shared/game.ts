@@ -22,7 +22,7 @@ export type Link =
     | [seat: number, word: string, skipped?: true]
     | [seat: number, ref: string, bytes: number]
     | [seat: number, skippedDrawing: null];
-type Seat = { id: string | null; name: string; skip?: true };
+type Seat = { id: string | null; name: string; formerId?: string; skip?: true };
 export type Round = {
     id: string;
     seats: Seat[];
@@ -121,12 +121,12 @@ function turnSetting(state: State, modifier = 0, prevNumPlayers = playerCount(st
     }).newTurnLimit;
 }
 
-function fillSeats(state: State) {
-    if (state.phase !== "round" || !state.round) return;
-    const { seats } = state.round;
-    for (const [seat, player] of seats.entries()) {
-        if (player.id === null && state.unseated.length) seats[seat] = state.unseated.shift()!;
+function vacantRound(state: State, id: string, seat: number) {
+    const round = state.round;
+    if (state.phase !== "round" || !round || round.id !== id || round.seats[seat]?.id !== null) {
+        throw new Error("This seat is no longer vacant.");
     }
+    return round;
 }
 
 export const game: GameDefinition<State> = {
@@ -265,18 +265,22 @@ export const game: GameDefinition<State> = {
                 advance(state, round, turn);
             }
         },
+        replace(state, context, payload) {
+            leader(context);
+            const { id, seat, playerId } = payload as {
+                id: string;
+                seat: number;
+                playerId: string;
+            };
+            const round = vacantRound(state, id, seat);
+            const replacement = state.unseated.findIndex((player) => player.id === playerId);
+            if (replacement < 0) throw new Error("That player is no longer waiting for a seat.");
+            round.seats[seat] = state.unseated.splice(replacement, 1)[0];
+        },
         skip(state, context, payload) {
             leader(context);
-            const round = state.round;
             const { id, seat } = payload as { id: string; seat: number };
-            if (
-                state.phase !== "round" ||
-                !round ||
-                round.id !== id ||
-                round.seats[seat]?.id !== null
-            ) {
-                throw new Error("This seat is no longer vacant.");
-            }
+            const round = vacantRound(state, id, seat);
             round.seats[seat].skip = true;
             advance(state, round, round.turn);
         },
@@ -284,8 +288,13 @@ export const game: GameDefinition<State> = {
     playerJoined(state, _context, player) {
         const previous = playerCount(state);
         if (!playersInGame(state).some(({ id }) => id === player.id)) {
-            state.unseated.push(seatablePlayer(player));
-            fillSeats(state);
+            const seats = state.phase === "round" ? state.round?.seats : undefined;
+            const original = seats?.findIndex(
+                ({ id, formerId }) => id === null && formerId === player.id,
+            );
+            if (seats && original !== undefined && original >= 0)
+                seats[original] = seatablePlayer(player);
+            else state.unseated.push(seatablePlayer(player));
             turnSetting(state, 0, previous);
         }
     },
@@ -293,8 +302,10 @@ export const game: GameDefinition<State> = {
         const previous = playerCount(state);
         state.unseated = state.unseated.filter(({ id }) => id !== player.id);
         const seat = state.round?.seats.find(({ id }) => id === player.id);
-        if (seat) seat.id = null;
-        fillSeats(state);
+        if (seat) {
+            seat.formerId = player.id;
+            seat.id = null;
+        }
         turnSetting(state, 0, previous);
     },
 };

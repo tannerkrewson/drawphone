@@ -7,7 +7,7 @@ class UserList {
         this.container = container;
     }
 
-    update(players, leaderId, onSkip) {
+    update(players, leaderId, { onSkip, onReplace } = {}) {
         this.container.empty();
         for (const player of players) {
             const item = $("<li>").addClass("user-container");
@@ -18,10 +18,17 @@ class UserList {
                     .prependTo(box);
             }
             if (player.vacant) {
-                box.addClass("disconnected");
-                if (onSkip) {
+                box.addClass("disconnected flex-column");
+                if (onReplace) {
                     $("<button type='button'>")
-                        .addClass("btn btn-default ml-2")
+                        .addClass("btn btn-default btn-sm mt-1")
+                        .text("Tap to replace")
+                        .on("click", () => onReplace(player))
+                        .appendTo(box);
+                }
+                if (onSkip && !player.skip) {
+                    $("<button type='button'>")
+                        .addClass("btn btn-default btn-sm mt-1")
                         .text("Skip")
                         .on("click", () => onSkip(player.seat))
                         .appendTo(box);

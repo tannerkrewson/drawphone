@@ -91,6 +91,18 @@ block content
   div#waiting.d-none
     div.row.justify-content-center
       div.col-sm-8
-        h5 Still waiting for:
-        ul#waiting-players.list-unstyled.row
-        p#waiting-next-round.d-none You can join the next round.
+        #waiting-active
+          h5 Still waiting for:
+          ul#waiting-players.list-unstyled.row
+        #waiting-vacant.d-none
+          h5 Open seats
+          ul#waiting-vacant-players.list-unstyled.row
+        p#waiting-next-round.d-none Waiting for an open seat. You can also join the next round.
+    dialog#replace-seat(aria-labelledby='replace-seat-title')
+      form(method='dialog')
+        h5#replace-seat-title
+        label(for='replace-seat-player') Choose a player
+        select#replace-seat-player.form-control.mb-3
+        .btn-toolbar
+          button.btn.btn-default.mr-2(value='cancel') Cancel
+          button.btn.btn-default(value='replace') Replace

@@ -244,6 +244,7 @@ export function connect(nova?: Nova<State>) {
             const finalCount = round.order.length;
             if (seat >= 0 && waitingFor(round, seat)) {
                 if (activeTurn === key) return;
+                waiting.closeReplacement();
                 showError("");
                 activeTurn = key;
                 const previous = chainFor(round, seat).at(-1);
@@ -268,21 +269,20 @@ export function connect(nova?: Nova<State>) {
             activeTurn = undefined;
             game.stopTimer();
             waiting.updateWaitingList({
-                players: round.seats.flatMap((player, index) =>
-                    waitingFor(round, index)
-                        ? [
-                              {
-                                  id: player.id,
-                                  name: player.name,
-                                  vacant: player.id === null,
-                                  seat: index,
-                              },
-                          ]
-                        : [],
+                players: round.seats.filter(
+                    (player, index) => player.id !== null && waitingFor(round, index),
                 ),
+                vacant: round.seats.flatMap((player, index) =>
+                    player.id === null ? [{ ...player, vacant: true, seat: index }] : [],
+                ),
+                unseated: state.unseated,
                 leaderId: nova?.leaderId,
                 onSkip: isLeader()
                     ? (index: number) => emit("skip", { id: round.id, seat: index })
+                    : undefined,
+                onReplace: isLeader()
+                    ? (index: number, playerId: string) =>
+                          emit("replace", { id: round.id, seat: index, playerId })
                     : undefined,
                 nextRound: seat < 0,
                 count,
@@ -294,6 +294,7 @@ export function connect(nova?: Nova<State>) {
 
         activeTurn = undefined;
         game.stopTimer();
+        waiting.closeReplacement();
         if (state?.phase === "results" && round && viewedResults !== round.id) {
             if (!archiveMode && showingResults !== round.id) {
                 showingResults = round.id;

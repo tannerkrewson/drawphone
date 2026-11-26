@@ -120,6 +120,21 @@ async function party(playerCount = players.length) {
             state = definition.createInitialState(context);
             for (const client of clients.values()) client.started();
         },
+        leave(index: number) {
+            clients.delete(index);
+            definition.playerLeft(state, context, members[index]);
+            for (const view of clients.values()) view.render(structuredClone(state));
+        },
+        async join(name: string) {
+            const index = members.length;
+            const player = { id: "replacement", name };
+            members.push(player);
+            const doc = await open(index);
+            definition.playerJoined(state, context, player);
+            clients.get(index)!.started();
+            for (const view of clients.values()) view.render(structuredClone(state));
+            return doc;
+        },
         async reload(index: number) {
             frames.find((frame) => frame.contentDocument === documents[index])?.remove();
             documents[index] = await open(index);
@@ -370,4 +385,33 @@ test("footer theme persists and keeps the drawing canvas white", async () => {
         if (previous === null) storage.removeItem("drawphone:theme");
         else storage.setItem("drawphone:theme", previous);
     }
+});
+
+test("the host can choose a late joiner to fill a vacant seat", async () => {
+    const session = await party();
+    const [leader] = session.documents;
+    session.start();
+    element(leader, "lobby-settings-wordfirst").click();
+    element(leader, "lobby-start").click();
+    answer(leader, "A cat");
+    session.leave(1);
+
+    const replacement = await session.join("Replacement");
+    expect(element(replacement, "waiting-next-round").textContent).toContain(
+        "Waiting for an open seat",
+    );
+    const openSeats = element(leader, "waiting-vacant-players");
+    const replace = [...openSeats.querySelectorAll("button")].find(
+        (button) => button.textContent === "Tap to replace",
+    )!;
+    expect(replacement.querySelector("#waiting-vacant-players button")).toBeNull();
+    replace.click();
+    const picker = element<HTMLSelectElement>(leader, "replace-seat-player");
+    picker.value = "replacement";
+    picker.dispatchEvent(new Event("change"));
+    element(leader, "replace-seat").querySelector<HTMLButtonElement>('[value="replace"]')!.click();
+    await expect
+        .poll(() => element(replacement, "title").textContent)
+        .toBe("What should be drawn?");
+    expect(session.state().round?.seats.some(({ id }) => id === "replacement")).toBe(true);
 });

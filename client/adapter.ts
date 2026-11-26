@@ -306,12 +306,6 @@ export function connect(nova?: Nova<State>) {
         if (archiveError) showError(archiveError);
     }
 
-    function connection(status: string) {
-        $("#connection-status").text(
-            status === "disconnected" && !started ? "Waiting for the party" : status,
-        );
-    }
-
     let archived: string | undefined;
     function onState(state: State | null) {
         const round = state?.round;
@@ -334,11 +328,7 @@ export function connect(nova?: Nova<State>) {
 
     render(null);
     if (!nova) return;
-    connection(nova.connectionStatus);
-    nova.onConnectionChange((status) => {
-        connection(status);
-        render(latest);
-    });
+    nova.onConnectionChange(() => render(latest));
     nova.onPlayerJoin(() => render(latest));
     nova.onPlayerLeave(() => render(latest));
     nova.state.onChange((state) => {
@@ -351,7 +341,6 @@ export function connect(nova?: Nova<State>) {
     nova.onEnd(() => {
         started = false;
         render(null);
-        connection("disconnected");
     });
     nova.ready();
 }

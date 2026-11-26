@@ -369,3 +369,7 @@ span.avoidwrap {
     opacity: 0.85 !important;
     color: #ffffff !important;
 }
+
+.phone-icon {
+    transform: scaleX(-1);
+}

@@ -27,6 +27,7 @@ async function party() {
     const context = { players, leaderId };
     const clients = new Map<number, Client>();
     const files = new Map<string, Blob>();
+    let failNextUpload = false;
     const ready: Array<() => void> = [];
 
     Object.assign(window, {
@@ -69,6 +70,10 @@ async function party() {
                 },
                 files: {
                     async put(blob) {
+                        if (failNextUpload) {
+                            failNextUpload = false;
+                            throw new Error("Drawing upload failed.");
+                        }
                         const hash = new Uint8Array(
                             await crypto.subtle.digest("SHA-256", await blob.arrayBuffer()),
                         );
@@ -107,6 +112,9 @@ async function party() {
     const documents = await Promise.all(players.map((_, index) => open(index)));
     return {
         documents,
+        failUpload() {
+            failNextUpload = true;
+        },
         start() {
             state = definition.createInitialState(context);
             for (const client of clients.values()) client.started();
@@ -178,6 +186,11 @@ async function play(wordFirst: boolean, reloadDrawing: boolean) {
     if (reloadDrawing) {
         await session.reload(1);
         expect(element<HTMLButtonElement>(documents[1], "game-drawing-undo").disabled).toBe(false);
+        session.failUpload();
+        element(documents[1], "game-send").click();
+        await expect
+            .poll(() => element(documents[1], "game-error").textContent)
+            .toBe("Drawing upload failed.");
     }
     documents.forEach((doc) => element(doc, "game-send").click());
     await expect.poll(() => state().round?.turn).toBe(wordFirst ? 2 : 1);
@@ -204,11 +217,11 @@ async function play(wordFirst: boolean, reloadDrawing: boolean) {
         }
         expect(guesses.sort()).toEqual(["Guess 0", "Guess 1", "Guess 2"]);
     }
-    return documents[0];
+    return { leader: documents[0], state };
 }
 
 test("three players finish a word-pack game, reload a draft and reopen new and old results", async () => {
-    const leader = await play(false, true);
+    const { leader, state } = await play(false, true);
     const oldDrawing =
         "data:image/svg+xml;base64," +
         btoa(
@@ -251,6 +264,15 @@ test("three players finish a word-pack game, reload a draft and reopen new and o
             .poll(() => archive.querySelectorAll("button").length)
             .toBeGreaterThanOrEqual(2);
     }
+    element(leader, "archive-back").click();
+    element(leader, "lobby-prevres").click();
+    expect(element(leader, "title").textContent).toBe("Results #1");
+    element(leader, "result-done").click();
+    const previousRound = state().round?.id;
+    element(leader, "lobby-start").click();
+    await expect.poll(() => state().phase).toBe("round");
+    expect(state().round?.id).not.toBe(previousRound);
+    expect(state().round?.chains.every((chain) => chain.length === 1)).toBe(true);
 }, 20000);
 
 test("three players finish a players-write-first game", async () => {

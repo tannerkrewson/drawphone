@@ -1,4 +1,11 @@
-import { isDrawingTurn, waitingFor, type Round, type State } from "../shared/game";
+import {
+    chainFor,
+    isDrawingTurn,
+    playersInGame,
+    waitingFor,
+    type Round,
+    type State,
+} from "../shared/game";
 import type { Nova } from "../shared/nova";
 import { addResultsToStorage, renderArchive } from "./archive.js";
 import { decodeDrawing, drawingSvg } from "./drawing";
@@ -239,7 +246,7 @@ export function connect(nova?: Nova<State>) {
                 if (activeTurn === key) return;
                 showError("");
                 activeTurn = key;
-                const previous = round.chains[round.order[round.turn][seat]].at(-1);
+                const previous = chainFor(round, seat).at(-1);
                 const link = !previous
                     ? { type: "first-word" }
                     : isDrawingTurn(round)
@@ -288,7 +295,7 @@ export function connect(nova?: Nova<State>) {
         }
         if (archiveMode || (round && showingResults === round.id)) return;
         lobby.updatePlayerList({
-            players: state?.players ?? nova?.players ?? [],
+            players: state ? playersInGame(state) : (nova?.players ?? []),
             settings: state?.settings,
             leader: isLeader(),
             previous: state?.phase === "results",

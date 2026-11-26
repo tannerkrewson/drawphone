@@ -28,7 +28,7 @@ export type Round = {
     seats: Seat[];
     owners: string[];
     chains: Link[][];
-    order: number[][];
+    order: number[];
     turn: number;
     offset: number;
     ink: number;
@@ -36,7 +36,7 @@ export type Round = {
 };
 export type State = {
     phase: "lobby" | "round" | "results";
-    players: Player[];
+    unseated: Player[];
     settings: Settings;
     round: Round | null;
 };
@@ -45,8 +45,29 @@ export function isDrawingTurn({ turn, offset }: Round) {
     return (turn + offset) % 2 === 1;
 }
 
+export function chainFor(round: Round, seat: number) {
+    // Every row of the Latin square is a rotation of the first row.
+    return round.chains[(round.order[round.turn] + seat) % round.seats.length];
+}
+
 export function waitingFor(round: Round, seat: number) {
-    return round.chains[round.order[round.turn][seat]].length === round.turn + round.offset;
+    return chainFor(round, seat).length === round.turn + round.offset;
+}
+
+export function playersInGame(state: State): Player[] {
+    const seats = state.round?.seats ?? [];
+    return [
+        ...seats.flatMap(({ id, name }) => (id === null ? [] : [{ id, name }])),
+        ...state.unseated,
+    ];
+}
+
+function seatablePlayer({ id, name }: Player): Player {
+    return { id, name: name.replaceAll(/\p{Cc}/gu, " ") };
+}
+
+function playerCount(state: State) {
+    return state.unseated.length + (state.round?.seats.filter(({ id }) => id !== null).length ?? 0);
 }
 
 function setInk(round: Round) {
@@ -68,7 +89,7 @@ function advance(state: State, round: Round, previousTurn: number) {
         const position = round.turn + round.offset;
         for (const [seat, player] of round.seats.entries()) {
             if (player.skip && waitingFor(round, seat)) {
-                const chain = round.chains[round.order[round.turn][seat]];
+                const chain = chainFor(round, seat);
                 chain.push(
                     position % 2 === 1
                         ? [seat, null]
@@ -90,11 +111,11 @@ function leader(context: ActionContext) {
         throw new Error("Only the party leader can do that.");
 }
 
-function turnSetting(state: State, modifier = 0, prevNumPlayers = state.players.length) {
+function turnSetting(state: State, modifier = 0, prevNumPlayers = playerCount(state)) {
     state.settings.turns = getNewTurnLimit({
         modifier,
         prevTurnLimit: state.settings.turns,
-        numPlayers: state.players.length,
+        numPlayers: playerCount(state),
         prevNumPlayers,
         isWordFirst: state.settings.wordFirst,
     }).newTurnLimit;
@@ -103,11 +124,8 @@ function turnSetting(state: State, modifier = 0, prevNumPlayers = state.players.
 function fillSeats(state: State) {
     if (state.phase !== "round" || !state.round) return;
     const { seats } = state.round;
-    for (const player of state.players) {
-        if (seats.some(({ id }) => id === player.id)) continue;
-        const vacant = seats.findIndex(({ id }) => id === null);
-        if (vacant < 0) return;
-        seats[vacant] = { ...player };
+    for (const [seat, player] of seats.entries()) {
+        if (player.id === null && state.unseated.length) seats[seat] = state.unseated.shift()!;
     }
 }
 
@@ -118,7 +136,7 @@ export const game: GameDefinition<State> = {
     createInitialState({ players }) {
         const state: State = {
             phase: "lobby",
-            players: [...players],
+            unseated: players.map(seatablePlayer),
             settings: { pack: DEFAULT_PACK, wordFirst: false, mature: false, time: 0, turns: 4 },
             round: null,
         };
@@ -168,14 +186,16 @@ export const game: GameDefinition<State> = {
         start(state, context) {
             leader(context);
             if (state.phase === "round") throw new Error("The round has already started.");
-            const count = state.players.length;
+            const players = playersInGame(state);
+            const count = players.length;
             if (!count || (count === 2 && state.settings.wordFirst)) {
                 throw new Error("Players write first word needs three players or solo demo mode.");
             }
             const { wordFirst, turns, pack } = state.settings;
             const offset = wordFirst ? 0 : 1;
             const turnCount = getRoundLength(count, turns, wordFirst) - offset;
-            const seats = shuffle(state.players.map((player) => ({ ...player })));
+            const seats = shuffle(players.map((player) => ({ ...player })));
+            state.unseated = [];
             const startedAt = Date.now();
             state.round = {
                 id: startedAt.toString(36) + Math.random().toString(36).slice(2),
@@ -186,8 +206,10 @@ export const game: GameDefinition<State> = {
                 ),
                 order:
                     count === 1
-                        ? Array.from({ length: turnCount }, () => [0])
-                        : rowCompleteLatinSquare(count, turnCount).slice(0, turnCount),
+                        ? Array.from({ length: turnCount }, () => 0)
+                        : rowCompleteLatinSquare(count, turnCount)
+                              .slice(0, turnCount)
+                              .map((row) => row[0]),
                 turn: 0,
                 offset,
                 ink: 0,
@@ -211,7 +233,7 @@ export const game: GameDefinition<State> = {
             const seat = round.seats.findIndex(({ id }) => id === context.actor.id);
             if (seat < 0 || !waitingFor(round, seat))
                 throw new Error("You have no link to submit.");
-            const chain = round.chains[round.order[turn][seat]];
+            const chain = chainFor(round, seat);
             if (isDrawingTurn(round)) {
                 if (
                     typeof ref !== "string" ||
@@ -258,18 +280,19 @@ export const game: GameDefinition<State> = {
         },
     },
     playerJoined(state, _context, player) {
-        const previous = state.players.length;
-        if (!state.players.some(({ id }) => id === player.id)) state.players.push(player);
-        turnSetting(state, 0, previous);
-        fillSeats(state);
+        const previous = playerCount(state);
+        if (!playersInGame(state).some(({ id }) => id === player.id)) {
+            state.unseated.push(seatablePlayer(player));
+            fillSeats(state);
+            turnSetting(state, 0, previous);
+        }
     },
     playerLeft(state, _context, player) {
-        const previous = state.players.length;
-        state.players = state.players.filter(({ id }) => id !== player.id);
-        turnSetting(state, 0, previous);
-        if (state.phase !== "round") return;
+        const previous = playerCount(state);
+        state.unseated = state.unseated.filter(({ id }) => id !== player.id);
         const seat = state.round?.seats.find(({ id }) => id === player.id);
         if (seat) seat.id = null;
         fillSeats(state);
+        turnSetting(state, 0, previous);
     },
 };

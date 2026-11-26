@@ -4,8 +4,8 @@ import { rowCompleteLatinSquare } from "./round.js";
 
 function roundGame(count, wordFirst, max = true) {
     const players = Array.from({ length: count }, (_, i) => ({
-        id: String(i),
-        name: `Player ${i}`,
+        id: String(i).padStart(64, "0"),
+        name: "龍".repeat(32),
     }));
     const context = { players, actor: players[0], leaderId: players[0].id };
     const state = game.createInitialState(context);

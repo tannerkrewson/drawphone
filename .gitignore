@@ -1,3 +1,4 @@
+dist/
 server/public/
 webpack-assets.json
 
@@ -63,3 +64,5 @@ typings/
 # Credentials
 .travis/*.key
 .travis/*.key.pub
+
+.vitest/

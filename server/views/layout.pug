@@ -8,16 +8,25 @@ html
     title Drawphone
     meta(name="description" content="Telephone with pictures")
 
-    link(rel='stylesheet', href=`${css}`)
-      
     // Google Analytics
     script.
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-      ga('create', 'UA-82444397-2', 'auto');
-      ga('send', 'pageview');
+      window.ga = () => {};
+      if (["drawphone.tannerkrewson.com", "rocketcrab-runtime.tannerkrewson.workers.dev"].includes(location.hostname)) {
+        const id = "G-4TYBH23GSK";
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { window.dataLayer.push(arguments); }
+        const script = document.createElement("script");
+        script.async = true;
+        script.src = "https://www.googletagmanager.com/gtag/js?id=" + id;
+        document.head.appendChild(script);
+        gtag("js", new Date());
+        gtag("config", id);
+        window.ga = (command, hit, category, action, label, value) => {
+          if (command !== "send") return;
+          if (hit === "event") gtag("event", action, { event_category: category, event_label: label, value });
+          if (hit === "exception") gtag("event", "exception", category);
+        };
+      }
 
   body
     .container

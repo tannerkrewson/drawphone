@@ -2,15 +2,15 @@ extends layout
 
 block content
   div
-    span.glyphicon.glyphicon-pencil(aria-hidden='true',style="padding-right:2px;")
-    span.glyphicon.glyphicon-earphone(aria-hidden='true',style="padding-left:2px;")
+    img.mr-1(src=icon('pencil') alt='' width='18')
+    img.ml-1(src=icon('phone-flip') alt='' width='18')
   h1 How to Play
   p An Introduction to Drawphone
   hr
   .drawphone-info
     h3 <b>tl;dr:</b>
     p You don't really need to know how to play your first time; just gather 
-      |four or more (there's no player limit!) friends with smartphones, sit in 
+      |three or more friends with smartphones, sit in
       |a circle (or a virtual circle!), and play the game! The game will tell 
       |you exactly what to do as you go.
     br
@@ -29,7 +29,7 @@ block content
       |blind your first time! But if you are curious, here's a 
       |rundown:
       ol
-        li Start a new game, and give the code to your friends to join.
+        li Start a party on rocketcrab and share its code with your friends.
         li When everyone has joined in, the host may start the game.
         li Each player will be given a random word, and should draw it in the 
           |box on their screen.
@@ -39,32 +39,25 @@ block content
         li Each player must now guess what this new drawing is.
         li Once everyone has made their guesses, they are passed around like before.
         li This continues to alternate until each "chain" of words and drawings has 
-          |been passed to every player.
-        li Once complete, Drawphone will show you the results of your original 
-          |drawing. You will also be able to view everyone else's results.
+          |reached the selected number of turns.
+        li Once complete, Drawphone will show you the results for every chain.
         li The best part of Drawphone is showing your results to everyone! So, 
           |have one person hold up their phone where everyone can see it, and 
           |have them read their results to everyone.
         li After the first person finishes, go around in a circle and have 
           |everyone share their results. Warning: laughter may ensue!
         li Once everyone has shared their results out loud, you can start 
-          |another round once everyone taps the Done button at the bottom of 
-          |the results page.
+          |another round from the lobby.
     p Remember that you don't need to memorize these instructions to play Drawphone.
       |The app will do everything but draw and guess for you, so it's very easy to 
       |jump in and play, even having never played before.
     br
     h3 <b>Tips</b>
     ul
-      li You must have at least four player to play Drawphone.
-      li There is no winning or losing. The whole point of the game is just to 
+      li There is no winning or losing. The whole point of the game is just to
         |laugh and have fun!
-      li Remember that once you start the next round, the drawings and guesses 
-        |are gone forever! So if you get a funny one, don't forget to screenshot it.
-      li Don't worry if someone disconnects in the middle of the game. Just have 
-        |someone (doesn't have to be the same person) join with the same game 
-        |code. They will be able to replace the disconnected player, and the 
-        |game will continue.
+      li Finished rounds are saved in the results archive on your device.
+      li If someone leaves, the party leader can skip their seat or someone else can join the party and take their place.
     br
     h3 <b>Behind the scenes</b>
     p Drawphone was programmed by myself, Tanner Krewson, with Node.js. Drawphone is 
@@ -73,6 +66,9 @@ block content
       |for your tinkering. If you run into any issues, or have any features you 
       |would like to see in Drawphone, feel free to open an issue on the 
       a(href="https://github.com/tannerkrewson/drawphone", target='_blank') GitHub repo
-      |. Hope you like it! <3
+      |. Hope you like it! &lt;3
     br
   a.btn.btn-default.btn-lg(type='button', href="/") Back to Drawphone
+
+block js
+  script(type="module" src="/client/theme.ts")

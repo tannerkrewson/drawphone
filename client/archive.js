@@ -2,21 +2,20 @@ import Dexie from "dexie";
 
 /* global $, ga */
 
-export async function renderArchive(drawphone) {
-    const archive = $("#archive");
+export async function renderArchive(showResults) {
     const archiveContent = $("#archive-content");
-    const result = $("#result");
-    if (!localStorage) {
-        archiveContent.text("This browser does not support local storage.");
+    archiveContent.text("Loading previous results...");
+    let resultsList;
+    try {
+        resultsList = (await getResultsListFromStorage()).reverse();
+    } catch {
+        archiveContent.text("Could not open the results archive on this device.");
         return;
     }
 
-    const resultsList = (await getResultsListFromStorage()).reverse();
-
+    archiveContent.empty();
     if (resultsList.length === 0) {
-        archiveContent.text(
-            "No results found on this device. Play a game first!"
-        );
+        archiveContent.text("No results found on this device. Play a game first!");
         return;
     }
 
@@ -38,52 +37,38 @@ export async function renderArchive(drawphone) {
             lastDate = theDate;
         }
 
-        const button = $(
-            `<button type="button">${getQuickInfoStringOfResults(
-                results
-            )}</button>`
-        );
-        button.addClass("btn btn-default prevresbtn");
-
-        ((chains) => {
-            button.click(() => {
-                drawphone.results.show(
-                    {
-                        data: { chains },
-                        you: { id: "this id doesn't exist" },
-                    },
-                    true
-                );
-
-                result.show();
-                archive.hide();
-
-                //jump to top of the page
+        $("<button type='button'>")
+            .text(getQuickInfoStringOfResults(results))
+            .addClass("btn btn-default prevresbtn")
+            .on("click", () => {
+                showResults(results.chains);
                 window.scrollTo(0, 0);
-
                 ga("send", "event", "Archive", "display another chain");
-            });
-        })(results.chains);
-        archiveContent.append(button);
+            })
+            .appendTo(archiveContent);
     }
-
-    drawphone.results.onDoneViewingResults = () => {
-        archive.show();
-        result.hide();
-
-        //jump to top of the page
-        window.scrollTo(0, 0);
-    };
 }
 
-export function addResultsToStorage(chains) {
+export async function addResultsToStorage(chains, roundId, date) {
     const db = initArchiveDb();
-    db.archive.add({ date: new Date(), chains });
+    try {
+        await db.transaction("rw", db.archive, async () => {
+            if (!(await db.archive.where("date").equals(date).and((entry) => entry.roundId === roundId).first())) {
+                await db.archive.add({ date, chains, roundId });
+            }
+        });
+    } finally {
+        db.close();
+    }
 }
 
-function getResultsListFromStorage() {
+async function getResultsListFromStorage() {
     const db = initArchiveDb();
-    return db.archive.toArray();
+    try {
+        return await db.archive.toArray();
+    } finally {
+        db.close();
+    }
 }
 
 function initArchiveDb() {

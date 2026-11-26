@@ -1,336 +1,148 @@
-import swal from "bootstrap-sweetalert";
-
 import Screen from "./screen.js";
-import { startTimer, showElement } from "../util.js";
 import { getDrawingCanvas } from "../canvas.js";
-import { HIDDEN, DRAWING, WORD, FIRST_WORD } from "../../shared/enums.js";
+import { DRAWING, WORD, FIRST_WORD } from "../../shared/enums.js";
 
 /* global $, ga */
 
 class Game extends Screen {
-    constructor(onWait) {
+    constructor({ submit, showDrawing, showError }) {
         super();
-
         this.id = "#game";
-        this.onWait = onWait;
-
         this.wordInput = $("#game-word-in");
         this.timerDisplay = $("#game-timer");
+        this.submit = submit;
+        this.showDrawing = showDrawing;
+        this.showError = showError;
 
-        this.neighboringPlayers = $("#neighboring-players-container");
-        this.leftPlayer = $("#previous-player");
-        this.youPlayer = $("#you-player");
-        this.rightPlayer = $("#next-player");
-
-        this.canvas;
-
-        this.submitTimer;
-
-        window.addEventListener("resize", this.resizeCanvas.bind(this), false);
-    }
-
-    initialize(props) {
-        super.initialize(props);
-        const doneButton = $("#game-send");
-
-        //bind clear canvas to clear drawing button
-
-        //if user touches the canvas, it not blank no more
-        $("#game-drawing").on("mousedown touchstart", () => {
-            //if this is their first mark
-            if (
-                this.canvas.isBlank &&
-                this.timeLimit > 0 &&
-                !this.submitTimer
-            ) {
-                //start the timer
-                this.displayTimerInterval = startTimer(
-                    this.timeLimit,
-                    (timeLeft) => {
-                        this.timerDisplay.text(
-                            `${timeLeft} left to finish your drawing`
-                        );
-                    }
-                );
-                this.submitTimer = window.setTimeout(() => {
-                    //when the time runs out...
-                    //we don't care if it is blank
-                    this.canvas.isBlank = false;
-                    //submit
-                    this.onDone();
-                    ga(
-                        "send",
-                        "event",
-                        "Drawing",
-                        "timer forced submit",
-                        this.timeLimit
-                    );
-                }, this.timeLimit * 1000);
-            }
-            this.canvas.isBlank = false;
-        });
-
-        doneButton.click(() => {
-            this.onDone();
-        });
-
-        //run done when enter key is pressed in word input
-        $("#game-word-in").keypress(({ which }) => {
-            const key = which;
-            if (key === 13) {
-                this.onDone();
-            }
+        window.addEventListener("resize", () => this.resizeCanvas());
+        $("#game-drawing").on("pointerdown", "canvas", () => this.startTimer());
+        $("#game-send").on("click", () => this.checkIfDone());
+        this.wordInput.on("keydown", (event) => {
+            if (event.key === "Enter") this.checkIfDone();
         });
     }
 
-    show() {
-        super.show();
+    stopTimer() {
+        clearInterval(this.timer);
+        this.timer = undefined;
+    }
 
-        if (this.rocketcrabMode) {
-            this.setSubtitle("🚀🦀");
-        } else {
-            this.setSubtitle(`Game code: ${Screen.getGameCodeHTML()}`);
+    startTimer() {
+        if (!this.timeLimit || this.timer || this.deadline) return;
+        this.deadline = Date.now() + this.timeLimit * 1000;
+        try {
+            localStorage.setItem(this.key + ":deadline", this.deadline);
+        } catch {
+            // Drawing still works when storage is unavailable.
         }
-
-        //allow touch events on the canvas
-        $("#game-drawing").css("pointer-events", "auto");
-        this.done = false;
+        this.countDown();
     }
 
-    showDrawing(disallowChanges) {
-        if (!disallowChanges) {
-            this.canvas = getDrawingCanvas();
-        }
-
-        let shouldShowUndoButtons;
-
-        showElement("#game-drawing");
-        this.show();
-
-        if (this.timeLimit > 0) {
-            this.timerDisplay.text("Begin drawing to start the timer.");
-
-            if (this.timeLimit <= 5) {
-                //if the time limit is less than 5 seconds
-                //	don't show the undo button
-                //because players don't really have enough time to try drawing again
-                //	when they only have 5 seconds
-                shouldShowUndoButtons = false;
+    countDown() {
+        const update = () => {
+            const left = Math.max(0, Math.ceil((this.deadline - Date.now()) / 1000));
+            if (left === 0) {
+                this.stopTimer();
+                this.timerDisplay.text("Time is up.");
+                this.checkIfDone(true);
+                ga("send", "event", "Drawing", "timer forced submit", this.timeLimit);
             } else {
-                shouldShowUndoButtons = true;
+                const minutes = Math.floor(left / 60);
+                const seconds = String(left % 60).padStart(2, "0");
+                this.timerDisplay.text(`${minutes}:${seconds} left to finish your drawing`);
             }
-        } else {
-            this.timerDisplay.text("No time limit to draw.");
-            shouldShowUndoButtons = true;
-        }
-
-        if (disallowChanges) {
-            //lock the canvas so the user can't make any changes
-            $("#game-drawing").css("pointer-events", "none");
-            shouldShowUndoButtons = false;
-        }
-
-        this.showButtons(shouldShowUndoButtons);
-    }
-
-    showWord() {
-        showElement("#game-word");
-        this.showButtons(false);
-        this.show();
-    }
-
-    showButtons(showClearButton) {
-        if (showClearButton) {
-            showElement("#game-drawing-redo");
-            showElement("#game-drawing-undo");
-            $("#game-drawing-redo").addClass("disabled");
-            $("#game-drawing-undo").addClass("disabled");
-
-            showElement("#game-draw-buttons");
-        } else {
-            $("#game-drawing-redo").addClass(HIDDEN);
-            $("#game-drawing-undo").addClass(HIDDEN);
-        }
-        showElement("#game-buttons");
-    }
-
-    hideBoth() {
-        $("#game-drawing").addClass(HIDDEN);
-        $("#game-word").addClass(HIDDEN);
-        $("#game-buttons").addClass(HIDDEN);
-        $("#game-draw-buttons").addClass(HIDDEN);
-    }
-
-    newLink({ data }) {
-        const lastLink = data.link;
-        const lastLinkType = lastLink.type;
-        const count = data.count;
-        const finalCount = data.finalCount;
-
-        const showNeighbors = data.showNeighbors;
-        const playerList = data.players;
-        const thisPlayer = data.thisPlayer;
-
-        const newLinkType =
-            lastLinkType === DRAWING || lastLinkType === FIRST_WORD
-                ? WORD
-                : DRAWING;
-        this.timeLimit = data.timeLimit;
-
-        if (lastLinkType === DRAWING) {
-            //show the previous drawing
-            $("#game-word-drawingtoname").attr("src", lastLink.data);
-
-            this.setTitle("What is this a drawing of?");
-
-            //show the word creator
-            this.showWord();
-        } else if (lastLinkType === WORD) {
-            this.setTitle(
-                `<span class="avoidwrap">Please draw:&nbsp;</span><span class="avoidwrap">${lastLink.data}</span>`
-            );
-
-            //show drawing creator
-            this.showDrawing();
-
-            //calculate size of canvas dynamically
-            this.resizeCanvas();
-        } else if (lastLinkType === FIRST_WORD) {
-            $("#game-word-drawingtoname").removeAttr("src");
-            this.setTitle("What should be drawn?");
-
-            //show the word creator
-            this.showWord();
-        }
-
-        this.setSubtitle(
-            `${this.subtitle} &nbsp; - &nbsp; ${count}/${finalCount}`
-        );
-
-        this.showNeighbors(
-            showNeighbors,
-            playerList,
-            thisPlayer,
-            count,
-            finalCount
-        );
-
-        //this will be ran when the done button is clicked, or
-        //  the enter key is pressed in the word input
-        this.onDone = function () {
-            this.checkIfDone(newLinkType);
         };
-        this.waitingForResponse(false);
+        this.timer = setInterval(update, 250);
+        update();
     }
 
-    checkIfDone(newLinkType) {
-        this.done = true;
-
-        //disable the submit timer to prevent duplicate sends
-        clearTimeout(this.submitTimer);
-        clearInterval(this.displayTimerInterval);
-        this.submitTimer = undefined;
-        this.displayTimerInterval = undefined;
-
-        //hide the drawing
-        this.hideBoth();
-
-        let newLink;
-        if (newLinkType === DRAWING) {
-            if (this.canvas.isBlank) {
-                showElement("#game-drawing");
-                showElement("#game-buttons");
-                showElement("#game-draw-buttons");
-                swal(
-                    "Your picture is blank!",
-                    "Please draw a picture, then try again.",
-                    "info"
-                );
-            } else {
-                // convert canvas to an SVG string, encode it in base64, and send it as a dataurl
-                newLink = `data:image/svg+xml;base64,${btoa(
-                    this.canvas.toSVG()
-                )}`;
-
-                this.canvas.remove();
-                this.sendLink(newLinkType, newLink);
+    newLink({ link, count, finalCount, timeLimit, key, ink, id, turn }) {
+        this.stopTimer();
+        this.key = key;
+        this.idOfRound = id;
+        this.turn = turn;
+        this.timeLimit = timeLimit;
+        this.drawing = link.type === WORD;
+        this.deadline = 0;
+        this.setSubtitle(`${count}/${finalCount}`);
+        $("#game-drawing, #game-draw-buttons").toggleClass("d-none", !this.drawing);
+        $("#game-drawing-undo, #game-drawing-redo").toggleClass("d-none", !this.drawing || (timeLimit > 0 && timeLimit <= 5));
+        $("#game-word").toggleClass("d-none", this.drawing);
+        this.wordInput.val("");
+        this.setPending(false);
+        if (this.drawing) {
+            this.setTitle(`Please draw: ${link.data}`);
+            this.show();
+            this.canvas ??= getDrawingCanvas();
+            this.resizeCanvas();
+            this.canvas.begin(key, ink);
+            this.timerDisplay.text(timeLimit
+                ? "Begin drawing to start the timer."
+                : "No time limit to draw.");
+            try {
+                this.deadline = Number(localStorage.getItem(key + ":deadline")) || 0;
+            } catch {
+                // The timer can start when this player begins to draw.
             }
-        } else if (newLinkType === WORD) {
-            newLink = $("#game-word-in").val().trim();
-            //check if it is blank
-            if (newLink === "") {
-                this.showWord();
-                swal(
-                    "Your guess is blank!",
-                    "Please enter a guess, then try again.",
-                    "info"
-                );
-            } else {
-                //clear the input
-                $("#game-word-in").val("");
-                this.sendLink(newLinkType, newLink);
-            }
+            if (timeLimit && this.deadline) this.countDown();
+        } else {
+            this.setTitle(link.type === FIRST_WORD
+                ? "What should be drawn?"
+                : "What is this a drawing of?");
+            const image = $("#game-word-drawingtoname").get(0);
+            image.removeAttribute("src");
+            image.hidden = !link.ref;
+            const status = $("#game-drawing-status").get(0);
+            status.textContent = "";
+            if (link.type === DRAWING) this.showDrawing(image, status, link);
+            this.show();
         }
     }
 
-    sendLink(type, data) {
-        this.setTitle("Sending...");
-
-        this.socket.emit("finishedLink", {
-            link: {
-                type,
-                data,
-            },
-        });
-        ga("send", "event", "Link", "submit", type);
-        this.onWait();
+    setPending(pending) {
+        this.pending = pending;
+        $("#game-send").prop("disabled", pending);
+        $("#game-drawing, #game-draw-buttons, #game-word, #game-drawing-undo, #game-drawing-redo").prop("inert", pending);
     }
 
-    resizeCanvas() {
-        const container = $("#game-drawing");
-        if (this.canvas) {
-            this.canvas.setHeight(container.width());
-            this.canvas.setWidth(container.width());
-            this.canvas.renderAll();
+    async checkIfDone(timedOut = false) {
+        if (this.pending) return;
+        if (this.drawing && this.canvas.isBlank && !timedOut && !this.expired()) {
+            this.showError("Please draw a picture, then try again.");
+            return;
         }
-    }
-
-    setTimer() {
-        if (this.timeLimit && !this.timeLimit === 0) {
-            window.setTimeout();
-        }
-    }
-
-    showNeighbors(showNeighbors, playerList, thisPlayer, count, finalCount) {
-        if (!showNeighbors) {
-            this.neighboringPlayers.addClass(HIDDEN);
+        const word = this.drawing ? undefined : this.wordInput.val().trim();
+        if (!this.drawing && !word) {
+            this.showError("Please enter a guess, then try again.");
             return;
         }
 
-        this.neighboringPlayers.removeClass(HIDDEN);
-
-        let playerIdx;
-        const numPlayers = playerList.length;
-        for (playerIdx = 0; playerIdx < numPlayers; playerIdx++) {
-            if (playerList[playerIdx].id === thisPlayer.id) {
-                break;
+        const { key, idOfRound: id, turn, drawing } = this;
+        this.stopTimer();
+        this.setPending(true);
+        const accepted = await this.submit({ id, turn }, drawing ? this.canvas.bytes() : undefined, word);
+        if (accepted) {
+            try {
+                localStorage.removeItem(key);
+                localStorage.removeItem(key + ":deadline");
+            } catch {
+                // The round was already submitted successfully.
             }
+            ga("send", "event", "Link", "submit", drawing ? DRAWING : WORD);
         }
-        this.leftPlayer.text(playerList[(playerIdx + 1) % numPlayers].name);
-        this.youPlayer.text(thisPlayer.name);
-        this.rightPlayer.text(
-            playerList[(playerIdx - 1 + numPlayers) % numPlayers].name
-        );
+        if (this.key === key) {
+            this.setPending(false);
+            if (!accepted && this.deadline && !this.expired()) this.countDown();
+        }
+    }
 
-        if (count > 1) {
-            showElement("#previous-player-container");
-            showElement("#previous-player-arrow");
-        }
+    expired() {
+        return this.deadline && this.deadline <= Date.now();
+    }
 
-        if (count === finalCount) {
-            $("#next-player-container").addClass(HIDDEN);
-            $("#next-player-arrow").addClass(HIDDEN);
-        }
+    resizeCanvas() {
+        const width = $("#game-drawing").width();
+        if (width > 0) this.canvas?.resize(width);
     }
 }
 

@@ -6,7 +6,7 @@ export const getNewTurnLimit = ({
     isWordFirst,
 }) => {
     const offset = isWordFirst ? 1 : 0;
-    const minTurns = 4 - offset;
+    const minTurns = isWordFirst ? 3 : Math.min(4, Math.max(2, numPlayers - numPlayers % 2));
     const maxTurns = Math.floor((numPlayers + offset) / 2) * 2 - offset;
 
     if (!prevTurnLimit) {

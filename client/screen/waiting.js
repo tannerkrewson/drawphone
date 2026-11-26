@@ -1,5 +1,3 @@
-import { promptKickPlayer, promptReplaceBot } from "../util.js";
-import { HIDDEN } from "../../shared/enums.js";
 import Screen from "./screen.js";
 import UserList from "../userlist.js";
 
@@ -14,27 +12,10 @@ class Waiting extends Screen {
         this.userList = new UserList($("#waiting-players"));
     }
 
-    show() {
-        this.setSubtitle($("subtitle").html());
-        super.show();
-    }
-
-    updateWaitingList({ data, you }) {
-        const { notFinished, disconnected } = data;
-
-        //show/hide the host notice
-        if (you.isHost) {
-            $("#waiting-hostmsg").removeClass(HIDDEN);
-            this.userList.update(
-                notFinished,
-                disconnected,
-                (player) => promptKickPlayer(player, this.socket),
-                (player) => promptReplaceBot(player, this.socket)
-            );
-        } else {
-            $("#waiting-hostmsg").addClass(HIDDEN);
-            this.userList.update(notFinished, disconnected);
-        }
+    updateWaitingList({ players, onSkip, nextRound, count, finalCount }) {
+        this.setSubtitle(`${count}/${finalCount}`);
+        $("#waiting-next-round").toggleClass("d-none", !nextRound);
+        this.userList.update(players, onSkip);
     }
 }
 

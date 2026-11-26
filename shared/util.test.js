@@ -1,3 +1,4 @@
+import { expect, test } from "vitest";
 import { getNewTurnLimit } from "./util.js";
 
 const setNewTurnLimit = (state, modifier) => {
@@ -168,14 +169,4 @@ test("getNewTurnLimit works for server-side turn limit validation", () => {
     };
     setNewTurnLimit(state, 0);
     expect(state.currentTurnLimit).toBe(5);
-});
-
-test.skip("getNewTurnLimit debug test", () => {
-    getNewTurnLimit({
-        modifier: 0,
-        prevTurnLimit: 4,
-        numPlayers: 6,
-        prevNumPlayers: 5,
-        isWordFirst: false,
-    });
 });

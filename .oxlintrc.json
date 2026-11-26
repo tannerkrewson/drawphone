@@ -1,0 +1,4 @@
+{
+    "categories": { "correctness": "error" },
+    "ignorePatterns": ["dist", "server/public", "webpack-assets.json"]
+}

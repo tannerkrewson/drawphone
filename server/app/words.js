@@ -2,14 +2,11 @@
 // Drawphone Words
 //
 
-import fs from "fs";
-
-// https://stackoverflow.com/a/62892482
-import { fileURLToPath } from "url";
-import { dirname } from "path";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const lists = import.meta.glob("../words/*.txt", {
+    eager: true,
+    query: "?raw",
+    import: "default",
+});
 
 const PACK_NAMES = [
     "Simple words (recommended)",
@@ -30,11 +27,7 @@ class WordPacks {
         //reads each txt file in the words folder
         //the name of the file will be the name of the pack
         PACK_NAMES.forEach((packName) => {
-            var pathToTxt = __dirname + "/../words/" + packName + ".txt";
-            let arrayOfWords = fs
-                .readFileSync(pathToTxt)
-                .toString()
-                .split(/\r?\n/);
+            let arrayOfWords = lists[`../words/${packName}.txt`].split(/\r?\n/);
 
             //remove all blank lines
             const newArrayOfWords = [];
@@ -48,10 +41,7 @@ class WordPacks {
 
             //can't have an empty list!
             if (arrayOfWords.length === 0) {
-                console.log(
-                    `${packName}.txt is empty. Please add some words, or delete it.`
-                );
-                process.exit(1);
+                throw new Error(`${packName}.txt is empty.`);
             }
 
             this.wordPacks.push(new WordPack(packName, arrayOfWords));

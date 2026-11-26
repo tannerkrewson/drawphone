@@ -1,74 +1,30 @@
 extends layout
 
 block js
-  // Drawphone JS
-  script(src=`${js}`)
+  script(type='module' src='/client/client.js')
 
 block content
   .mt-3.mb-2
-    img.mr-1(src='pencil-alt.svg' alt='' width='18')
-    img.ml-1(src='phone-alt.svg' alt='' width='18')
+    img.mr-1(src=icon('pencil') alt='' width='18')
+    img.ml-1(src=icon('phone-flip') alt='' width='18')
   h1#title Drawphone
   p#subtitle Telephone with pictures
   hr
-  div#loading Loading...
-  div#mainmenu.d-none
-    include announcements.pug
-    .btn-toolbar.mt-3
-      a.btn.btn-default.btn-lg.mr-2(href="https://rocketcrab.com/join",type='button') Join Party
-      a.btn.btn-default.btn-lg(href="https://rocketcrab.com/transfer/drawphone",type='button') Start Party
-    .mt-3.mb-3
-      |Powered by 
-      img.rocketsvg.ml-1(src='https://rocketcrab.com/rocket.svg' alt='' width='16')
-      img.crabsvg.ml-1(src='https://rocketcrab.com/crab.svg' alt='' width='16')
-      a.rocketcrablink(href="https://rocketcrab.com", target='_blank') rocketcrab.com
-    .btn-group-vertical(role="group" aria-label="...")
-      button#archivebtn.btn.btn-default(type='button') View Previous Results
-      button#howbtn.btn.btn-default(type='button') How to Play
-    br
-  div.row.justify-content-center
-    div.col
-      div#joinmenu.d-none
-        h5 Join a game
-        form
-          .input-container
-            label Game Code:
-            .form-group
-              input#joinincode.form-control(type='text', placeholder='abcd', autocomplete='off')
-            label Name:
-            .form-group
-              input#joininname.form-control(type='text', placeholder='Use your real name!', maxlength=16)
-          .btn-toolbar
-            button#joinmenu-back.btn.btn-default.btn-lg.mr-2(type='button') Back
-            button#joinmenu-go.btn.btn-default.btn-lg(type='submit') Join
-      div#newmenu.d-none
-        h5 Start a game
-        form
-          .input-container
-            label Name:
-            .form-group
-              input#newinname.form-control(type='text', placeholder='Use your real name!', maxlength=16)
-          .btn-toolbar 
-            button#newmenu-back.btn.btn-default.btn-lg.mr-2(type='button') Back
-            button#newmenu-go.btn.btn-default.btn-lg(type='submit') Start
+  p#connection-status.badge.badge-light(role='status') Waiting for the party
+  p#game-error.text-danger(role='alert')
   div#lobby.d-none
-    include announcements.pug
     div.row.justify-content-center.mb-4.mt-3
       div.col-sm-8
         h5 Players
         ul#lobby-players.list-unstyled.row
       .mt-2.btn-group-vertical(role="group" aria-label="...")
-        a.btn.btn-default(href="https://drawphone.tannerkrewson.com/archive", target='_blank', type='button') View Results Archive
+        button#archivebtn.btn.btn-default(type='button') View Results Archive
         button#lobby-prevres.btn.btn-default(type='button').d-none View Last Round's Results
-      .mt-2 Tip: There is no limit to the number of players that can join!
     div.row.justify-content-center.mb-3
       div#lobby-settings.col-sm-8.d-none
         h5 Options
         label Word pack:
         select.form-control.lobby-setting#lobby-settings-wordpack.mb-2
-          option(disabled='', selected='') Select a word pack...
-          for item in wordpacks
-            option #{item}
         label Drawing time limit:
         .btn-toolbar.mb-3
           button#timelimit-minus.lobby-setting.btn.btn-default -
@@ -79,43 +35,27 @@ block content
           button#turnlimit-minus.lobby-setting.btn.btn-default -
           span#lobby-settings-turnlimit Loading...
           button#turnlimit-plus.lobby-setting.btn.btn-default +
-        .mb-3#lobby-settings-gametime Loading...
         .checkboxes.mb-2
           .custom-control.custom-switch
             input#lobby-settings-wordfirst.custom-control-input.lobby-setting(type='checkbox')
             label.custom-control-label(for='lobby-settings-wordfirst') Players write first word
-          //- TODO: make this work again
-            .custom-control.custom-switch
-              input#lobby-settings-showNeighbors.custom-control-input.lobby-setting(type='checkbox')
-              label.custom-control-label(for='lobby-settings-showNeighbors') Show who players are passing to and from
-        .btn-toolbar.mb-3#lobby-settings-bots.d-none
-          button#lobby-settings-addbot.btn.btn-default.mr-2(type='button') Add Bot
-          button#lobby-settings-removebot.btn.btn-default(type='button') Remove Bot
+          .custom-control.custom-switch
+            input#lobby-settings-mature.custom-control-input.lobby-setting(type='checkbox')
+            label.custom-control-label(for='lobby-settings-mature') Include 13+ and 18+ word packs
     .btn-toolbar.mb-4
-      button#lobby-leave.btn.btn-default.btn-lg.mr-2(type='button') Leave Game
-      button#lobby-start.btn.btn-default.btn-lg.disabled.d-none(type='button') Start Game
+      button#lobby-start.btn.btn-default.btn-lg.d-none(type='button') Start Game
   div#game.d-none
-    div#neighboring-players-container.neighboring-players-container
-      div#previous-player-container.player-name.d-none
-        div Receiving from
-        div#previous-player
-      span#previous-player-arrow
-        img(src='arrow-right.svg' alt='right-arrow' width='24')
-      div#you-player.player-name
-      span#next-player-arrow
-        img(src='arrow-right.svg' alt='right-arrow' width='24')
-      div#next-player-container.player-name
-        div Sending to
-        div#next-player
     div#game-drawing.d-none
       h5#game-timer
+      p#game-ink(role="status")
       canvas#game-drawing-canvas.drawing(width='600', height='600')
     div#game-word.d-none
-      img#game-word-drawingtoname.drawing
+      img#game-word-drawingtoname.drawing(alt="Drawing to guess")
+      p#game-drawing-status(role="status")
       br
       br
       div Enter your answer here:
-      input#game-word-in.form-control(type='text', placeholder='Tap here to type!', autocomplete='off')  
+      input#game-word-in.form-control(type='text', placeholder='Tap here to type!', autocomplete='off', maxlength=50)
     div.row#game-draw-buttons.d-none
       div.col-md-6.mt-2
         div.input-group
@@ -135,31 +75,15 @@ block content
       button#game-drawing-undo.btn.btn-default.btn-lg.disabled.mr-2(type='button') Undo
       button#game-drawing-redo.btn.btn-default.btn-lg.disabled.mr-2(type='button') Redo
       button#game-send.btn.btn-default.btn-lg(type='button') Done
-  div#result.d-none
-    div#result-content
-    br
-    #result-others.btn-group-vertical(role='group', aria-label='...')
-    br
-    br
-    .btn-toolbar#result-buttons
-      button#result-done.btn.btn-default.btn-lg(type='button') Done
+  include results.pug
+  #archive.d-none
+    #archive-content.btn-group-vertical
+    .btn-toolbar.mt-3
+      button#archive-back.btn.btn-default.mr-2(type='button') Back
+      a.btn.btn-default(href='https://drawphone.tannerkrewson.com/archive', target='_blank', rel='noopener') Older results
   div#waiting.d-none
     div.row.justify-content-center
       div.col-sm-8
         h5 Still waiting for:
         ul#waiting-players.list-unstyled.row
-        div#waiting-hostmsg.d-none
-          br
-          h5 You are the host!
-          p Tap a player's box to kick them!
-        div#waiting-disconnectedmsg.d-none
-          br
-          h5 Someone is disconnected!
-          p They are marked by a grey box above. The game will continue when 
-            | someone joins this game to take their place. You can also tap 
-            | their box to replace them with a bot!
-  div#replace.d-none
-    div#replace-choices
-    br
-    .btn-toolbar#replace-buttons
-      button#replace-leave.btn.btn-default.btn-lg(type='button') Leave Game
+        p#waiting-next-round.d-none You can join the next round.

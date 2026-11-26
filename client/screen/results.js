@@ -1,42 +1,29 @@
-import { addResultsToStorage } from "../archive.js";
 import { DRAWING, WORD, FIRST_WORD } from "../../shared/enums.js";
 import Screen from "./screen.js";
 
 /* global $, ga */
 
 class Results extends Screen {
-    constructor(onDoneViewingResults) {
+    constructor(onDoneViewingResults, showDrawing) {
         super();
 
         this.onDoneViewingResults = onDoneViewingResults;
 
         this.id = "#result";
-    }
-
-    initialize(props) {
-        super.initialize(props);
+        this.showDrawing = showDrawing;
 
         $("#result-done").on("click", () => {
             this.onDoneViewingResults();
         });
+
     }
 
-    show({ data }, isArchivePage) {
-        this.socket.off("disconnect");
-
-        const { chains, roundTime } = data;
-
-        if (roundTime) {
-            ga("send", "event", "Results", "round time per player", roundTime);
-        }
+    show({ chains }) {
 
         this.render(chains[0], chains);
 
         super.show();
 
-        if (!isArchivePage && !data.isViewPreviousResults) {
-            addResultsToStorage(chains);
-        }
     }
 
     render(chainToShow, allChains) {
@@ -53,36 +40,45 @@ class Results extends Screen {
         const results = $("#result-content");
         results.empty();
 
-        for (let i = 0; i < links.length; i++) {
+        const firstIndex = links[0].type === FIRST_WORD ? 1 : 0;
+        for (let i = firstIndex; i < links.length; i++) {
             const link = links[i];
-            if (i === 0 && link.type === WORD) {
-                results.append(
-                    `<h4>The first word:</h4><h1 class="mb-4">${link.data}</h1>`
-                );
-            } else if (i === 1 && links[0].type === FIRST_WORD) {
-                results.append(
-                    `<h4>${link.player.name} wanted someone to draw:</h4><h1 class="mb-4">${link.data}</h1>`
-                );
+            if (link.skipped) {
+                results.append($("<h4>").text(`${link.player.name} skipped this turn.`));
+                if (link.type === WORD) results.append($("<h1 class='mb-4'>").text(link.data));
+                continue;
+            }
+            if (i === 0) {
+                results.append($("<h4>").text("The first word:"));
+            } else if (i === firstIndex) {
+                results.append($("<h4>").text(`${link.player.name} wanted someone to draw:`));
             } else if (link.type === DRAWING) {
-                results.append(
-                    `<h4>${link.player.name} drew:</h4><img class="drawing mb-4" src="${link.data}"></img>`
-                );
-            } else if (link.type === WORD) {
-                results.append(
-                    `<h4>${link.player.name} thought that was:</h4><h1 class="mb-4">${link.data}</h1>`
-                );
+                results.append($("<h4>").text(`${link.player.name} drew:`));
+            } else {
+                results.append($("<h4>").text(`${link.player.name} thought that was:`));
+            }
+
+            if (link.type === DRAWING) {
+                const image = $("<img class='drawing mb-4' alt='Drawing'>").appendTo(results).get(0);
+                if (link.ref) {
+                    const status = $("<p role='status'>").appendTo(results).get(0);
+                    this.showDrawing(image, status, link);
+                } else if (typeof link.data === "string" && /^data:image\/svg\+xml[;,]/.test(link.data)) {
+                    image.src = link.data;
+                } else {
+                    image.remove();
+                    results.append($("<p>").text("Drawing unavailable."));
+                }
+            } else {
+                results.append($("<h1 class='mb-4'>").text(link.data));
             }
         }
 
-        let wentFromBox = "";
-        wentFromBox += '<br><div class="well">';
-        const firstIndex = links[0].type === FIRST_WORD ? 1 : 0;
-        wentFromBox += `<h4>You started with:</h4><h1>${links[firstIndex].data}</h1><br>`;
-        wentFromBox += `<h4>and ended up with:</h4><h1>${
-            links[links.length - 1].data
-        }</h1>`;
-        wentFromBox += "</div>";
-        results.append(wentFromBox);
+        $("<div class='well'>")
+            .append($("<h4>").text("You started with:"), $("<h1>").text(links[firstIndex].data))
+            .append("<br>")
+            .append($("<h4>").text("and ended up with:"), $("<h1>").text(links.at(-1).data))
+            .appendTo(results);
     }
 
     displayOtherChainButtons(chainsToList, { id }) {
@@ -96,16 +92,12 @@ class Results extends Screen {
         for (let i = 0; i < chainsToList.length; i++) {
             const chain = chainsToList[i];
 
-            const disabled = chain.id === id ? "disabled" : "";
-
             // "players write first word" chains have the first word at index 1.
             const buttonLabel = chain.links[0].data || chain.links[1].data;
 
-            const button = $(
-                `<button type="button"${disabled}>${
-                    i + 1
-                }. ${buttonLabel}</button>`
-            );
+            const button = $("<button type='button'>")
+                .prop("disabled", chain.id === id)
+                .text(`${i + 1}. ${buttonLabel}`);
             button.addClass("btn btn-default btn-lg");
             ((thisChain, chainList) => {
                 button.click(() => {

@@ -1,8 +1,0 @@
-extends layout
-
-block content
-  h1= error.message
-  h2= error.status
-  - if (typeof(stack) !== 'undefined'){
-    pre #{stack}
-  -}

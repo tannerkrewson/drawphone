@@ -1,22 +1,15 @@
-import { fabric } from "fabric";
-import "blueimp-canvas-to-blob";
+import { Canvas } from "fabric";
+import { DRAWING_SIZE, RecordingBrush, encodeDrawing, rebuildStroke } from "./drawing";
 
 /* global $ */
 
-// https://github.com/abhi06991/Undo-Redo-Fabricjs
 function getDrawingCanvas() {
-    const thisCanvas = new fabric.Canvas("game-drawing-canvas");
-    thisCanvas.isDrawingMode = true;
-    thisCanvas.isBlank = true;
-    thisCanvas.freeDrawingBrush.width = 4;
+    const thisCanvas = new Canvas("game-drawing-canvas", { enablePointerEvents: true, selection: false, skipTargetFind: true });
+    const brush = new RecordingBrush(thisCanvas);
+    brush.decimate = 0;
+    thisCanvas.freeDrawingBrush = brush;
 
     const state = {
-        canvasState: [],
-        currentStateIndex: -1,
-        undoStatus: false,
-        redoStatus: false,
-        undoFinishedStatus: 1,
-        redoFinishedStatus: 1,
         undoButton: $("#game-drawing-undo"),
         redoButton: $("#game-drawing-redo"),
         colorInput: $("#game-drawing-color"),
@@ -24,115 +17,60 @@ function getDrawingCanvas() {
         recentColorButton2: $("#game-drawing-recent-color2"),
         recentColorButton3: $("#game-drawing-recent-color3"),
         brushsizeInput: $("#game-drawing-brushsize"),
-        brushsize: 4,
-        color: "#000000",
     };
-    thisCanvas.on("path:created", () => {
-        updateCanvasState();
+    let strokes = [];
+    let redoStrokes = [];
+    let storageKey;
+    let limit;
+    let full;
+    let encoded;
+
+    const update = () => {
+        encoded = encodeDrawing(strokes);
+        const percent = encoded.length / limit;
+        $("#game-ink").text(full
+            ? "Canvas full. Undo a stroke to make room."
+            : percent >= 0.8 ? `Ink used: ${Math.floor(percent * 100)}%` : "");
+        state.undoButton.prop("disabled", !strokes.length);
+        state.redoButton.prop("disabled", !redoStrokes.length);
+        thisCanvas.isDrawingMode = !full;
+        thisCanvas.isBlank = !strokes.length;
+
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(strokes));
+        } catch {
+            // Drawing still works if local storage is unavailable.
+        }
+    };
+
+    thisCanvas.on("path:created", ({ path }) => {
+        const stroke = brush.record();
+        strokes.push(stroke);
+        thisCanvas.remove(path);
+        if (encodeDrawing(strokes).length > limit) {
+            strokes.pop();
+            full = true;
+        } else {
+            thisCanvas.add(rebuildStroke(stroke));
+            redoStrokes = [];
+        }
+        update();
     });
 
-    const updateCanvasState = () => {
-        state.undoButton.removeClass("disabled");
-        thisCanvas.isBlank = false;
-        if (state.undoStatus == false && state.redoStatus == false) {
-            const jsonData = thisCanvas.toJSON();
-            const canvasAsJson = JSON.stringify(jsonData);
-            if (state.currentStateIndex < state.canvasState.length - 1) {
-                const indexToBeInserted = state.currentStateIndex + 1;
-                state.canvasState[indexToBeInserted] = canvasAsJson;
-                const numberOfElementsToRetain = indexToBeInserted + 1;
-                state.canvasState = state.canvasState.splice(
-                    0,
-                    numberOfElementsToRetain
-                );
-            } else {
-                state.canvasState.push(canvasAsJson);
-            }
-            state.currentStateIndex = state.canvasState.length - 1;
-            if (
-                state.currentStateIndex == state.canvasState.length - 1 &&
-                state.currentStateIndex != -1
-            ) {
-                state.redoButton.addClass("disabled");
-            }
-        }
-    };
-
     const undo = () => {
-        if (state.undoFinishedStatus) {
-            if (state.currentStateIndex == -1) {
-                state.undoStatus = false;
-            } else {
-                if (state.canvasState.length >= 1) {
-                    state.undoFinishedStatus = 0;
-                    if (state.currentStateIndex != 0) {
-                        state.undoStatus = true;
-                        thisCanvas.loadFromJSON(
-                            state.canvasState[state.currentStateIndex - 1],
-                            () => {
-                                thisCanvas.renderAll();
-                                state.undoStatus = false;
-                                state.currentStateIndex -= 1;
-                                state.undoButton.removeClass("disabled");
-                                if (
-                                    state.currentStateIndex !==
-                                    state.canvasState.length - 1
-                                ) {
-                                    state.redoButton.removeClass("disabled");
-                                }
-                                state.undoFinishedStatus = 1;
-                            }
-                        );
-                    } else if (state.currentStateIndex == 0) {
-                        thisCanvas.clear();
-                        state.undoFinishedStatus = 1;
-                        state.undoButton.addClass("disabled");
-                        state.redoButton.removeClass("disabled");
-                        thisCanvas.isBlank = true;
-                        state.currentStateIndex -= 1;
-                    }
-                }
-            }
-        }
+        if (!strokes.length) return;
+        redoStrokes.push(strokes.pop());
+        thisCanvas.remove(thisCanvas.getObjects().at(-1));
+        full = false;
+        update();
     };
 
     const redo = () => {
-        if (state.redoFinishedStatus) {
-            if (
-                state.currentStateIndex == state.canvasState.length - 1 &&
-                state.currentStateIndex != -1
-            ) {
-                state.redoButton.addClass("disabled");
-            } else {
-                if (
-                    state.canvasState.length > state.currentStateIndex &&
-                    state.canvasState.length != 0
-                ) {
-                    state.redoFinishedStatus = 0;
-                    state.redoStatus = true;
-                    thisCanvas.loadFromJSON(
-                        state.canvasState[state.currentStateIndex + 1],
-                        () => {
-                            thisCanvas.isBlank = false;
-                            thisCanvas.renderAll();
-                            state.redoStatus = false;
-                            state.currentStateIndex += 1;
-                            if (state.currentStateIndex != -1) {
-                                state.undoButton.removeClass("disabled");
-                            }
-                            state.redoFinishedStatus = 1;
-                            if (
-                                state.currentStateIndex ==
-                                    state.canvasState.length - 1 &&
-                                state.currentStateIndex != -1
-                            ) {
-                                state.redoButton.addClass("disabled");
-                            }
-                        }
-                    );
-                }
-            }
-        }
+        if (!redoStrokes.length) return;
+        const stroke = redoStrokes.pop();
+        strokes.push(stroke);
+        thisCanvas.add(rebuildStroke(stroke));
+        update();
     };
 
     const changeColor = () => {
@@ -204,19 +142,36 @@ function getDrawingCanvas() {
     });
     state.brushsizeInput.on("change", changeBrushsize);
 
-    thisCanvas.remove = () => {
-        state.undoButton.off("click");
-        state.redoButton.off("click");
-        state.colorInput.val("#000000");
-        state.colorInput.off("change");
-        state.recentColorButton1.off("click");
-        state.recentColorButton2.off("click");
-        state.recentColorButton3.off("click");
-        state.brushsizeInput.val(4);
-        thisCanvas.dispose();
-        $("#game-drawing-canvas").empty();
+    thisCanvas.begin = (key, ink) => {
+        storageKey = key;
+        limit = ink;
+        full = false;
+        redoStrokes = [];
+        strokes = [];
+        thisCanvas.clear();
+        brush.width = 4;
+        brush.color = "#000000";
+        state.colorInput.val(brush.color);
+        state.brushsizeInput.val(brush.width);
+        try {
+            const saved = JSON.parse(localStorage.getItem(key) || "[]");
+            const paths = saved.map(rebuildStroke);
+            if (encodeDrawing(saved).length <= ink) {
+                strokes = saved;
+                thisCanvas.add(...paths);
+            }
+        } catch {
+            // A missing or invalid draft opens a blank canvas.
+        }
+        for (const button of [state.undoButton, state.redoButton]) button.removeClass("disabled");
+        update();
     };
 
+    thisCanvas.bytes = () => encoded;
+    thisCanvas.resize = (size) => {
+        thisCanvas.setDimensions({ width: size, height: size });
+        thisCanvas.setZoom(size / DRAWING_SIZE);
+    };
     return thisCanvas;
 }
 

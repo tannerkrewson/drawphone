@@ -1,0 +1,4 @@
+{
+    "tabWidth": 4,
+    "ignorePatterns": ["dist", "server/public", "webpack-assets.json"]
+}

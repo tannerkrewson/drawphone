@@ -11,7 +11,16 @@ test("a stroke survives encoding within one pixel", () => {
         width: 4,
     }) as RecordingBrush;
     const roundTrip = decodeDrawing(encodeDrawing([brush.record()]));
-    expect(roundTrip[0].points).toBe(encode([[30, 51], [50, 70], [51, 96]], 0));
+    expect(roundTrip[0].points).toBe(
+        encode(
+            [
+                [30, 51],
+                [50, 70],
+                [51, 96],
+            ],
+            0,
+        ),
+    );
     decode(roundTrip[0].points, 0).forEach(([x, y], i) => {
         expect(Math.hypot(x - original[i].x, y - original[i].y)).toBeLessThan(1);
     });

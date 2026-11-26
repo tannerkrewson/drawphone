@@ -66,7 +66,10 @@ class Game extends Screen {
         this.deadline = 0;
         this.setSubtitle(`${count}/${finalCount}`);
         $("#game-drawing, #game-draw-buttons").toggleClass("d-none", !this.drawing);
-        $("#game-drawing-undo, #game-drawing-redo").toggleClass("d-none", !this.drawing || (timeLimit > 0 && timeLimit <= 5));
+        $("#game-drawing-undo, #game-drawing-redo").toggleClass(
+            "d-none",
+            !this.drawing || (timeLimit > 0 && timeLimit <= 5),
+        );
         $("#game-word").toggleClass("d-none", this.drawing);
         this.wordInput.val("");
         this.setPending(false);
@@ -76,9 +79,9 @@ class Game extends Screen {
             this.canvas ??= getDrawingCanvas();
             this.resizeCanvas();
             this.canvas.begin(key, ink);
-            this.timerDisplay.text(timeLimit
-                ? "Begin drawing to start the timer."
-                : "No time limit to draw.");
+            this.timerDisplay.text(
+                timeLimit ? "Begin drawing to start the timer." : "No time limit to draw.",
+            );
             try {
                 this.deadline = Number(localStorage.getItem(key + ":deadline")) || 0;
             } catch {
@@ -86,9 +89,9 @@ class Game extends Screen {
             }
             if (timeLimit && this.deadline) this.countDown();
         } else {
-            this.setTitle(link.type === FIRST_WORD
-                ? "What should be drawn?"
-                : "What is this a drawing of?");
+            this.setTitle(
+                link.type === FIRST_WORD ? "What should be drawn?" : "What is this a drawing of?",
+            );
             const image = $("#game-word-drawingtoname").get(0);
             image.removeAttribute("src");
             image.hidden = !link.ref;
@@ -102,7 +105,9 @@ class Game extends Screen {
     setPending(pending) {
         this.pending = pending;
         $("#game-send").prop("disabled", pending);
-        $("#game-drawing, #game-draw-buttons, #game-word, #game-drawing-undo, #game-drawing-redo").prop("inert", pending);
+        $(
+            "#game-drawing, #game-draw-buttons, #game-word, #game-drawing-undo, #game-drawing-redo",
+        ).prop("inert", pending);
     }
 
     async checkIfDone(timedOut = false) {
@@ -120,7 +125,11 @@ class Game extends Screen {
         const { key, idOfRound: id, turn, drawing } = this;
         this.stopTimer();
         this.setPending(true);
-        const accepted = await this.submit({ id, turn }, drawing ? this.canvas.bytes() : undefined, word);
+        const accepted = await this.submit(
+            { id, turn },
+            drawing ? this.canvas.bytes() : undefined,
+            word,
+        );
         if (accepted) {
             try {
                 localStorage.removeItem(key);

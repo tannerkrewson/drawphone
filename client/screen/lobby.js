@@ -21,8 +21,12 @@ class Lobby extends Screen {
             change("pack", selected);
             ga("send", "event", "Lobby", "word pack change", selected);
         });
-        this.wordFirstCheckbox.on("change", () => change("wordFirst", this.wordFirstCheckbox.is(":checked")));
-        this.matureCheckbox.on("change", () => change("mature", this.matureCheckbox.is(":checked")));
+        this.wordFirstCheckbox.on("change", () =>
+            change("wordFirst", this.wordFirstCheckbox.is(":checked")),
+        );
+        this.matureCheckbox.on("change", () =>
+            change("mature", this.matureCheckbox.is(":checked")),
+        );
         $("#timelimit-minus").on("click", () => change("time", -1));
         $("#timelimit-plus").on("click", () => change("time", 1));
         $("#turnlimit-minus").on("click", () => change("turns", -1));
@@ -30,7 +34,7 @@ class Lobby extends Screen {
         this.startButton.on("click", async () => {
             const { time, turns, wordFirst, pack } = this.settings;
             const playerCount = this.playerCount;
-            if (!await emit("start")) return;
+            if (!(await emit("start"))) return;
             ga("send", "event", "Game", "start");
             ga("send", "event", "Game", "time limit", time);
             ga("send", "event", "Game", "turn limit", turns);
@@ -45,14 +49,19 @@ class Lobby extends Screen {
         this.settings = settings;
         this.playerCount = players.length;
         const twoWordFirst = players.length === 2 && settings?.wordFirst;
-        this.setSubtitle(started
-            ? leader
-                ? twoWordFirst ? "Players write first word needs three players." : "Telephone with pictures"
-                : "Waiting for the party leader..."
-            : "Waiting for the party...");
+        this.setSubtitle(
+            started
+                ? leader
+                    ? twoWordFirst
+                        ? "Players write first word needs three players."
+                        : "Telephone with pictures"
+                    : "Waiting for the party leader..."
+                : "Waiting for the party...",
+        );
         $("#lobby-settings").toggleClass("d-none", !leader || !started);
         $("#lobby-prevres").toggleClass("d-none", !previous);
-        this.startButton.toggleClass("d-none", !leader || !started)
+        this.startButton
+            .toggleClass("d-none", !leader || !started)
             .text(previous ? "Play Again" : "Start Game")
             .prop("disabled", !players.length || twoWordFirst || saving);
 
@@ -66,7 +75,9 @@ class Lobby extends Screen {
         this.matureCheckbox.prop("checked", settings.mature);
         $("#lobby-settings-turnlimit").text(players.length === 1 ? "Demo" : settings.turns);
         $("#turnlimit-minus, #turnlimit-plus").prop("disabled", players.length <= 3);
-        $("#lobby-settings-timelimit").text(settings.time === 0 ? "No time limit" : `${settings.time} seconds`);
+        $("#lobby-settings-timelimit").text(
+            settings.time === 0 ? "No time limit" : `${settings.time} seconds`,
+        );
     }
 }
 

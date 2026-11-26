@@ -15,15 +15,12 @@ class Results extends Screen {
         $("#result-done").on("click", () => {
             this.onDoneViewingResults();
         });
-
     }
 
     show({ chains }) {
-
         this.render(chains[0], chains);
 
         super.show();
-
     }
 
     render(chainToShow, allChains) {
@@ -59,11 +56,16 @@ class Results extends Screen {
             }
 
             if (link.type === DRAWING) {
-                const image = $("<img class='drawing mb-4' alt='Drawing'>").appendTo(results).get(0);
+                const image = $("<img class='drawing mb-4' alt='Drawing'>")
+                    .appendTo(results)
+                    .get(0);
                 if (link.ref) {
                     const status = $("<p role='status'>").appendTo(results).get(0);
                     this.showDrawing(image, status, link);
-                } else if (typeof link.data === "string" && /^data:image\/svg\+xml[;,]/.test(link.data)) {
+                } else if (
+                    typeof link.data === "string" &&
+                    /^data:image\/svg\+xml[;,]/.test(link.data)
+                ) {
                     image.src = link.data;
                 } else {
                     image.remove();

@@ -94,7 +94,7 @@ label {
     display: flex;
     justify-content: center;
 }
-​ .form-group {
+​.form-group {
     text-align: center;
 }
 
@@ -216,7 +216,12 @@ span.avoidwrap {
 }
 
 .rocketcrab-style {
-    font-family: "Mukta", Helvetica Neue, Helvetica, Arial, sans-serif;
+    font-family:
+        "Mukta",
+        Helvetica Neue,
+        Helvetica,
+        Arial,
+        sans-serif;
 }
 
 .rocketcrablink {
@@ -340,7 +345,7 @@ span.avoidwrap {
     text-decoration: none !important;
     display: inline-flex !important;
     color: #ffffff !important;
-    background-color: #517EFA !important;
+    background-color: #517efa !important;
     border-radius: 5px !important;
     border: 1px solid transparent !important;
     padding: 7px 10px 7px 10px !important;

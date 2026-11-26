@@ -15,17 +15,22 @@ function chainsFor(round: Round) {
         const entries = links.map(([seat, data, extra], index) => ({
             player: { name: round.seats[seat].name },
             type: index % 2 ? "drawing" : "word",
-            data: index % 2 ? undefined : data ?? undefined,
-            ref: typeof extra === "number" ? data ?? undefined : undefined,
+            data: index % 2 ? undefined : (data ?? undefined),
+            ref: typeof extra === "number" ? (data ?? undefined) : undefined,
             skipped: data === null || extra === true,
         }));
         const owner = { name: round.owners[id] };
         if (!round.offset) {
-            entries.unshift({ player: owner, type: "first-word", data: undefined, ref: undefined, skipped: false });
+            entries.unshift({
+                player: owner,
+                type: "first-word",
+                data: undefined,
+                ref: undefined,
+                skipped: false,
+            });
         }
         return { id, owner, links: entries };
     });
-
 }
 
 export function connect(nova?: Nova<State>) {
@@ -63,17 +68,29 @@ export function connect(nova?: Nova<State>) {
     }
 
     function reason(error: unknown, fallback: string) {
-        if (error && typeof error === "object" && "message" in error && typeof error.message === "string") {
+        if (
+            error &&
+            typeof error === "object" &&
+            "message" in error &&
+            typeof error.message === "string"
+        ) {
             return error.message;
         }
         return fallback;
     }
 
-    async function submit(turn: { id: string; turn: number }, bytes?: Uint8Array<ArrayBuffer>, word?: string) {
+    async function submit(
+        turn: { id: string; turn: number },
+        bytes?: Uint8Array<ArrayBuffer>,
+        word?: string,
+    ) {
         showError("");
         try {
-            const ref = bytes && await nova!.files.put(new Blob([bytes]));
-            return await emit("finishedLink", bytes ? { ...turn, ref, bytes: bytes.length } : { ...turn, word });
+            const ref = bytes && (await nova!.files.put(new Blob([bytes])));
+            return await emit(
+                "finishedLink",
+                bytes ? { ...turn, ref, bytes: bytes.length } : { ...turn, word },
+            );
         } catch (error) {
             showError(reason(error, "Drawing upload failed. Tap Done to retry."));
             return false;
@@ -101,14 +118,19 @@ export function connect(nova?: Nova<State>) {
         const round = lastRound;
         const request = {};
         drawingRequests.set(image, request);
-        const stillVisible = () => lastRound === round && image.isConnected && drawingRequests.get(image) === request;
-        status.textContent = link.ref ? "Loading drawing..." : "Drawing skipped because the player left.";
+        const stillVisible = () =>
+            lastRound === round && image.isConnected && drawingRequests.get(image) === request;
+        status.textContent = link.ref
+            ? "Loading drawing..."
+            : "Drawing skipped because the player left.";
         if (!link.ref) return;
         try {
             const drawing = await getDrawing(link.ref);
             if (!stillVisible()) return;
             if (!drawing.url) {
-                drawing.url = URL.createObjectURL(new Blob([drawing.svg], { type: "image/svg+xml" }));
+                drawing.url = URL.createObjectURL(
+                    new Blob([drawing.svg], { type: "image/svg+xml" }),
+                );
                 urls.add(drawing.url);
             }
             image.src = drawing.url;
@@ -123,25 +145,31 @@ export function connect(nova?: Nova<State>) {
 
     function saveResults(round: Round, chains: ReturnType<typeof chainsFor>) {
         saving = round.id;
-        void Promise.all(chains.map(async (chain) => ({
-            ...chain,
-            links: await Promise.all(chain.links.map(async ({ ref, ...link }) => {
-                if (!ref) return link;
-                try {
-                    const { svg } = await getDrawing(ref);
-                    return { ...link, data: `data:image/svg+xml;base64,${btoa(svg)}` };
-                } catch {
-                    // Keep the rest of the chain if the party has already dropped a file.
-                    return link;
-                }
+        void Promise.all(
+            chains.map(async (chain) => ({
+                ...chain,
+                links: await Promise.all(
+                    chain.links.map(async ({ ref, ...link }) => {
+                        if (!ref) return link;
+                        try {
+                            const { svg } = await getDrawing(ref);
+                            return { ...link, data: `data:image/svg+xml;base64,${btoa(svg)}` };
+                        } catch {
+                            // Keep the rest of the chain if the party has already dropped a file.
+                            return link;
+                        }
+                    }),
+                ),
             })),
-        }))).then((entries) => addResultsToStorage(entries, round.id, new Date(round.startedAt)))
+        )
+            .then((entries) => addResultsToStorage(entries, round.id, new Date(round.startedAt)))
             .catch(() => {
                 if (lastRound === round.id) {
                     archiveError = "Could not save this round to the results archive.";
                     showError(archiveError);
                 }
-            }).finally(() => {
+            })
+            .finally(() => {
                 if (saving === round.id) {
                     saving = undefined;
                     if (latest?.phase === "results" && viewedResults === round.id && !archiveMode) {
@@ -212,19 +240,35 @@ export function connect(nova?: Nova<State>) {
                 showError("");
                 activeTurn = key;
                 const previous = round.chains[round.order[round.turn][seat]].at(-1);
-                const link = !previous ? { type: "first-word" } : isDrawingTurn(round)
-                    ? { type: "word", data: previous[1] }
-                    : { type: "drawing", ref: previous[1] };
-                game.newLink({ link, count, finalCount, timeLimit: state.settings.time, key, ink: round.ink, id: round.id, turn: round.turn });
+                const link = !previous
+                    ? { type: "first-word" }
+                    : isDrawingTurn(round)
+                      ? { type: "word", data: previous[1] }
+                      : { type: "drawing", ref: previous[1] };
+                game.newLink({
+                    link,
+                    count,
+                    finalCount,
+                    timeLimit: state.settings.time,
+                    key,
+                    ink: round.ink,
+                    id: round.id,
+                    turn: round.turn,
+                });
                 return;
             }
 
             activeTurn = undefined;
             game.stopTimer();
             waiting.updateWaitingList({
-                players: round.seats.flatMap((player, index) => waitingFor(round, index) ?
-                    [{ name: player.name, vacant: player.id === null, seat: index }] : []),
-                onSkip: isLeader() ? (index: number) => emit("skip", { id: round.id, seat: index }) : undefined,
+                players: round.seats.flatMap((player, index) =>
+                    waitingFor(round, index)
+                        ? [{ name: player.name, vacant: player.id === null, seat: index }]
+                        : [],
+                ),
+                onSkip: isLeader()
+                    ? (index: number) => emit("skip", { id: round.id, seat: index })
+                    : undefined,
                 nextRound: seat < 0,
                 count,
                 finalCount,
@@ -256,7 +300,9 @@ export function connect(nova?: Nova<State>) {
     }
 
     function connection(status: string) {
-        $("#connection-status").text(status === "disconnected" && !started ? "Waiting for the party" : status);
+        $("#connection-status").text(
+            status === "disconnected" && !started ? "Waiting for the party" : status,
+        );
     }
 
     let archived: string | undefined;
@@ -267,7 +313,14 @@ export function connect(nova?: Nova<State>) {
         render(state);
         if (newResults) {
             archived = round.id;
-            if (isLeader()) ga("send", "event", "Results", "round time per player", (Date.now() - round.startedAt) / round.seats.length);
+            if (isLeader())
+                ga(
+                    "send",
+                    "event",
+                    "Results",
+                    "round time per player",
+                    (Date.now() - round.startedAt) / round.seats.length,
+                );
             saveResults(round, chainsFor(round));
         }
     }
@@ -281,7 +334,9 @@ export function connect(nova?: Nova<State>) {
     });
     nova.onPlayerJoin(() => render(latest));
     nova.onPlayerLeave(() => render(latest));
-    nova.state.onChange((state) => { if (started) onState(state); });
+    nova.state.onChange((state) => {
+        if (started) onState(state);
+    });
     nova.onStart(() => {
         started = true;
         onState(nova.state.get());

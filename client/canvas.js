@@ -4,7 +4,11 @@ import { DRAWING_SIZE, RecordingBrush, encodeDrawing, rebuildStroke } from "./dr
 /* global $ */
 
 function getDrawingCanvas() {
-    const thisCanvas = new Canvas("game-drawing-canvas", { enablePointerEvents: true, selection: false, skipTargetFind: true });
+    const thisCanvas = new Canvas("game-drawing-canvas", {
+        enablePointerEvents: true,
+        selection: false,
+        skipTargetFind: true,
+    });
     const brush = new RecordingBrush(thisCanvas);
     brush.decimate = 0;
     thisCanvas.freeDrawingBrush = brush;
@@ -28,9 +32,13 @@ function getDrawingCanvas() {
     const update = () => {
         encoded = encodeDrawing(strokes);
         const percent = encoded.length / limit;
-        $("#game-ink").text(full
-            ? "Canvas full. Undo a stroke to make room."
-            : percent >= 0.8 ? `Ink used: ${Math.floor(percent * 100)}%` : "");
+        $("#game-ink").text(
+            full
+                ? "Canvas full. Undo a stroke to make room."
+                : percent >= 0.8
+                  ? `Ink used: ${Math.floor(percent * 100)}%`
+                  : "",
+        );
         state.undoButton.prop("disabled", !strokes.length);
         state.redoButton.prop("disabled", !redoStrokes.length);
         thisCanvas.isDrawingMode = !full;
@@ -76,16 +84,13 @@ function getDrawingCanvas() {
     const changeColor = () => {
         state.recentColorButton3.css(
             "background-color",
-            state.recentColorButton2.css("background-color")
+            state.recentColorButton2.css("background-color"),
         );
         state.recentColorButton2.css(
             "background-color",
-            state.recentColorButton1.css("background-color")
+            state.recentColorButton1.css("background-color"),
         );
-        state.recentColorButton1.css(
-            "background-color",
-            thisCanvas.freeDrawingBrush.color
-        );
+        state.recentColorButton1.css("background-color", thisCanvas.freeDrawingBrush.color);
         thisCanvas.freeDrawingBrush.color = state.colorInput.val();
     };
 
@@ -104,27 +109,23 @@ function getDrawingCanvas() {
         if (index >= 3) {
             state.recentColorButton3.css(
                 "background-color",
-                state.recentColorButton2.css("background-color")
+                state.recentColorButton2.css("background-color"),
             );
         }
         if (index >= 2) {
             state.recentColorButton2.css(
                 "background-color",
-                state.recentColorButton1.css("background-color")
+                state.recentColorButton1.css("background-color"),
             );
         }
         if (index >= 1) {
-            state.recentColorButton1.css(
-                "background-color",
-                thisCanvas.freeDrawingBrush.color
-            );
+            state.recentColorButton1.css("background-color", thisCanvas.freeDrawingBrush.color);
         }
         thisCanvas.freeDrawingBrush.color = state.colorInput.val();
     };
 
     const changeBrushsize = () => {
-        thisCanvas.freeDrawingBrush.width =
-            parseInt(state.brushsizeInput.val(), 10) || 1;
+        thisCanvas.freeDrawingBrush.width = parseInt(state.brushsizeInput.val(), 10) || 1;
     };
 
     state.undoButton.on("click", undo);

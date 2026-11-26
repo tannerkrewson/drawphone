@@ -3,14 +3,10 @@
 //
 
 // https://stackoverflow.com/a/33352604
-const arrayFromOneToN = (length, offset = 0) =>
-    Array.from({ length }, (_, i) => i + offset);
+const arrayFromOneToN = (length, offset = 0) => Array.from({ length }, (_, i) => i + offset);
 
 // https://stackoverflow.com/a/58326608
-const rotateArray = (arr, count = 1) => [
-    ...arr.slice(count, arr.length),
-    ...arr.slice(0, count),
-];
+const rotateArray = (arr, count = 1) => [...arr.slice(count, arr.length), ...arr.slice(0, count)];
 
 // https://math.stackexchange.com/a/4000891
 // "In the odd prime case..."

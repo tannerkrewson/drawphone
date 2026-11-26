@@ -7,7 +7,6 @@ class Screen {
         this.id = "";
         this.title = "Loading Drawphone...";
         this.subtitle = "Just a moment!";
-
     }
 
     show() {
@@ -27,7 +26,6 @@ class Screen {
         this.subtitle = subtitle;
         $("#subtitle").text(this.subtitle);
     }
-
 }
 
 export default Screen;

@@ -53,7 +53,13 @@ export async function addResultsToStorage(chains, roundId, date) {
     const db = initArchiveDb();
     try {
         await db.transaction("rw", db.archive, async () => {
-            if (!(await db.archive.where("date").equals(date).and((entry) => entry.roundId === roundId).first())) {
+            if (
+                !(await db.archive
+                    .where("date")
+                    .equals(date)
+                    .and((entry) => entry.roundId === roundId)
+                    .first())
+            ) {
                 await db.archive.add({ date, chains, roundId });
             }
         });

@@ -10,10 +10,18 @@ const words = new WordPacks();
 words.loadAll();
 export const DEFAULT_PACK = WordPacks.getAllPackNames(true)[0];
 
-export type Settings = { pack: string; wordFirst: boolean; mature: boolean; time: number; turns: number };
+export type Settings = {
+    pack: string;
+    wordFirst: boolean;
+    mature: boolean;
+    time: number;
+    turns: number;
+};
 // A word or a skipped drawing needs two fields; a drawing carries its ref and byte size.
-export type Link = [seat: number, word: string, skipped?: true] |
-    [seat: number, ref: string, bytes: number] | [seat: number, skippedDrawing: null];
+export type Link =
+    | [seat: number, word: string, skipped?: true]
+    | [seat: number, ref: string, bytes: number]
+    | [seat: number, skippedDrawing: null];
 type Seat = { id: string | null; name: string; skip?: true };
 export type Round = {
     id: string;
@@ -49,9 +57,9 @@ function setInk(round: Round) {
         }
     }
     const used = [...refs.values()].reduce((sum, bytes) => sum + bytes, 0);
-    const remaining = round.order.slice(round.turn).filter((_, i) =>
-        (round.turn + i + round.offset) % 2 === 1
-    ).length * round.seats.length;
+    const remaining =
+        round.order.slice(round.turn).filter((_, i) => (round.turn + i + round.offset) % 2 === 1)
+            .length * round.seats.length;
     round.ink = remaining ? drawingLimit(used, remaining) : 0;
 }
 
@@ -61,9 +69,11 @@ function advance(state: State, round: Round, previousTurn: number) {
         for (const [seat, player] of round.seats.entries()) {
             if (player.skip && waitingFor(round, seat)) {
                 const chain = round.chains[round.order[round.turn][seat]];
-                chain.push(position % 2 === 1
-                    ? [seat, null]
-                    : [seat, words.getRandomWord(state.settings.pack), true]);
+                chain.push(
+                    position % 2 === 1
+                        ? [seat, null]
+                        : [seat, words.getRandomWord(state.settings.pack), true],
+                );
             }
         }
         if (round.chains.some((chain) => chain.length === position)) {
@@ -76,7 +86,8 @@ function advance(state: State, round: Round, previousTurn: number) {
 }
 
 function leader(context: ActionContext) {
-    if (context.actor.id !== context.leaderId) throw new Error("Only the party leader can do that.");
+    if (context.actor.id !== context.leaderId)
+        throw new Error("Only the party leader can do that.");
 }
 
 function turnSetting(state: State, modifier = 0, prevNumPlayers = state.players.length) {
@@ -122,13 +133,18 @@ export const game: GameDefinition<State> = {
             const settings = state.settings;
             switch (key) {
                 case "pack":
-                    if (typeof value !== "string" || !WordPacks.getAllPackNames(!settings.mature).includes(value)) break;
+                    if (
+                        typeof value !== "string" ||
+                        !WordPacks.getAllPackNames(!settings.mature).includes(value)
+                    )
+                        break;
                     settings.pack = value;
                     return;
                 case "mature":
                     if (typeof value !== "boolean") break;
                     settings.mature = value;
-                    if (!WordPacks.getAllPackNames(!value).includes(settings.pack)) settings.pack = DEFAULT_PACK;
+                    if (!WordPacks.getAllPackNames(!value).includes(settings.pack))
+                        settings.pack = DEFAULT_PACK;
                     return;
                 case "wordFirst":
                     if (typeof value !== "boolean") break;
@@ -137,7 +153,10 @@ export const game: GameDefinition<State> = {
                     return;
                 case "time":
                     if (value !== -1 && value !== 1) break;
-                    settings.time = Math.min(2147480, Math.max(0, settings.time + value * (settings.time >= 30 ? 15 : 5)));
+                    settings.time = Math.min(
+                        2147480,
+                        Math.max(0, settings.time + value * (settings.time >= 30 ? 15 : 5)),
+                    );
                     return;
                 case "turns":
                     if (value !== -1 && value !== 1) break;
@@ -162,10 +181,13 @@ export const game: GameDefinition<State> = {
                 id: startedAt.toString(36) + Math.random().toString(36).slice(2),
                 seats,
                 owners: seats.map(({ name }) => name),
-                chains: seats.map((_, seat) => wordFirst ? [] : [[seat, words.getRandomWord(pack)]]),
-                order: count === 1
-                    ? Array.from({ length: turnCount }, () => [0])
-                    : rowCompleteLatinSquare(count, turnCount).slice(0, turnCount),
+                chains: seats.map((_, seat) =>
+                    wordFirst ? [] : [[seat, words.getRandomWord(pack)]],
+                ),
+                order:
+                    count === 1
+                        ? Array.from({ length: turnCount }, () => [0])
+                        : rowCompleteLatinSquare(count, turnCount).slice(0, turnCount),
                 turn: 0,
                 offset,
                 ink: 0,
@@ -177,24 +199,40 @@ export const game: GameDefinition<State> = {
         finishedLink(state, context, payload) {
             const round = state.round;
             const { id, turn, word, ref, bytes } = payload as {
-                id: string; turn: number; word?: string; ref?: string; bytes?: number;
+                id: string;
+                turn: number;
+                word?: string;
+                ref?: string;
+                bytes?: number;
             };
             if (state.phase !== "round" || !round || id !== round.id || turn !== round.turn) {
                 throw new Error("This turn has already ended.");
             }
             const seat = round.seats.findIndex(({ id }) => id === context.actor.id);
-            if (seat < 0 || !waitingFor(round, seat)) throw new Error("You have no link to submit.");
+            if (seat < 0 || !waitingFor(round, seat))
+                throw new Error("You have no link to submit.");
             const chain = round.chains[round.order[turn][seat]];
             if (isDrawingTurn(round)) {
-                if (typeof ref !== "string" || !/^nova-file:[a-f0-9]{64}$/.test(ref) ||
-                    typeof bytes !== "number" || !Number.isInteger(bytes) || bytes < 1 || bytes > round.ink) {
+                if (
+                    typeof ref !== "string" ||
+                    !/^nova-file:[a-f0-9]{64}$/.test(ref) ||
+                    typeof bytes !== "number" ||
+                    !Number.isInteger(bytes) ||
+                    bytes < 1 ||
+                    bytes > round.ink
+                ) {
                     throw new Error("This drawing exceeds the ink limit or is missing.");
                 }
                 chain.push([seat, ref, bytes]);
             } else {
-                const clean = typeof word === "string"
-                    ? stripTags(word).replaceAll(/\p{Cc}/gu, " ").trim().slice(0, 50).toWellFormed()
-                    : "";
+                const clean =
+                    typeof word === "string"
+                        ? stripTags(word)
+                              .replaceAll(/\p{Cc}/gu, " ")
+                              .trim()
+                              .slice(0, 50)
+                              .toWellFormed()
+                        : "";
                 if (!clean) throw new Error("Enter a word first.");
                 chain.push([seat, clean]);
             }
@@ -207,7 +245,12 @@ export const game: GameDefinition<State> = {
             leader(context);
             const round = state.round;
             const { id, seat } = payload as { id: string; seat: number };
-            if (state.phase !== "round" || !round || round.id !== id || round.seats[seat]?.id !== null) {
+            if (
+                state.phase !== "round" ||
+                !round ||
+                round.id !== id ||
+                round.seats[seat]?.id !== null
+            ) {
                 throw new Error("This seat is no longer vacant.");
             }
             round.seats[seat].skip = true;

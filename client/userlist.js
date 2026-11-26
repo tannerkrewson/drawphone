@@ -13,8 +13,11 @@ class UserList {
             if (player.vacant) {
                 box.addClass("disconnected");
                 if (onSkip) {
-                    $("<button type='button'>").addClass("btn btn-default ml-2")
-                        .text("Skip").on("click", () => onSkip(player.seat)).appendTo(box);
+                    $("<button type='button'>")
+                        .addClass("btn btn-default ml-2")
+                        .text("Skip")
+                        .on("click", () => onSkip(player.seat))
+                        .appendTo(box);
                 }
             }
             item.append(box).appendTo(this.container);

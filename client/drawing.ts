@@ -11,7 +11,10 @@ export class RecordingBrush extends PencilBrush {
         return {
             color: this.color,
             width: this.width,
-            points: encode(simplify(this._points, 1, true).map(({ x, y }) => [x, y]), 0),
+            points: encode(
+                simplify(this._points, 1, true).map(({ x, y }) => [x, y]),
+                0,
+            ),
         };
     }
 }
@@ -25,7 +28,14 @@ export function decodeDrawing(bytes: Uint8Array): Stroke[] {
 }
 
 function pathCommands({ points, color, width }: Stroke) {
-    if (!/^#[a-f0-9]{6}$/i.test(color) || !Number.isInteger(width) || width < 1 || width > 60 || typeof points !== "string" || /[^?-~]/.test(points)) {
+    if (
+        !/^#[a-f0-9]{6}$/i.test(color) ||
+        !Number.isInteger(width) ||
+        width < 1 ||
+        width > 60 ||
+        typeof points !== "string" ||
+        /[^?-~]/.test(points)
+    ) {
         throw new Error("Invalid drawing stroke.");
     }
     const samples = decode(points, 0).map(([x, y]) => new Point(x, y));

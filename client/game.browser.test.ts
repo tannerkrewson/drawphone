@@ -36,8 +36,12 @@ async function party() {
             clients.set(index, client);
             const noop = () => () => {};
             return {
-                defineGame(game) { definition ??= game; },
-                ready() { ready[index](); },
+                defineGame(game) {
+                    definition ??= game;
+                },
+                ready() {
+                    ready[index]();
+                },
                 player: actor,
                 players: [actor, ...players.filter((player) => player !== actor)],
                 leaderId,
@@ -46,10 +50,16 @@ async function party() {
                 onEnd: noop,
                 onPlayerJoin: noop,
                 onPlayerLeave: noop,
-                onStart(callback) { client.started = callback; return () => {}; },
+                onStart(callback) {
+                    client.started = callback;
+                    return () => {};
+                },
                 state: {
-                    get: () => state ? structuredClone(state) : null,
-                    onChange(callback) { client.render = callback; return () => {}; },
+                    get: () => (state ? structuredClone(state) : null),
+                    onChange(callback) {
+                        client.render = callback;
+                        return () => {};
+                    },
                 },
                 async dispatch({ type, payload }) {
                     const next = structuredClone(state);
@@ -59,8 +69,12 @@ async function party() {
                 },
                 files: {
                     async put(blob) {
-                        const hash = new Uint8Array(await crypto.subtle.digest("SHA-256", await blob.arrayBuffer()));
-                        const ref = "nova-file:" + Array.from(hash, (byte) => byte.toString(16).padStart(2, "0")).join("");
+                        const hash = new Uint8Array(
+                            await crypto.subtle.digest("SHA-256", await blob.arrayBuffer()),
+                        );
+                        const ref =
+                            "nova-file:" +
+                            Array.from(hash, (byte) => byte.toString(16).padStart(2, "0")).join("");
                         files.set(ref, blob);
                         return ref;
                     },
@@ -78,7 +92,10 @@ async function party() {
         const frame = document.createElement("iframe");
         frame.width = "390";
         frame.height = "900";
-        frame.srcdoc = source.replace("<head>", `<head><script>window.nova = parent.drawphoneTestNova(${index})</script>`);
+        frame.srcdoc = source.replace(
+            "<head>",
+            `<head><script>window.nova = parent.drawphoneTestNova(${index})</script>`,
+        );
         frames.push(frame);
         const loaded = new Promise<Document>((resolve) => {
             ready[index] = () => resolve(frame.contentDocument!);
@@ -116,15 +133,17 @@ function pointStroke(doc: Document, offset: number) {
         ["pointermove", 110, 50],
         ["pointerup", 110, 50],
     ] as const) {
-        canvas.dispatchEvent(new PointerEvent(type, {
-            bubbles: true,
-            pointerId: 1,
-            pointerType: "mouse",
-            isPrimary: true,
-            clientX: x + dx,
-            clientY: y + dy + offset,
-            buttons: type === "pointerup" ? 0 : 1,
-        }));
+        canvas.dispatchEvent(
+            new PointerEvent(type, {
+                bubbles: true,
+                pointerId: 1,
+                pointerType: "mouse",
+                isPrimary: true,
+                clientX: x + dx,
+                clientY: y + dy + offset,
+                buttons: type === "pointerup" ? 0 : 1,
+            }),
+        );
     }
 }
 
@@ -179,7 +198,9 @@ async function play(wordFirst: boolean, reloadDrawing: boolean) {
             element(doc, "result-others").querySelectorAll("button")[index].click();
             const image = element(doc, "result-content").querySelector("img")!;
             await expect.poll(() => image.naturalWidth).toBeGreaterThan(0);
-            guesses.push(element(doc, "result-content").querySelector(".well h1:last-child")?.textContent);
+            guesses.push(
+                element(doc, "result-content").querySelector(".well h1:last-child")?.textContent,
+            );
         }
         expect(guesses.sort()).toEqual(["Guess 0", "Guess 1", "Guess 2"]);
     }
@@ -188,18 +209,28 @@ async function play(wordFirst: boolean, reloadDrawing: boolean) {
 
 test("three players finish a word-pack game, reload a draft and reopen new and old results", async () => {
     const leader = await play(false, true);
-    const oldDrawing = "data:image/svg+xml;base64," + btoa('<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><circle cx="16" cy="16" r="8"/></svg>');
+    const oldDrawing =
+        "data:image/svg+xml;base64," +
+        btoa(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><circle cx="16" cy="16" r="8"/></svg>',
+        );
     const player = { name: "Old player" };
     const Dexie = (await import("dexie")).default;
     const db = new Dexie("DrawphoneDatabase");
     db.version(1).stores({ archive: "++id,date,chains" });
     await db.table("archive").add({
         date: new Date(2000, 0, 1),
-        chains: [{ id: 0, owner: player, links: [
-            { player, type: "word", data: "Old word" },
-            { player, type: "drawing", data: oldDrawing },
-            { player, type: "word", data: "Old guess" },
-        ] }],
+        chains: [
+            {
+                id: 0,
+                owner: player,
+                links: [
+                    { player, type: "word", data: "Old word" },
+                    { player, type: "drawing", data: oldDrawing },
+                    { player, type: "word", data: "Old guess" },
+                ],
+            },
+        ],
     });
     db.close();
 
@@ -209,12 +240,16 @@ test("three players finish a word-pack game, reload a draft and reopen new and o
     const archive = element(leader, "archive-content");
     await expect.poll(() => archive.querySelectorAll("button").length).toBeGreaterThanOrEqual(2);
     for (const label of ["Guess", "Old word"]) {
-        [...archive.querySelectorAll("button")].find((entry) => entry.textContent.includes(label))!.click();
+        [...archive.querySelectorAll("button")]
+            .find((entry) => entry.textContent.includes(label))!
+            .click();
         const image = element(leader, "result-content").querySelector("img")!;
         expect(image.src).toMatch(/^data:image\/svg\+xml;base64,/);
         await expect.poll(() => image.naturalWidth).toBeGreaterThan(0);
         element(leader, "result-done").click();
-        await expect.poll(() => archive.querySelectorAll("button").length).toBeGreaterThanOrEqual(2);
+        await expect
+            .poll(() => archive.querySelectorAll("button").length)
+            .toBeGreaterThanOrEqual(2);
     }
 }, 20000);
 

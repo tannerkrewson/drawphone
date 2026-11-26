@@ -1,22 +1,19 @@
 {
     "name": "drawphone",
     "version": "1.0.0",
-    "description": "Telephone with pictures",
     "private": true,
+    "description": "Telephone with pictures",
+    "homepage": "https://github.com/tannerkrewson/drawphone#readme",
+    "bugs": {
+        "url": "https://github.com/tannerkrewson/drawphone/issues"
+    },
+    "license": "MIT",
+    "author": "Tanner Krewson",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/tannerkrewson/drawphone.git"
     },
-    "author": "Tanner Krewson",
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/tannerkrewson/drawphone/issues"
-    },
-    "homepage": "https://github.com/tannerkrewson/drawphone#readme",
     "type": "module",
-    "engines": {
-        "node": ">=26"
-    },
     "scripts": {
         "dev": "vite",
         "build": "vite build && vite build --mode nova && node -e \"if (require('fs').statSync('dist/drawphone.html').size > 2 * 1024 * 1024) throw Error('Nova HTML exceeds 2 MiB')\"",
@@ -55,5 +52,8 @@
         "vite": "^8.4.0",
         "vite-plugin-singlefile": "^2.3.4",
         "vitest": "^5.1.2"
+    },
+    "engines": {
+        "node": ">=26"
     }
 }

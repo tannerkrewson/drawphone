@@ -270,9 +270,17 @@ export function connect(nova?: Nova<State>) {
             waiting.updateWaitingList({
                 players: round.seats.flatMap((player, index) =>
                     waitingFor(round, index)
-                        ? [{ name: player.name, vacant: player.id === null, seat: index }]
+                        ? [
+                              {
+                                  id: player.id,
+                                  name: player.name,
+                                  vacant: player.id === null,
+                                  seat: index,
+                              },
+                          ]
                         : [],
                 ),
+                leaderId: nova?.leaderId,
                 onSkip: isLeader()
                     ? (index: number) => emit("skip", { id: round.id, seat: index })
                     : undefined,
@@ -297,6 +305,7 @@ export function connect(nova?: Nova<State>) {
         lobby.updatePlayerList({
             players: state ? playersInGame(state) : (nova?.players ?? []),
             settings: state?.settings,
+            leaderId: nova?.leaderId,
             leader: isLeader(),
             previous: state?.phase === "results",
             started,

@@ -56,8 +56,8 @@ class Lobby extends Screen {
         });
     }
 
-    updatePlayerList({ players, settings, leader, previous, started, saving }) {
-        this.userList.update(players);
+    updatePlayerList({ players, settings, leader, leaderId, previous, started, saving }) {
+        this.userList.update(players, leaderId);
         this.settings = settings;
         this.playerCount = players.length;
         const twoWordFirst = players.length === 2 && settings?.wordFirst;

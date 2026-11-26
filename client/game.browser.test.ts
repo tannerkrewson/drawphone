@@ -167,9 +167,14 @@ async function play(wordFirst: boolean, reloadDrawing: boolean) {
     const leader = documents[0];
     expect(element(leader, "subtitle").textContent).toMatch(/waiting for the party/i);
     expect(element(leader, "lobby-players").textContent).toContain(players[0].name);
-    expect(element(leader, "lobby-players").querySelector("img")).toBeNull();
+    expect(element(leader, "lobby-players").querySelector("img:not(.host-icon)")).toBeNull();
     session.start();
     const guest = documents[1];
+    for (const doc of documents) {
+        const crowns = element(doc, "lobby-players").querySelectorAll("img[alt='Host']");
+        expect(crowns).toHaveLength(1);
+        expect(crowns[0].parentElement?.textContent).toBe(players[0].name);
+    }
     const leaderPack = element<HTMLSelectElement>(leader, "lobby-settings-wordpack");
     const guestPack = element<HTMLSelectElement>(guest, "lobby-settings-wordpack");
     expect(element(guest, "lobby-settings").getClientRects().length).toBeGreaterThan(0);

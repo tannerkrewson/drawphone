@@ -12,10 +12,10 @@ class Waiting extends Screen {
         this.userList = new UserList($("#waiting-players"));
     }
 
-    updateWaitingList({ players, onSkip, nextRound, count, finalCount }) {
+    updateWaitingList({ players, leaderId, onSkip, nextRound, count, finalCount }) {
         this.setSubtitle(`${count}/${finalCount}`);
         $("#waiting-next-round").toggleClass("d-none", !nextRound);
-        this.userList.update(players, onSkip);
+        this.userList.update(players, leaderId, onSkip);
     }
 }
 

@@ -34,19 +34,22 @@ From `~/code/rocketcrab/packages/protocol/src/limits.ts`:
 - **Upload rate:** each player averages 256 KiB/s; after a large upload the
   next one waits. Drawings are far below that.
 
-What it means for Drawphone: a round references its drawings plus at most
-one pending upload per player, so each drawing gets
-`floor(2 MiB ÷ (drawings + players)) − 164` bytes. At full turn ranges that
-is about 85 KB for 6 players, 3 KB for 36 and 830 bytes for 64.
+What it means for Drawphone:
 
-- **Decision for Tanner:** 830 bytes of gzipped SVG is only a few strokes.
-  Either accept it for very large parties (the ink meter makes it visible),
-  or change how large parties play (for example, a turn range that doesn't
-  grow with the player count) before shipping `maxPlayers: 64`. Nova's 2 MiB
-  is what a reload must download, the same as the game itself, so raising it
-  isn't the fix.
-- Keep the limit and overhead as constants in one module, with a comment
-  pointing at `limits.ts`. Nova doesn't expose them to games at runtime.
+- **Drawings are stored as strokes** (see Drawings), about six times smaller
+  than gzipped SVG. In a simulation of freehand strokes, a quick doodle
+  was about 0.15 KB, a typical drawing 0.5 KB, a detailed one 2 KB and a very
+  detailed one 6 KB.
+- **Unused space carries forward:** each turn's per-drawing limit is the free
+  space divided by the drawings left in the round. Most drawings use far
+  less than their share, so the limit grows during a round. It never
+  shrinks: a turn spends at most its share of what's free, so every later
+  share is at least as large. Nobody gets less than an equal split of
+  2 MiB, about 85 KB at 6 players, 3 KB at 36 and 830 bytes at 64 with full
+  turn ranges.
+- Keep the limit and the 164-byte overhead as constants in one module, with
+  a comment pointing at `limits.ts`. Nova doesn't expose them to games at
+  runtime.
 
 ## 1. Branches
 
@@ -75,6 +78,9 @@ the production cutover, after verifying the Pages artifact.
   2. The same game with "Players write first word".
   3. Results are saved to the archive and the archive shows them, including
      an old record whose drawings are SVG data URLs.
+- **Unit cases:** a drawing survives encode and decode within 1 px, and the
+  turn limit never shrinks during a round when every drawing uses its full
+  limit.
 
 ## 3. Cleanup
 
@@ -169,8 +175,8 @@ Remove:
   - Seats are an ordered list of player ids, and each link stores a seat
     index.
   - Guesses are capped at 50 characters and run through `stripTags`.
-  - Drawings are file refs.
-  - The per-drawing byte budget is stored in state.
+  - Drawings are file refs, each with its byte size.
+  - The current turn's per-drawing limit is stored in state.
 - **Leader:** reject leader-only actions unless
   `context.actor.id === context.leaderId`. Show the controls only when
   `nova.player.id === nova.leaderId`. Remove the kick button.
@@ -199,34 +205,50 @@ Remove:
 - **Untrusted text:** names and guesses are untrusted. `results.js`, the lobby
   and the waiting list build HTML strings, so insert those values with
   `textContent`.
-- **Unfinished drawings:** save the canvas (Fabric `toJSON`) to
-  `localStorage` while drawing, keyed by player id and turn, and restore it
-  after a reload.
+- **Unfinished drawings:** save the stroke records to `localStorage` while
+  drawing, keyed by player id and turn, and restore them into the canvas
+  after a reload with the same rebuild code.
 
 ### Drawings
 
+- **Stroke format:** one record per stroke, `{ color, width, points }`,
+  where `points` comes from:
+  1. The points Fabric's `PencilBrush` recorded, which are the control
+     points of the path it creates.
+  2. `simplify(points, 1, true)` from `simplify-js`, which keeps the stroke
+     within 1 px.
+  3. `polyline.encode(points, 0)` from `@mapbox/polyline`: whole-pixel
+     differences from the previous point, a few characters each.
+
+  A drawing is the JSON array of its records, compressed with fflate's
+  `deflateSync` at level 9. Rebuild paths with the smoothing function
+  `PencilBrush` itself uses (`util.getSmoothPathFromPoints` in Fabric 6;
+  check the name in 7.4), so a drawing looks the way it was drawn. The
+  encode and rebuild code is the only custom part.
 - **Submit:**
-  1. Build the SVG with Fabric's `toSVG()`, replacing each path's data with
-     `pathToString(optimizePath(path.path, 1))` from `svg-path-commander/util`.
-     Use the full-precision path array from the Fabric object. Already-rounded
-     `d` strings stop the `T` shorthand from working.
-  2. Gzip it with the browser's `CompressionStream("gzip")`.
-  3. Check the size against the budget.
-  4. Call `nova.files.put(new Blob([bytes], { type: "application/gzip" }))`.
-  5. Dispatch the submit action with the ref. It must land within 10
-     seconds; a retry uploads again first.
-  6. If the upload or dispatch fails, keep the drawing on screen, show the
+  1. Encode the drawing.
+  2. Call `nova.files.put(new Blob([bytes]))`. Leave the MIME type empty;
+     it only costs header bytes.
+  3. Dispatch the submit action with the ref and the byte size. It must land
+     within 10 seconds; a retry uploads again first, which reuses the same
+     ref because the bytes are the same.
+  4. If the upload or dispatch fails, keep the drawing on screen, show the
      reason and offer a retry.
 - **Ink limit:**
-  - After each stroke, measure the gzipped size of the optimized SVG.
-  - If a stroke takes the drawing over the budget, remove that stroke, stop
+  - After each stroke, encode the drawing (fflate is synchronous) and
+    compare its size with the turn's limit.
+  - If a stroke takes the drawing over the limit, remove that stroke, stop
     accepting new ones and tell the player the canvas is full.
   - Show a meter once 80% is used.
-- **Budget:** the handler computes it when each round starts, with the
-  formula in "Nova shared-file limits", and stores it in state.
+- **Turn limit:** when each turn starts, the handler sets
+  `floor((2 MiB − bytes referenced) ÷ drawings left in the round) − 164`
+  and stores it in state. Drawings left includes the turn that's starting.
+  Its own pending uploads are those drawings, so they need no separate
+  reserve.
 - **Display:**
-  1. `nova.files.get(ref)`, then `DecompressionStream("gzip")`, then an
-     `image/svg+xml` Blob, then `URL.createObjectURL`, then `<img>`.
+  1. `nova.files.get(ref)`, then `inflateSync`, then rebuild the paths into
+     an SVG string, then an `image/svg+xml` Blob, then
+     `URL.createObjectURL`, then `<img>`.
   2. Only request what's on screen. Nova copies every referenced file to
      every device in the background and fetches one directly when a `get`
      waits on it, so the current turn's drawing never queues behind results.

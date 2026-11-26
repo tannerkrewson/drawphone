@@ -36,11 +36,15 @@ per file, 32 files and 1 MiB in total per session.
   - 256 KiB per file kept.
   - Optionally, the limits exposed to games at runtime.
 - **What's blocked:** only `maxPlayers: 64` and supporting large games. Until
-  the limits change, build step 6 against the current values. Keep them as
+  the limits change, build step 6 against the current values. Seven players can use their full turn range within 32 refs, including pending uploads. Keep them as
   constants in one module that the budget math reads, so only those
   constants change later.
 
 ## 1. Branches
+
+Implementation commits go directly on the current base, `docs/plan`,
+which descends from `origin/prod`. Apply the remote branch changes with
+the production cutover, after verifying the Pages artifact.
 
 1. Fast-forward `prod` to `docs/plan`.
 2. Rename `prod` to `main` on GitHub and make `main` the default branch.
@@ -54,10 +58,7 @@ per file, 32 files and 1 MiB in total per session.
 - Add a test that the word packs load and that the 13+/18+ filter works.
 - **Browser tests:** Vitest browser mode (`@vitest/browser-playwright`,
   headless Chromium), with one test page holding one iframe per player.
-  - **Before step 6:** serve Express and Socket.IO through Vitest's dev
-    server so the iframes are same-origin. Players join with
-    `?rocketcrab=true&code=…&name=…`, using a code from `POST /new`.
-  - **After step 6:** the page provides each frame a fake `window.nova`. It
+  - In the static build, the page provides each frame a fake `window.nova`. It
     runs the handlers once, broadcasts the state, and implements players,
     `leaderId`, `playerJoined`, `playerLeft` and `files`.
 - **Browser cases:**
@@ -148,8 +149,8 @@ Remove:
     again
   - leader-only settings: word pack, time limit, turn limit, "Players write
     first word" and a toggle for the 13+/18+ word packs (off by default)
-  - turn limits allowed up to the full range `getNewTurnLimit` gives, with
-    no limit based on player count
+  - allow the full turn range given by `getNewTurnLimit` without an extra
+    drawing-budget cap on turns
 - Reuse the surviving logic by editing it in place: the row-complete Latin
   square in `round.js`, `getNewTurnLimit`, the chain-length rules (odd final
   link count, offset when players write the first word, 6-link demo mode

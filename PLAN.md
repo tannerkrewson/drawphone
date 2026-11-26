@@ -1,22 +1,26 @@
 # Drawphone production cutover
 
-Dokku serves the current version until the GitHub Pages and rocketcrab cutover.
-The Pages workflow is gated by the `DRAWPHONE_PAGES_ENABLED` repository variable.
+The live rocketcrab catalog already points Drawphone at
+`https://drawphone.tannerkrewson.com/drawphone.html`. Dokku still serves the
+public site and returns 404 for that file.
 
-- Set `DRAWPHONE_PAGES_ENABLED` to `true` when ready to publish and run
-  the workflow on `main`.
-- Publish Pages and verify that `drawphone.html` returns
-  `Access-Control-Allow-Origin: *`. Set the custom domain in GitHub Pages
-  settings and point `drawphone.tannerkrewson.com` to GitHub Pages in
-  Cloudflare as part of the same cutover as the rocketcrab catalog deploy.
-  The available Cloudflare session has Zone Read and needs DNS Edit access
-  for `tannerkrewson.com`.
-- Deploy the rocketcrab catalog update that moves Drawphone into
-  `NOVA_GAMES` and removes the two legacy Drawphone entries. The catalog
-  update is committed locally on rocketcrab’s `main` and deploys on push.
-- Verify that rocketcrab launches a round and that the public archive still
-  opens at `/archive`. Stop the Dokku app, then delete or redirect the
-  `dpk` DNS record.
+1. Push Drawphone’s `main` and check CI. Pages already uses GitHub Actions.
+   Set `DRAWPHONE_PAGES_ENABLED` to `true` and run the workflow on `main`.
+2. On the project Pages URL (`https://www.tannerkrewson.com/drawphone/`),
+   check the landing page, `/archive` and `/how-to-play` under that path, and
+   their assets. Check that `drawphone.html` returns 200 with
+   `Access-Control-Allow-Origin: *` and try that build in a Nova test party.
+3. Save the existing DNS record for rollback. Add `drawphone.tannerkrewson.com`
+   in the repository’s Pages settings, then point its Cloudflare DNS record at
+   `tannerkrewson.github.io` with a DNS-only CNAME. This needs DNS Edit access
+   for `tannerkrewson.com`. Check the certificate, enable Enforce HTTPS, and
+   recheck the production HTML response and CORS header.
+4. Start and join a real party from rocketcrab, finish a round, and download
+   a chain PNG. Verify that the public `/archive` opens and reads results
+   previously saved on the Drawphone site. Keep Dokku and `dpk` available
+   through verification. For a full rollback, restore the old DNS record and
+   redeploy the legacy Drawphone entries in rocketcrab’s catalog. Retire the
+   old app and delete or redirect `dpk` after cutover.
 
 ## Deferred
 
